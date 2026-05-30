@@ -9,6 +9,10 @@ type ResponseStatus struct {
 	Message string `json:"message"`
 }
 
+func NewResponseFromError(appErr *AppError) Response {
+	return NewResponse(appErr.Code, appErr.Message, nil)
+}
+
 func NewResponse(status int, message string, data any) Response {
 	return Response{
 		Meta: ResponseStatus{

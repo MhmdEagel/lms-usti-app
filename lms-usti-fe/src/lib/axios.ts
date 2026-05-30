@@ -18,6 +18,13 @@ instance.interceptors.response.use(
   async (response) => {
     return response;
   },
-  
+  async (error) => {
+    if (error.response?.status === 401) {
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/auth")) {
+        window.location.href = "/auth/login";
+      }
+    }
+    return Promise.reject(error);
+  },
 );
 export default instance;

@@ -19,20 +19,23 @@ func (a *AuthMiddleware) Handle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader("Authorization")
 		if header == "" {
-			res := data.NewResponse(http.StatusUnauthorized, "missing authorization header", nil)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, res)
+			appErr := data.NewAppError(http.StatusUnauthorized, "missing authorization header", nil)
+			res := data.NewResponseFromError(appErr)
+			c.AbortWithStatusJSON(appErr.Code, res)
 			return
 		}
 		token := strings.SplitN(header, " ", 2)
 		if len(token) != 2 || token[0] != "Bearer" {
-			res := data.NewResponse(http.StatusUnauthorized, "unauthorized", nil)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, res)
+			appErr := data.NewAppError(http.StatusUnauthorized, "unauthorized", nil)
+			res := data.NewResponseFromError(appErr)
+			c.AbortWithStatusJSON(appErr.Code, res)
 			return
 		}
 		claims, err := lib.VerifyToken(token[1])
 		if err != nil {
-			res := data.NewResponse(http.StatusUnauthorized, "unauthorized", nil)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, res)
+			appErr := data.NewAppError(http.StatusUnauthorized, "unauthorized", err)
+			res := data.NewResponseFromError(appErr)
+			c.AbortWithStatusJSON(appErr.Code, res)
 			return
 		}
 		c.Set("user", data.MeResponse{Email: claims.Email, Role: claims.Role, UserId: claims.UserId, Fullname: claims.Fullname})
