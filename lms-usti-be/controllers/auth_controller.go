@@ -19,26 +19,40 @@ func NewAuthController(authService services.AuthServiceInterface) *AuthControlle
 	return &AuthController{authService: authService}
 }
 
-func (a *AuthController) Login(c *gin.Context) {
-	var req data.LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		msg := lib.GetValidationMessage(err.(validator.ValidationErrors))
+func handleError(c *gin.Context, err error) {
+	appErr, ok := err.(*data.AppError)
+	if ok {
+		res := data.NewResponseFromError(appErr)
+		c.JSON(appErr.Code, res)
+		return
+	}
+	log.Printf("unexpected error: %v", err)
+	appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
+	res := data.NewResponseFromError(appErr)
+	c.JSON(http.StatusInternalServerError, res)
+}
+
+func bindJSONError(c *gin.Context, err error) {
+	validationErrs, ok := err.(validator.ValidationErrors)
+	if ok {
+		msg := lib.GetValidationMessage(validationErrs)
 		res := data.NewResponse(http.StatusBadRequest, msg, nil)
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
+	res := data.NewResponse(http.StatusBadRequest, "invalid request body", nil)
+	c.JSON(http.StatusBadRequest, res)
+}
+
+func (a *AuthController) Login(c *gin.Context) {
+	var req data.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		bindJSONError(c, err)
+		return
+	}
 	loginData, err := a.authService.Login(req)
 	if err != nil {
-		appErr, ok := err.(*data.AppError)
-		if ok {
-			res := data.NewResponseFromError(appErr)
-			c.JSON(appErr.Code, res)
-			return
-		}
-		log.Printf("Login: unexpected error: %v", err)
-		appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
-		res := data.NewResponseFromError(appErr)
-		c.JSON(http.StatusInternalServerError, res)
+		handleError(c, err)
 		return
 	}
 	res := data.NewResponse(http.StatusOK, "login success", loginData)
@@ -48,22 +62,11 @@ func (a *AuthController) Login(c *gin.Context) {
 func (a *AuthController) Register(c *gin.Context) {
 	var req data.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		errMsg := lib.GetValidationMessage(err.(validator.ValidationErrors))
-		res := data.NewResponse(http.StatusBadRequest, errMsg, nil)
-		c.JSON(http.StatusBadRequest, res)
+		bindJSONError(c, err)
 		return
 	}
 	if err := a.authService.Register(req); err != nil {
-		appErr, ok := err.(*data.AppError)
-		if ok {
-			res := data.NewResponseFromError(appErr)
-			c.JSON(appErr.Code, res)
-			return
-		}
-		log.Printf("Register: unexpected error: %v", err)
-		appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
-		res := data.NewResponseFromError(appErr)
-		c.JSON(http.StatusInternalServerError, res)
+		handleError(c, err)
 		return
 	}
 	res := data.NewResponse(http.StatusOK, "register success", nil)
@@ -73,23 +76,12 @@ func (a *AuthController) Register(c *gin.Context) {
 func (a *AuthController) ActivateUser(c *gin.Context) {
 	var req data.VerificationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		errMsg := lib.GetValidationMessage(err.(validator.ValidationErrors))
-		res := data.NewResponse(http.StatusBadRequest, errMsg, nil)
-		c.JSON(http.StatusBadRequest, res)
+		bindJSONError(c, err)
 		return
 	}
 	err := a.authService.Activate(req)
 	if err != nil {
-		appErr, ok := err.(*data.AppError)
-		if ok {
-			res := data.NewResponseFromError(appErr)
-			c.JSON(appErr.Code, res)
-			return
-		}
-		log.Printf("ActivateUser: unexpected error: %v", err)
-		appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
-		res := data.NewResponseFromError(appErr)
-		c.JSON(http.StatusInternalServerError, res)
+		handleError(c, err)
 		return
 	}
 	res := data.NewResponse(http.StatusOK, "account successfully activated", nil)
@@ -99,23 +91,12 @@ func (a *AuthController) ActivateUser(c *gin.Context) {
 func (a *AuthController) ResendActivation(c *gin.Context) {
 	var req data.SendVerificationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		errMsg := lib.GetValidationMessage(err.(validator.ValidationErrors))
-		res := data.NewResponse(http.StatusBadRequest, errMsg, nil)
-		c.JSON(http.StatusBadRequest, res)
+		bindJSONError(c, err)
 		return
 	}
 	err := a.authService.SendVerificationEmail(req)
 	if err != nil {
-		appErr, ok := err.(*data.AppError)
-		if ok {
-			res := data.NewResponseFromError(appErr)
-			c.JSON(appErr.Code, res)
-			return
-		}
-		log.Printf("ResendActivation: unexpected error: %v", err)
-		appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
-		res := data.NewResponseFromError(appErr)
-		c.JSON(http.StatusInternalServerError, res)
+		handleError(c, err)
 		return
 	}
 	res := data.NewResponse(http.StatusOK, "email successfully sent", nil)
@@ -125,23 +106,12 @@ func (a *AuthController) ResendActivation(c *gin.Context) {
 func (a *AuthController) SendResetPasswordEmail(c *gin.Context) {
 	var req data.SendVerificationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		errMsg := lib.GetValidationMessage(err.(validator.ValidationErrors))
-		res := data.NewResponse(http.StatusBadRequest, errMsg, nil)
-		c.JSON(http.StatusBadRequest, res)
+		bindJSONError(c, err)
 		return
 	}
 	err := a.authService.SendVerificationEmail(req)
 	if err != nil {
-		appErr, ok := err.(*data.AppError)
-		if ok {
-			res := data.NewResponseFromError(appErr)
-			c.JSON(appErr.Code, res)
-			return
-		}
-		log.Printf("SendResetPasswordEmail: unexpected error: %v", err)
-		appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
-		res := data.NewResponseFromError(appErr)
-		c.JSON(http.StatusInternalServerError, res)
+		handleError(c, err)
 		return
 	}
 	res := data.NewResponse(http.StatusOK, "email successfully sent", nil)
@@ -151,29 +121,17 @@ func (a *AuthController) SendResetPasswordEmail(c *gin.Context) {
 func (a *AuthController) ResetPassword(c *gin.Context) {
 	var req data.NewPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		errMsg := lib.GetValidationMessage(err.(validator.ValidationErrors))
-		res := data.NewResponse(http.StatusBadRequest, errMsg, nil)
-		c.JSON(http.StatusBadRequest, res)
+		bindJSONError(c, err)
 		return
 	}
 
 	err := a.authService.ResetPassword(req)
 	if err != nil {
-		appErr, ok := err.(*data.AppError)
-		if ok {
-			res := data.NewResponseFromError(appErr)
-			c.JSON(appErr.Code, res)
-			return
-		}
-		log.Printf("ResetPassword: unexpected error: %v", err)
-		appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
-		res := data.NewResponseFromError(appErr)
-		c.JSON(http.StatusInternalServerError, res)
+		handleError(c, err)
 		return
 	}
 	res := data.NewResponse(http.StatusOK, "password successfuly changed", nil)
 	c.JSON(http.StatusOK, res)
-
 }
 
 func (a *AuthController) Me(c *gin.Context) {

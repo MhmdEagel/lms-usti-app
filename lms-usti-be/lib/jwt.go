@@ -23,6 +23,7 @@ func CreateToken(fullname, email, role, userId string) (string, error) {
 			"email":    email,
 			"userId":   userId,
 			"exp":      time.Now().Add(time.Hour * 24).Unix(),
+			"iat":      time.Now().Unix(),
 			"role":     role,
 		})
 	tokenString, err := token.SignedString([]byte(env.SECRET_KEY))

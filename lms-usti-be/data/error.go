@@ -1,13 +1,11 @@
 package data
 
-var (
-	ErrInvalidCredentials = NewAppError(401, "email atau password salah", nil)
-	ErrEmailAlreadyExist  = NewAppError(409, "email sudah terdaftar", nil)
-	ErrEmailNotFound      = NewAppError(404, "email tidak ditemukan", nil)
-	ErrAccountNotVerified = NewAppError(403, "akun belum diverifikasi", nil)
-	ErrInvalidToken       = NewAppError(400, "token tidak valid", nil)
-	ErrTokenExpired       = NewAppError(400, "token sudah kedaluwarsa", nil)
-)
+func ErrInvalidCredentials(err error) *AppError { return NewAppError(401, "email atau password salah", err) }
+func ErrEmailAlreadyExist(err error) *AppError  { return NewAppError(409, "email sudah terdaftar", err) }
+func ErrEmailNotFound(err error) *AppError      { return NewAppError(404, "email tidak ditemukan", err) }
+func ErrAccountNotVerified(err error) *AppError { return NewAppError(403, "akun belum diverifikasi", err) }
+func ErrInvalidToken(err error) *AppError       { return NewAppError(400, "token tidak valid", err) }
+func ErrTokenExpired(err error) *AppError       { return NewAppError(400, "token sudah kedaluwarsa", err) }
 
 type AppError struct {
 	Code    int

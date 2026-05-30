@@ -41,9 +41,12 @@ func GetValidationMessage(err validator.ValidationErrors) string {
 	return ""
 }
 
-func HashPassword(password string) string {
-	hash, _ := bcrypt.GenerateFromPassword([]byte(password), 15)
-	return string(hash)
+func HashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 15)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
 }
 
 func IsPasswordMatch(hashedPassword, password string) bool {
