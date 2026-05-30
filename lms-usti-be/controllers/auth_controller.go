@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"errors"
+	"log"
 	"net/http"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
@@ -9,7 +9,6 @@ import (
 	"github.com/MhmdEagel/lms-usti-be/services"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"gorm.io/gorm"
 )
 
 type AuthController struct {
@@ -30,13 +29,16 @@ func (a *AuthController) Login(c *gin.Context) {
 	}
 	loginData, err := a.authService.Login(req)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			res := data.NewResponse(http.StatusBadRequest, "email or password incorrect", nil)
-			c.JSON(http.StatusBadRequest, res)
+		appErr, ok := err.(*data.AppError)
+		if ok {
+			res := data.NewResponseFromError(appErr)
+			c.JSON(appErr.Code, res)
 			return
 		}
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
-		c.JSON(http.StatusBadRequest, res)
+		log.Printf("Login: unexpected error: %v", err)
+		appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
+		res := data.NewResponseFromError(appErr)
+		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
 	res := data.NewResponse(http.StatusOK, "login success", loginData)
@@ -52,7 +54,15 @@ func (a *AuthController) Register(c *gin.Context) {
 		return
 	}
 	if err := a.authService.Register(req); err != nil {
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
+		appErr, ok := err.(*data.AppError)
+		if ok {
+			res := data.NewResponseFromError(appErr)
+			c.JSON(appErr.Code, res)
+			return
+		}
+		log.Printf("Register: unexpected error: %v", err)
+		appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
+		res := data.NewResponseFromError(appErr)
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
@@ -70,7 +80,15 @@ func (a *AuthController) ActivateUser(c *gin.Context) {
 	}
 	err := a.authService.Activate(req)
 	if err != nil {
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
+		appErr, ok := err.(*data.AppError)
+		if ok {
+			res := data.NewResponseFromError(appErr)
+			c.JSON(appErr.Code, res)
+			return
+		}
+		log.Printf("ActivateUser: unexpected error: %v", err)
+		appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
+		res := data.NewResponseFromError(appErr)
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
@@ -88,7 +106,15 @@ func (a *AuthController) ResendActivation(c *gin.Context) {
 	}
 	err := a.authService.SendVerificationEmail(req)
 	if err != nil {
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
+		appErr, ok := err.(*data.AppError)
+		if ok {
+			res := data.NewResponseFromError(appErr)
+			c.JSON(appErr.Code, res)
+			return
+		}
+		log.Printf("ResendActivation: unexpected error: %v", err)
+		appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
+		res := data.NewResponseFromError(appErr)
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
@@ -106,7 +132,15 @@ func (a *AuthController) SendResetPasswordEmail(c *gin.Context) {
 	}
 	err := a.authService.SendVerificationEmail(req)
 	if err != nil {
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
+		appErr, ok := err.(*data.AppError)
+		if ok {
+			res := data.NewResponseFromError(appErr)
+			c.JSON(appErr.Code, res)
+			return
+		}
+		log.Printf("SendResetPasswordEmail: unexpected error: %v", err)
+		appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
+		res := data.NewResponseFromError(appErr)
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
@@ -125,7 +159,15 @@ func (a *AuthController) ResetPassword(c *gin.Context) {
 
 	err := a.authService.ResetPassword(req)
 	if err != nil {
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
+		appErr, ok := err.(*data.AppError)
+		if ok {
+			res := data.NewResponseFromError(appErr)
+			c.JSON(appErr.Code, res)
+			return
+		}
+		log.Printf("ResetPassword: unexpected error: %v", err)
+		appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
+		res := data.NewResponseFromError(appErr)
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}

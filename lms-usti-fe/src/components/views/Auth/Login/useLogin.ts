@@ -42,7 +42,7 @@ const useLogin = () => {
       await loginUser(data);
     } catch (error) {
       const err = error as AxiosError<ErrorResponse>;
-      setError("root", { message: err.response?.data.meta.message });
+      setError("root", { message: err.response?.data.meta.message || "Terjadi kesalahan, coba lagi" });
     } finally {
       setIsPending(false);
     }
