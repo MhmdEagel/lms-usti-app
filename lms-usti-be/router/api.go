@@ -1,0 +1,123 @@
+package router
+
+import (
+	"github.com/MhmdEagel/lms-usti-be/config"
+	"github.com/MhmdEagel/lms-usti-be/controllers"
+	"github.com/MhmdEagel/lms-usti-be/middleware"
+	"github.com/MhmdEagel/lms-usti-be/repositories"
+	"github.com/MhmdEagel/lms-usti-be/services"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+)
+
+func InitRouter() *gin.Engine {
+	Db := config.ConnectDatabase()
+	r := gin.Default()
+	r.MaxMultipartMemory = 8 << 20
+	// TODO: Set CORS to be more secured
+	r.Use(cors.Default())
+	authMiddleware := middleware.NewAuthMiddleware()
+	aclMiddleware := middleware.NewAclMiddleware()
+	globalErrMiddleware := middleware.NewGlobalErrMiddleware()
+	notFoundController := controllers.NewNotFoundController()
+	r.NoRoute(notFoundController.NotFound)
+	r.Use(globalErrMiddleware.Handle())
+	api := r.Group("/lms-usti-api")
+	{
+		userRepository := repositories.NewUserRepository(Db)
+		verificationRepository := repositories.NewVerificationRepository(Db)
+
+		classroomRepository := repositories.NewClassroomRepository(Db)
+		announcementRepository := repositories.NewAnnouncementRepository(Db)
+		materialRepository := repositories.NewMaterialRepository(Db)
+		assignmentRepository := repositories.NewAssignmentRepository(Db)
+		submissionRepository := repositories.NewSubmissionRepository(Db)
+
+		authService := services.NewAuthService(userRepository, verificationRepository)
+		submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository)
+		assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService)
+		classroomService := services.NewClassroomService(classroomRepository, submissionService, assignmentService)
+		announcementService := services.NewAnnouncementService(announcementRepository, classroomRepository)
+		materialService := services.NewMaterialService(materialRepository, classroomRepository)
+		mediaService := services.NewMediaService(materialService)
+
+		api.GET("", controllers.Test)
+		auth := api.Group("/auth")
+		{
+			authController := controllers.NewAuthController(authService)
+
+			auth.POST("/login", authController.Login)
+			auth.POST("/register", authController.Register)
+			auth.POST("/activation", authController.ActivateUser)
+			auth.POST("/activation/resend", authController.ResendActivation)
+			auth.POST("/reset-password", authController.SendResetPasswordEmail)
+			auth.POST("/new-password", authController.ResetPassword)
+			auth.Use(authMiddleware.Handle()).GET("/me", authController.Me)
+		}
+		classroom := api.Group("/classroom")
+		classroom.Use(authMiddleware.Handle())
+		{
+
+			classroomController := controllers.NewClassroomController(classroomService)
+			announcementController := controllers.NewAnnouncementController(announcementService)
+			materialController := controllers.NewMaterialController(materialService)
+			assignmentController := controllers.NewAssignmentController(assignmentService)
+			submissionController := controllers.NewSubmissionController(submissionService)
+
+			classroom.GET("/dosen/classrooms", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.FindAllByDosenId)
+			classroom.GET("/mahasiswa/classrooms", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.FindAllByMahasiswaId)
+			classroom.POST("/create", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Create)
+			classroom.POST("/join", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.Enroll)
+			classroom.GET("/:id", classroomController.FindById)
+			classroom.GET("/:id/members", classroomController.FindAllClassroomMember)
+			classroom.DELETE("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Delete)
+			classroom.PUT("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Update)
+
+			classroom.GET("/:id/announcements", announcementController.FindAll)
+			classroom.POST("/:id/announcements", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Create)
+			classroom.DELETE("/:id/announcements/:announcementId", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Delete)
+
+			classroom.GET("/:id/materials", materialController.FindAll)
+			classroom.GET("/:id/materials/:materialId", materialController.FindById)
+			classroom.POST("/:id/materials", aclMiddleware.Handle([]string{"DOSEN"}), materialController.Create)
+			classroom.PUT("/:id/materials/:materialId", aclMiddleware.Handle([]string{"DOSEN"}), materialController.Update)
+			classroom.DELETE("/:id/materials/:materialId", aclMiddleware.Handle([]string{"DOSEN"}), materialController.Delete)
+
+			classroom.GET("/:id/assignments", assignmentController.FindAll)
+			classroom.GET("/:id/assignments/:assignmentId", assignmentController.FindById)
+			classroom.POST("/:id/assignments", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Create)
+			classroom.PUT("/:id/assignments/:assignmentId", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Update)
+			classroom.DELETE("/:id/assignments/:assignmentId", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Delete)
+
+			classroom.GET("/:id/assignments/:assignmentId/submissions", aclMiddleware.Handle([]string{"DOSEN"}), submissionController.FindAll)
+			classroom.GET("/:id/assignments/:assignmentId/submissions/:submissionId", aclMiddleware.Handle([]string{"DOSEN"}), submissionController.FindById)
+			classroom.POST("/:id/assignments/:assignmentId/submissions", aclMiddleware.Handle([]string{"MAHASISWA"}), submissionController.Submit)
+			// TODO: Create grading for dosen
+		}
+		media := api.Group("/media")
+		{
+			mediaController := controllers.NewMediaController(mediaService)
+			materials := media.Group("/materials")
+			{
+				materials.GET("/:name", mediaController.FindMaterialFile)
+				materials.POST("", authMiddleware.Handle(), aclMiddleware.Handle([]string{"DOSEN"}), mediaController.UploadMaterial)
+				materials.POST("/delete-batch", authMiddleware.Handle(), mediaController.RemoveMaterialBatch)
+				materials.DELETE("/:name", authMiddleware.Handle(), mediaController.RemoveMaterial)
+			}
+			assignments := media.Group("/assignments")
+			{
+				assignments.GET("/:name", mediaController.FindAssignmentFile)
+				assignments.POST("", authMiddleware.Handle(), aclMiddleware.Handle([]string{"DOSEN"}), mediaController.UploadAssignment)
+				assignments.POST("/delete-batch", authMiddleware.Handle(), mediaController.RemoveAssignmentBatch)
+				assignments.DELETE("/:name", authMiddleware.Handle(), mediaController.RemoveAssignment)
+			}
+			profiles := media.Group("/profiles")
+			{
+				profiles.POST("", mediaController.UploadProfilePicture)
+				profiles.GET("/:name", mediaController.FindProfilePicture)
+				profiles.DELETE("/:name", mediaController.RemoveProfilePicture)
+			}
+		}
+	}
+	return r
+}
