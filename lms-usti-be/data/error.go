@@ -7,6 +7,7 @@ func ErrAccountNotVerified(err error) *AppError { return NewAppError(403, "akun 
 func ErrInvalidToken(err error) *AppError       { return NewAppError(400, "token tidak valid", err) }
 func ErrTokenExpired(err error) *AppError       { return NewAppError(400, "token sudah kedaluwarsa", err) }
 
+
 type AppError struct {
 	Code    int
 	Message string

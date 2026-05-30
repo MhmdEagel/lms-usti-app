@@ -1,143 +1,271 @@
-# Issue: Bangun Error Handling Konsisten untuk Fitur Login
+# Issue: Unit Test untuk Fitur Autentikasi
 
 ## Goal
 
-Membangun sistem error handling yang terstruktur dan konsisten di backend Go, dimulai dari fitur login. Sistem ini harus bisa diikuti oleh junior programmer atau model AI dengan instruksi high-level.
+Membuat unit test yang komprehensif untuk seluruh fitur autentikasi backend (login, register, aktivasi email, resend aktivasi, reset password, new password) menggunakan `net/http/httptest` mengikuti pattern Gin testing. File utama bernama `main_auth_test.go`.
+
+---
+
+## Pertimbangan Arsitektur Test
+
+**Masalah:** Fungsi `InitRouter()` di `router/api.go` memanggil `config.ConnectDatabase()` yang terkoneksi ke MySQL langsung. Jika tidak ada database, fungsi ini akan panic.
+
+**Solusi yang harus dilakukan:**
+
+Buat fungsi helper `setupAuthTestRouter` di file test. Fungsi ini tidak memanggil `config.ConnectDatabase()`, melainkan menerima `*gorm.DB` sebagai parameter (atau membuat in-memory test database sendiri).
+
+Dengan pola ini, test bisa menggunakan:
+- **SQLite in-memory** untuk test ringan dan cepat
+- **Test MySQL database** untuk test yang lebih realistis
+
+Pilih salah satu. Untuk kemudahan dan portabilitas, rekomendasi: SQLite in-memory via `gorm.io/driver/sqlite`.
+
+> **Catatan:** Pastikan `go.mod` tidak berantakan. Jika pakai SQLite, tambahkan dependency `gorm.io/driver/sqlite` dengan `go get`.
 
 ---
 
 ## Tahapan
 
-### Tahap 1 — Buat Object Construction Global di `data/error.go`
+### Tahap 1 — Setup Infrastructure Test
 
-Buat file baru: `lms-usti-be/data/error.go`
+Buat file: `lms-usti-be/main_auth_test.go`
 
-Di dalam file ini, buat satu struct error global yang akan jadi standar di seluruh aplikasi:
+Di dalam file ini, buat:
 
-- **Nama struct:** `AppError`
-- **Field yang harus ada:**
-  - `Code` (int) — HTTP status code, misal 400, 401, 404, 500
-  - `Message` (string) — Pesan yang akan dikirim ke client (jangan pernah kirim raw error message)
-  - `Err` (error) — Error asli untuk keperluan logging di server (tidak dikirim ke client)
-- **Method:** Buat method pada `AppError` yang mengembalikan `Error()` string agar bisa dipakai sebagai interface `error` di Go
-- **Constructor:** Buat fungsi `NewAppError(code int, message string, err error) *AppError` untuk instance baru
+1. **Package declaration:** `package main` (atau `package test` — pilih salah satu dan konsisten)
 
-**Contoh kode yang diharapkan (bukan final, hanya ilustrasi):**
+2. **Fungsi `setupTestDB()`:**
+   - Membuat koneksi ke database in-memory (SQLite atau test MySQL)
+   - Menjalankan auto-migrate untuk model yang diperlukan: `User` dan `VerificationToken`
+   - Mengembalikan `*gorm.DB`
+   - Jika gagal, panggil `t.Fatal()`
+
+3. **Fungsi `setupAuthTestRouter(db *gorm.DB) *gin.Engine`:**
+   - Mirip seperti `InitRouter()` di `router/api.go` tapi tidak memanggil `config.ConnectDatabase()`
+   - Menerima `*gorm.DB` sebagai parameter
+   - Membuat repositories dari DB yang diberikan
+   - Membuat authService dan authController dari repositories
+   - Mendaftarkan route auth yang diperlukan:
+     - `POST /lms-usti-api/auth/login`
+     - `POST /lms-usti-api/auth/register`
+     - `POST /lms-usti-api/auth/activation`
+     - `POST /lms-usti-api/auth/activation/resend`
+     - `POST /lms-usti-api/auth/reset-password`
+     - `POST /lms-usti-api/auth/new-password`
+     - `GET /lms-usti-api/auth/me` (tanpa auth middleware — atau dengan mock)
+   - Mengembalikan `*gin.Engine`
+
+> **Catatan penting:** Untuk `GET /me`, test perlu bypass auth middleware. Strateginya bisa dengan membuat middleware test khusus yang inject user ke context, atau mengirim Authorization header dengan token yang valid. Pilih yang paling sederhana.
+
+---
+
+### Tahap 2 — Test Helper: Seed Data & Cleanup
+
+Buat fungsi helper untuk menyiapkan dan membersihkan data test:
+
+1. **`cleanupDatabase(db *gorm.DB) error`**
+   - Fungsi ini **wajib dipanggil di awal setiap function test**
+   - Menghapus semua data dari tabel yang akan dipakai: `users` dan `verification_tokens`
+   - Gunakan `db.Exec("DELETE FROM verification_tokens")` dan `db.Exec("DELETE FROM users")`
+   - Urutan penting: hapus `verification_tokens` dulu baru `users` (karena foreign key)
+   - Jika menggunakan SQLite, foreign key mungkin perlu diaktifkan manual via `PRAGMA foreign_keys = OFF`
+
+2. **`seedUser(db *gorm.DB, ...) model.User`**
+   - Menerima parameter yang dibutuhkan (email, password, role, fullname, emailVerified)
+   - Hash password memakai `lib.HashPassword`
+   - Simpan ke DB, return user yang sudah tersimpan (lengkap dengan ID)
+
+3. **`seedVerificationToken(db *gorm.DB, email string, expired bool) model.VerificationToken`**
+   - Membuat verification token untuk email tertentu
+   - Jika `expired == true`, set expires ke waktu lalu (1 jam yang lalu)
+   - Jika `expired == false`, set expires ke waktu depan (10 menit lagi)
+   - Simpan ke DB, return token yang sudah tersimpan
+
+4. **`makeRequest(router *gin.Engine, method, path, body string, token string) *httptest.ResponseRecorder`**
+   - Membuat HTTP request dengan method, path, body JSON, dan optional Bearer token
+   - Mengembalikan response recorder
+
+---
+
+### Tahap 3 — Test Register
+
+Buat function `TestRegister` dengan sub-test. Setiap function test diawali dengan:
 
 ```go
-type AppError struct {
-    Code    int
-    Message string
-    Err     error
+func TestRegister(t *testing.T) {
+    db := setupTestDB()
+    router := setupAuthTestRouter(db)
+
+    // Hapus semua data dari database sebelum test
+    cleanupDatabase(db)
+
+    t.Run("...", func(t *testing.T) {
+        // ...
+    })
 }
-
-func (e *AppError) Error() string { ... }
-func NewAppError(code int, message string, err error) *AppError { ... }
 ```
 
----
+1. **Register berhasil (DOSEN)**
+   - Kirim `POST /lms-usti-api/auth/register` dengan body berisi fullname, email, password (min 8 karakter), role "DOSEN"
+   - Assert: HTTP 200, `meta.message` = "register success"
 
-### Tahap 2 — Buat Kumpulan Sentinel Error di Auth
+2. **Register berhasil (MAHASISWA)**
+   - Sama seperti di atas, role "MAHASISWA"
+   - Assert: HTTP 200
 
-Masih di file `data/error.go`, buat variable global (sentinel error) yang merepresentasikan error spesifik fitur auth/login:
+3. **Register dengan email duplikat**
+   - Seed user dengan email tertentu
+   - Kirim register request dengan email yang sama
+   - Assert: HTTP 409, `meta.message` mengandung "email sudah terdaftar"
 
-- `ErrInvalidCredentials` — Status 401, message "email atau password salah"
-- `ErrEmailAlreadyExist` — Status 409, message "email sudah terdaftar"
-- `ErrEmailNotFound` — Status 404, message "email tidak ditemukan"
-- `ErrAccountNotVerified` — Status 403, message "akun belum diverifikasi"
-- `ErrInvalidToken` — Status 400, message "token tidak valid"
-- `ErrTokenExpired` — Status 400, message "token sudah kedaluwarsa"
-
-> **Catatan penting:** Setiap sentinel error ini harus sudah mengandung HTTP status code dan pesan yang siap dikirim ke client. Error asli (raw error) tidak perlu disimpan di sentinel — cukup di-wrap saat dipakai.
-
----
-
-### Tahap 3 — Update `data/response.go`
-
-Saat ini fungsi `NewResponse` menerima `int` untuk status code. Tambahkan fungsi baru yang menerima `*AppError` sebagai parameter agar response bisa dibuat langsung dari AppError tanpa harus extract field satu-satu.
-
-**Contoh:**
-
-```go
-func NewResponseFromError(appErr *AppError) Response { ... }
-```
-
-Fungsi ini cukup extract `Code` dan `Message` dari `AppError` lalu kembalikan `Response` struct yang sudah ada.
+4. **Register dengan body tidak valid**
+   - Kirim body kosong
+   - Assert: HTTP 400 dengan validation message
+   - Kirim email tanpa `@`
+   - Assert: HTTP 400
+   - Kirim password kurang dari 8 karakter
+   - Assert: HTTP 400
+   - Kirim role bukan DOSEN/MAHASISWA
+   - Assert: HTTP 400
 
 ---
 
-### Tahap 4 — Refactor Auth Service (Login Only dulu)
+### Tahap 4 — Test Login
 
-Buka `services/auth_service.go`, fokus pada fungsi `Login` saja.
+Buat function `TestLogin` dengan sub-test. Awal function test, panggil `cleanupDatabase(db)`.
 
-**Yang harus diubah:**
+1. **Login berhasil**
+   - Seed user dengan email, password, role, dan `EmailVerified` valid
+   - Kirim `POST /lms-usti-api/auth/login` dengan email dan password yang benar
+   - Assert: HTTP 200, `meta.message` = "login success", `data.access_token` tidak kosong, `data.token_type` = "Bearer"
 
-1. Hapus semua `errors.New("...")` yang ada di dalam fungsi `Login`
-2. Ganti dengan return sentinel error dari `data` package, misal:
-   - Jika user tidak ditemukan → return `data.ErrInvalidCredentials`
-   - Jika password salah → return `data.ErrInvalidCredentials`
-   - Jika token gagal dibuat → return `AppError` baru dengan code 500 dan message "gagal membuat token"
-3. Pastikan semua error yang di-return sudah bertipe `*data.AppError`
+2. **Login dengan email yang tidak terdaftar**
+   - Kirim login dengan email yang belum pernah di-register
+   - Assert: HTTP 401, `meta.message` = "email atau password salah"
 
-> **Prinsip:** Service layer hanya mengembalikan error. Tidak ada HTTP code atau JSON response di sini. Itu urusan controller.
+3. **Login dengan password salah**
+   - Seed user
+   - Kirim login dengan password yang berbeda
+   - Assert: HTTP 401, `meta.message` = "email atau password salah"
 
----
+4. **Login dengan email belum diverifikasi**
+   - Seed user dengan `EmailVerified` tidak valid (null)
+   - Kirim login
+   - Assert: HTTP 403, `meta.message` = "akun belum diverifikasi"
 
-### Tahap 5 — Refactor Auth Controller (Login Only dulu)
-
-Buka `controllers/auth_controller.go`, fokus pada fungsi `Login` saja.
-
-**Yang harus diubah:**
-
-1. Cek apakah error yang dikembalikan service adalah `*data.AppError` (pakai type assertion)
-2. Jika ya → gunakan `NewResponseFromError(appErr)` untuk membuat response
-3. Jika tidak (error tak terduga) → buat `AppError` baru dengan code 500 dan message generik "terjadi kesalahan server"
-4. Kirim response menggunakan status code dari AppError, bukan hardcoded 400
-
-**Prinsip penting:**
-- Controller tidak pernah kirim `err.Error()` ke client
-- Controller selalu punya fallback error 500 untuk error tak terduga
-- Status code response **harus selalu match** dengan jenis error
+5. **Login dengan body tidak valid**
+   - Kirim body kosong
+   - Assert: HTTP 400
 
 ---
 
-### Tahap 6 — Refactor Fungsi Auth Lainnya (Register, Activate, ResetPassword)
+### Tahap 5 — Test Activation
 
-Setelah login selesai dan tested, terapkan pola yang sama ke fungsi-fungsi auth lainnya di service dan controller:
+Buat function `TestActivateUser` dengan sub-test. Awal function test, panggil `cleanupDatabase(db)`.
 
-- `Register` di `auth_service.go` dan `auth_controller.go`
-- `Activate` di `auth_service.go` dan `auth_controller.go`
-- `SendVerificationEmail` di `auth_service.go` dan `auth_controller.go`
-- `ResetPassword` di `auth_service.go` dan `auth_controller.go`
+1. **Aktivasi berhasil**
+   - Seed user dengan `EmailVerified` null
+   - Seed verification token untuk email user tersebut (tidak expired)
+   - Kirim `POST /lms-usti-api/auth/activation` dengan token yang valid
+   - Assert: HTTP 200, `meta.message` = "account successfully activated"
+   - Ambil user dari DB, cek `EmailVerified.Valid` = true
 
-Prinsip yang sama: service return `*AppError`, controller convert ke response.
+2. **Aktivasi dengan token tidak valid**
+   - Kirim token random yang tidak ada di DB
+   - Assert: HTTP 400, `meta.message` = "token tidak valid"
+
+3. **Aktivasi dengan token expired**
+   - Seed verification token dengan expired = true
+   - Kirim request dengan token tersebut
+   - Assert: HTTP 400, `meta.message` = "token sudah kedaluwarsa"
+
+4. **Aktivasi dengan body kosong**
+   - Assert: HTTP 400
 
 ---
 
-### Tahap 7 — Refactor Auth Middleware
+### Tahap 6 — Test Resend Activation
 
-Buka `middleware/auth.go`.
+Buat function `TestResendActivation` dengan sub-test. Awal function test, panggil `cleanupDatabase(db)`.
 
-**Yang harus diubah:**
+1. **Resend untuk email terdaftar**
+   - Seed user dengan email tertentu
+   - Kirim `POST /lms-usti-api/auth/activation/resend` dengan email yang benar
+   - Assert: HTTP 200, `meta.message` = "email successfully sent"
 
-1. Gunakan `*data.AppError` untuk response error (missing header, invalid token, dll)
-2. Pastikan semua error response menggunakan format `NewResponseFromError`
-3. Gunakan `appErr.Code` sebagai status code HTTP, bukan hardcoded value
+2. **Resend untuk email tidak terdaftar**
+   - Kirim email yang tidak ada di DB
+   - Assert: HTTP 404, `meta.message` = "email tidak ditemukan"
+
+3. **Resend dengan body tidak valid**
+   - Kirim body kosong atau email tanpa `@`
+   - Assert: HTTP 400
 
 ---
 
-### Tahap 8 — Handling di Frontend
+### Tahap 7 — Test Send Reset Password Email
 
-Buka `lib/axios.ts` dan `useLogin.ts`.
+Buat function `TestSendResetPasswordEmail` dengan sub-test. Awal function test, panggil `cleanupDatabase(db)`.
 
-**Yang harus diubah di Axios:**
-1. Tambahkan response error interceptor yang handle error berdasarkan `meta.status` dari response
-2. Jika status 401 → redirect ke `/auth/login` (kecuali sedang di halaman login)
-3. Jika status 500 → tampilkan generic error toast
+1. **Reset password untuk email terdaftar**
+   - Seed user
+   - Kirim `POST /lms-usti-api/auth/reset-password` dengan email yang benar
+   - Assert: HTTP 200, `meta.message` = "email successfully sent"
 
-**Yang harus diubah di `useLogin.ts`:**
-1. Ambil `err.response?.data.meta.message` sebagai pesan error
-2. Jika tidak ada message → fallback ke "Terjadi kesalahan, coba lagi"
+2. **Reset password untuk email tidak terdaftar**
+   - Assert: HTTP 404, `meta.message` = "email tidak ditemukan"
+
+3. **Reset password dengan body tidak valid**
+   - Assert: HTTP 400
+
+---
+
+### Tahap 8 — Test New Password (Reset Password Execute)
+
+Buat function `TestNewPassword` dengan sub-test. Awal function test, panggil `cleanupDatabase(db)`.
+
+1. **Reset password berhasil**
+   - Seed user dengan password lama yang diketahui
+   - Seed verification token untuk email user (tidak expired)
+   - Kirim `POST /lms-usti-api/auth/new-password` dengan token, old_password, new_password
+   - Assert: HTTP 200, `meta.message` = "password successfully changed"
+   - Coba login dengan password baru — assert berhasil
+   - Coba login dengan password lama — assert gagal
+
+2. **Reset password dengan token tidak valid**
+   - Assert: HTTP 400, `meta.message` = "token tidak valid"
+
+3. **Reset password dengan token expired**
+   - Seed verification token expired
+   - Assert: HTTP 400, `meta.message` = "token sudah kedaluwarsa"
+
+4. **Reset password dengan password lama salah**
+   - Seed user + verification token valid
+   - Kirim request dengan old_password yang salah
+   - Assert: HTTP 401, `meta.message` = "email atau password salah"
+
+5. **Reset password dengan body tidak valid**
+   - Assert: HTTP 400
+
+---
+
+### Tahap 9 — Test Me (Get Current User)
+
+Buat function `TestMe` dengan sub-test. Awal function test, panggil `cleanupDatabase(db)`.
+
+1. **Me dengan token valid**
+   - Seed user
+   - Login untuk mendapatkan token
+   - Kirim `GET /lms-usti-api/auth/me` dengan Bearer token
+   - Assert: HTTP 200, `data.email`, `data.role`, `data.fullname` sesuai
+
+2. **Me tanpa token**
+   - Kirim request tanpa Authorization header
+   - Assert: HTTP 401
+
+3. **Me dengan token tidak valid**
+   - Kirim Authorization header dengan token random
+   - Assert: HTTP 401
 
 ---
 
@@ -145,31 +273,54 @@ Buka `lib/axios.ts` dan `useLogin.ts`.
 
 | File | Aksi |
 |------|------|
-| `lms-usti-be/data/error.go` | **Buat baru** — AppError struct + sentinel errors |
-| `lms-usti-be/data/response.go` | **Edit** — tambah `NewResponseFromError` |
-| `lms-usti-be/services/auth_service.go` | **Edit** — refactor error di fungsi Login (dan fungsi auth lainnya) |
-| `lms-usti-be/controllers/auth_controller.go` | **Edit** — refactor error handling di fungsi Login (dan fungsi auth lainnya) |
-| `lms-usti-be/middleware/auth.go` | **Edit** — refactor error handling |
-| `lms-usti-fe/src/lib/axios.ts` | **Edit** — tambah error interceptor |
-| `lms-usti-fe/src/components/views/Auth/Login/useLogin.ts` | **Edit** — perbaiki error handling |
+| `lms-usti-be/main_auth_test.go` | **Buat baru** — semua test auth |
+| `lms-usti-be/go.mod` | **Edit** — tambah `gorm.io/driver/sqlite` jika pakai SQLite |
 
 ---
 
-## Cara Test
+## Cara Menjalankan Test
 
-1. **Login berhasil** → response 200 dengan `access_token`
-2. **Login dengan email salah** → response 401 dengan message "email atau password salah"
-3. **Login dengan password salah** → response 401 dengan message "email atau password salah" (pesan sama, jangan bocorkan mana yang salah)
-4. **Login dengan body kosong/tidak valid** → response 400 dengan validation message
-5. **Login saat server error (DB down)** → response 500 dengan message "terjadi kesalahan server"
-6. **Pastikan tidak ada raw `err.Error()` yang bocor ke response client**
-7. **Pastikan error logging di server tetap mencatat error asli untuk debugging**
+```bash
+# Dari direktori lms-usti-be/
+go test -v -run TestAuth ./...
+```
+
+Atau untuk test spesifik:
+
+```bash
+go test -v -run TestLogin ./...
+go test -v -run TestRegister ./...
+```
+
+---
+
+## Urutan Eksekusi
+
+```
+Tahap 1 (setup infrastructure)    ← harus duluan
+Tahap 2 (helpers)                  ← harus setelah tahap 1
+Tahap 3 (register test)           ← independen (setelah 1 & 2)
+Tahap 4 (login test)              ← independen (setelah 1 & 2)
+Tahap 5 (activation test)         ← independen (setelah 1 & 2)
+Tahap 6 (resend test)             ← independen (setelah 1 & 2)
+Tahap 7 (reset email test)        ← independen (setelah 1 & 2)
+Tahap 8 (new password test)       ← independen (setelah 1 & 2)
+Tahap 9 (me test)                 ← independen (setelah 1 & 2)
+```
+
+> **Tip:** Tahap 3-9 bisa dikerjakan secara paralel karena masing-masing test function independen (setiap function punya setup sendiri-sendiri).
 
 ---
 
 ## Catatan untuk Implementer
 
-- **Jangan ubah response format yang sudah ada.** Struktur `{ meta: { status, message }, data }` harus tetap sama. Yang berubah hanya cara membangunnya.
-- **Prioritas: login dulu.** Jangan refactor semua auth sekaligus. Selesaikan login, test, baru lanjut ke fungsi lain.
-- **Jangan hapus error handling lama sebelum yang baru working.** Bisa dilakukan incremental — comment dulu jika perlu.
-- **Setiap `AppError` yang dikembalikan dari service harus sudah punya HTTP status code yang benar.** Ini adalah aturan utama.
+- **Setiap sub-test harus independen.** Jangan bergantung pada data yang dibuat di sub-test lain. Setiap sub-test harus seed data sendiri.
+- **`cleanupDatabase` wajib dipanggil di awal setiap function test.** Ini memastikan tidak ada sisa data dari test sebelumnya yang mengganggu. Meskipun SQLite in-memory hilang otomatis, kebiasaan ini penting jika nanti migrasi ke test database yang persist.
+- **Urutan cleanupDatabase:** Hapus `verification_tokens` dulu baru `users` (karena foreign key constraint). Gunakan `db.Exec("DELETE FROM ...")`.
+- **Gunakan `t.Run()`** untuk sub-test agar output lebih rapi dan mudah dilacak saat ada yang fail.
+- **Untuk test `/me`**, diperlukan token JWT asli. Bisa didapat dengan login dulu di dalam test, atau membuat token langsung menggunakan `lib.CreateToken()`.
+- **Untuk test activation,** gunakan token dari hasil `seedVerificationToken` — jangan hardcode.
+- **Test harus bisa jalan tanpa MySQL.** Jika pakai SQLite in-memory, pastikan driver SQLite sudah diinstall.
+- **Jangan test pengiriman email yang sebenarnya.** Fungsi `lib.SendVerificationEmail` akan mencoba kirim email via SMTP. Test harusnya hanya meng-assert response dari controller, bukan mengecek email benar-benar terkirim. Gunakan mock atau pastikan error dari `lib.SendVerificationEmail` di-handle dengan benar: di test, seharusnya return error "email not sent" jika SMTP tidak available.
+- **Setiap function test harus clean up** setelah selesai — meskipun menggunakan database in-memory yang otomatis hilang setelah test selesai.
+- **Gunakan `httptest.NewRecorder()`** untuk menangkap response, lalu `httptest.NewRequest()` untuk membuat request.
