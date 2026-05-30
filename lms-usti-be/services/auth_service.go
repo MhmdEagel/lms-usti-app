@@ -60,12 +60,16 @@ func (a *AuthService) Register(registerRequest data.RegisterRequest) error {
 func (a *AuthService) Login(loginRequest data.LoginRequest) (loginResponse data.LoginResponse, err error) {
 	user, err := a.userRepository.FindByEmail(loginRequest.Email)
 	if err != nil {
+		if err != gorm.ErrRecordNotFound {
+			log.Printf("Login: %s", err.Error())
+			return data.LoginResponse{}, data.NewAppError(500, "terjadi kesalahan", nil)
+		}
 		log.Printf("Login: user not found by email %s: %v", loginRequest.Email, err)
-		return data.LoginResponse{}, data.ErrInvalidCredentials(err)
+		return data.LoginResponse{}, data.ErrInvalidCredentials(nil)
 	}
 	if !lib.IsPasswordMatch(user.Password, loginRequest.Password) {
 		log.Printf("Login: password mismatch for email %s", loginRequest.Email)
-		return data.LoginResponse{}, data.ErrInvalidCredentials(err)
+		return data.LoginResponse{}, data.ErrInvalidCredentials(nil)
 	}
 	if !user.EmailVerified.Valid {
 		log.Printf("Login: account not verified for email %s", loginRequest.Email)
@@ -123,8 +127,12 @@ func (a *AuthService) ResetPassword(req data.NewPasswordRequest) error {
 	}
 	user, err := a.userRepository.FindByEmail(verificationToken.Email)
 	if err != nil {
+		if err != gorm.ErrRecordNotFound {
+			log.Printf("ResetPassword: %s", err.Error())
+			return data.NewAppError(500, "terjadi kesalahan", nil)
+		}
 		log.Printf("ResetPassword: user not found for email %s: %v", verificationToken.Email, err)
-		return data.NewAppError(500, "terjadi kesalahan server", err)
+		return data.NewAppError(404, "email tidak ditemukan", err)
 	}
 	if !lib.IsPasswordMatch(user.Password, req.OldPassword) {
 		log.Printf("ResetPassword: password mismatch for email %s", verificationToken.Email)
@@ -146,6 +154,10 @@ func (a *AuthService) ResetPassword(req data.NewPasswordRequest) error {
 func (a *AuthService) SendVerificationEmail(req data.SendVerificationRequest) error {
 	user, err := a.userRepository.FindByEmail(req.Email)
 	if err != nil {
+		if err != gorm.ErrRecordNotFound {
+			log.Printf("SendVerificationEmail: %s", err.Error())
+			return data.NewAppError(500, "terjadi kesalahan", nil)
+		}
 		log.Printf("SendVerificationEmail: user not found for email %s: %v", req.Email, err)
 		return data.ErrEmailNotFound(err)
 	}

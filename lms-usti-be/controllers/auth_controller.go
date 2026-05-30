@@ -130,7 +130,7 @@ func (a *AuthController) ResetPassword(c *gin.Context) {
 		handleError(c, err)
 		return
 	}
-	res := data.NewResponse(http.StatusOK, "password successfuly changed", nil)
+	res := data.NewResponse(http.StatusOK, "password successfully changed", nil)
 	c.JSON(http.StatusOK, res)
 }
 
@@ -141,7 +141,13 @@ func (a *AuthController) Me(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	user := val.(data.MeResponse)
-	res := data.NewResponse(http.StatusOK, "berhasil mengambil data user", user)
-	c.JSON(http.StatusOK, res)
+	user, ok := val.(data.MeResponse)
+	if ok {
+		res := data.NewResponse(http.StatusOK, "berhasil mengambil data user", user)
+		c.JSON(http.StatusOK, res)
+		return
+	}
+	appErr := data.NewAppError(http.StatusBadRequest, "invalid user data", nil)
+	res := data.NewResponseFromError(appErr)
+	c.JSON(http.StatusBadRequest, res)
 }

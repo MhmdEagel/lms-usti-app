@@ -24,13 +24,11 @@ func (g *GlobalErrMiddleware) Handle() gin.HandlerFunc {
 				if ok {
 					res := data.NewResponseFromError(appErr)
 					ctx.AbortWithStatusJSON(appErr.Code, res)
-					ctx.Abort()
 					return
 				}
 				log.Printf("GlobalErr: unexpected error: %v", err.Err)
 				res := data.NewResponse(http.StatusInternalServerError, "something went wrong", nil)
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, res)
-				ctx.Abort()
 			}
 		}
 	}
