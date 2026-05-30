@@ -31,15 +31,21 @@ type AuthServiceInterface interface {
 }
 
 func (a *AuthService) Register(registerRequest data.RegisterRequest) error {
+	hashedPassword, err := lib.HashPassword(registerRequest.Password)
+	if err != nil {
+		log.Printf("Register: failed to hash password: %v", err)
+		return data.NewAppError(500, "terjadi kesalahan server", err)
+	}
 	user := model.User{
 		Fullname: registerRequest.Fullname,
 		Email:    registerRequest.Email,
-		Password: lib.HashPassword(registerRequest.Password),
+		Password: hashedPassword,
 		Role:     registerRequest.Role,
 	}
 	if err := a.userRepository.Create(user); err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return data.ErrEmailAlreadyExist
+			log.Printf("Register: duplicate email %s: %v", registerRequest.Email, err)
+			return data.ErrEmailAlreadyExist(err)
 		}
 		log.Printf("Register: failed to create user: %v", err)
 		return data.NewAppError(500, "terjadi kesalahan server", err)
@@ -54,10 +60,16 @@ func (a *AuthService) Register(registerRequest data.RegisterRequest) error {
 func (a *AuthService) Login(loginRequest data.LoginRequest) (loginResponse data.LoginResponse, err error) {
 	user, err := a.userRepository.FindByEmail(loginRequest.Email)
 	if err != nil {
-		return data.LoginResponse{}, data.ErrInvalidCredentials
+		log.Printf("Login: user not found by email %s: %v", loginRequest.Email, err)
+		return data.LoginResponse{}, data.ErrInvalidCredentials(err)
 	}
 	if !lib.IsPasswordMatch(user.Password, loginRequest.Password) {
-		return data.LoginResponse{}, data.ErrInvalidCredentials
+		log.Printf("Login: password mismatch for email %s", loginRequest.Email)
+		return data.LoginResponse{}, data.ErrInvalidCredentials(err)
+	}
+	if !user.EmailVerified.Valid {
+		log.Printf("Login: account not verified for email %s", loginRequest.Email)
+		return data.LoginResponse{}, data.ErrAccountNotVerified(nil)
 	}
 	token, err := lib.CreateToken(user.Fullname, user.Email, user.Role, user.ID)
 	if err != nil {
@@ -74,10 +86,12 @@ func (a *AuthService) Login(loginRequest data.LoginRequest) (loginResponse data.
 func (a *AuthService) Activate(req data.VerificationRequest) error {
 	verificationToken, err := a.verificationRepository.FindByToken(req.Token)
 	if err != nil {
-		return data.ErrInvalidToken
+		log.Printf("Activate: token not found: %v", err)
+		return data.ErrInvalidToken(err)
 	}
 	if lib.IsTokenVerificationExpired(&verificationToken.Expires) {
-		return data.ErrTokenExpired
+		log.Printf("Activate: token expired for email %s", verificationToken.Email)
+		return data.ErrTokenExpired(nil)
 	}
 
 	user, err := a.userRepository.FindByEmail(verificationToken.Email)
@@ -100,10 +114,12 @@ func (a *AuthService) Activate(req data.VerificationRequest) error {
 func (a *AuthService) ResetPassword(req data.NewPasswordRequest) error {
 	verificationToken, err := a.verificationRepository.FindByToken(req.Token)
 	if err != nil {
-		return data.ErrInvalidToken
+		log.Printf("ResetPassword: token not found: %v", err)
+		return data.ErrInvalidToken(err)
 	}
 	if lib.IsTokenVerificationExpired(&verificationToken.Expires) {
-		return data.ErrTokenExpired
+		log.Printf("ResetPassword: token expired for email %s", verificationToken.Email)
+		return data.ErrTokenExpired(nil)
 	}
 	user, err := a.userRepository.FindByEmail(verificationToken.Email)
 	if err != nil {
@@ -111,9 +127,14 @@ func (a *AuthService) ResetPassword(req data.NewPasswordRequest) error {
 		return data.NewAppError(500, "terjadi kesalahan server", err)
 	}
 	if !lib.IsPasswordMatch(user.Password, req.OldPassword) {
-		return data.ErrInvalidCredentials
+		log.Printf("ResetPassword: password mismatch for email %s", verificationToken.Email)
+		return data.ErrInvalidCredentials(nil)
 	}
-	newPassword := lib.HashPassword(req.NewPassword)
+	newPassword, err := lib.HashPassword(req.NewPassword)
+	if err != nil {
+		log.Printf("ResetPassword: failed to hash password: %v", err)
+		return data.NewAppError(500, "terjadi kesalahan server", err)
+	}
 	user.Password = newPassword
 	if err := a.userRepository.UpdatePassword(user); err != nil {
 		log.Printf("ResetPassword: failed to update password: %v", err)
@@ -125,7 +146,8 @@ func (a *AuthService) ResetPassword(req data.NewPasswordRequest) error {
 func (a *AuthService) SendVerificationEmail(req data.SendVerificationRequest) error {
 	user, err := a.userRepository.FindByEmail(req.Email)
 	if err != nil {
-		return data.ErrEmailNotFound
+		log.Printf("SendVerificationEmail: user not found for email %s: %v", req.Email, err)
+		return data.ErrEmailNotFound(err)
 	}
 	verificationToken := model.NewVerificationToken(user.Email)
 	if err := a.verificationRepository.Create(verificationToken); err != nil {

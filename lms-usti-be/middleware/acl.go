@@ -19,13 +19,13 @@ func (a *AclMiddleware) Handle(roles []string) gin.HandlerFunc {
 		val, exist := c.Get("user")
 		if !exist {
 			res := data.NewResponse(http.StatusUnauthorized, "unauthorized", nil)
-			c.AbortWithStatusJSON(http.StatusInternalServerError, res)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, res)
 			return
 		}
 		user := val.(data.MeResponse)
 		if !slices.Contains(roles, user.Role) {
 			res := data.NewResponse(http.StatusUnauthorized, "unauthorized", nil)
-			c.AbortWithStatusJSON(http.StatusInternalServerError, res)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, res)
 			return
 		}
 		c.Next()

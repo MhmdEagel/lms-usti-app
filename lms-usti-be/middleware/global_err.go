@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
@@ -19,6 +20,14 @@ func (g *GlobalErrMiddleware) Handle() gin.HandlerFunc {
 		if len(ctx.Errors) > 0 {
 			err := ctx.Errors.Last()
 			if err != nil {
+				appErr, ok := err.Err.(*data.AppError)
+				if ok {
+					res := data.NewResponseFromError(appErr)
+					ctx.AbortWithStatusJSON(appErr.Code, res)
+					ctx.Abort()
+					return
+				}
+				log.Printf("GlobalErr: unexpected error: %v", err.Err)
 				res := data.NewResponse(http.StatusInternalServerError, "something went wrong", nil)
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, res)
 				ctx.Abort()
