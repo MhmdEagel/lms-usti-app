@@ -82,7 +82,7 @@ func (u *ClassroomRepository) FindAllByMahasiswaId(mahasiswaId string, paginatio
 func (u *ClassroomRepository) FindAllClassroomMahasiswa(classroomId string) (mahasiswa []model.ClassroomMahasiswa, err error) {
 	result := u.Db.Where("classroom_id = ?", classroomId).Preload("User").Find(&mahasiswa)
 	if result.Error != nil {
-		return []model.ClassroomMahasiswa{}, nil
+		return []model.ClassroomMahasiswa{}, result.Error
 	}
 	return mahasiswa, nil
 }
@@ -117,6 +117,9 @@ func (c *ClassroomRepository) Delete(classroomId string, dosenId string) error {
 	res := c.Db.Where("dosen_id = ? AND id = ? ", dosenId, classroom.ID).Delete(model.Classroom{})
 	if res.Error != nil {
 		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
 	}
 	return nil
 }

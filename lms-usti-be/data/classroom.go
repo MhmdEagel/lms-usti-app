@@ -18,13 +18,13 @@ type CreateClassroomRequest struct {
 }
 type UpdateClassroomRequest struct {
 	Id         string
-	ClassName  string    `json:"class_name"`
-	ClassCover string    `json:"class_cover"`
-	Term       int       `json:"term"`
-	RoomNumber int       `json:"room_number"`
-	Day        int       `json:"day"`
-	ClassStart time.Time `json:"class_start"`
-	ClassEnd   time.Time `json:"class_end"`
+	ClassName  *string    `json:"class_name"`
+	ClassCover *string    `json:"class_cover"`
+	Term       *int       `json:"term"`
+	RoomNumber *int       `json:"room_number"`
+	Day        *int       `json:"day"`
+	ClassStart *time.Time `json:"class_start"`
+	ClassEnd   *time.Time `json:"class_end"`
 }
 
 type JoinClassroomRequest struct {
