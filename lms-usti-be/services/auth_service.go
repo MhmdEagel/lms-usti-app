@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
@@ -43,7 +44,7 @@ func (a *AuthService) Register(registerRequest data.RegisterRequest) error {
 		Role:     registerRequest.Role,
 	}
 	if err := a.userRepository.Create(user); err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
+		if errors.Is(err, gorm.ErrDuplicatedKey) || strings.Contains(err.Error(), "UNIQUE constraint") {
 			log.Printf("Register: duplicate email %s: %v", registerRequest.Email, err)
 			return data.ErrEmailAlreadyExist(err)
 		}
