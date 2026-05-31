@@ -144,7 +144,7 @@ func (c *ClassroomService) EnrollMahasiswa(joinClassroomRequest data.JoinClassro
 			return data.ErrClassroomNotFound(nil)
 		}
 		log.Printf("EnrollMahasiswa: %s", err.Error())
-		return data.NewAppError(500, "terjadi kesalahan", nil)
+		return data.NewAppError(500, "terjadi kesalahan", err)
 	}
 	classroomMahasiswa := model.ClassroomMahasiswa{
 		ClassroomId: classroom.ID,
@@ -156,7 +156,11 @@ func (c *ClassroomService) EnrollMahasiswa(joinClassroomRequest data.JoinClassro
 	}
 	isSubmissionAlreadyCreated := c.submissionService.IsAlreadyCreated(mahasiswaId, classroom.ID)
 	if !isSubmissionAlreadyCreated {
-		assignments, _ := c.assignmentService.FindAll(classroom.ID)
+		assignments, err := c.assignmentService.FindAll(classroom.ID)
+		if err != nil {
+			log.Printf("EnrollMahasiswa: failed to find assignments: %v", err)
+			return data.NewAppError(500, "terjadi kesalahan server", err)
+		}
 		if len(assignments) > 0 {
 			for _, assignment := range assignments {
 				submission := data.SubmissionRequest{
@@ -203,17 +207,10 @@ func (c *ClassroomService) Update(classroomUpdateRequest data.UpdateClassroomReq
 	if classroomUpdateRequest.ClassEnd != nil {
 		classroom.ClassEnd = *classroomUpdateRequest.ClassEnd
 	}
-	if err := c.classroomRepository.Update(classroom); err != nil {
-		return err
-	}
-
-	return nil
+	return c.classroomRepository.Update(classroom)
 }
 
 func (c *ClassroomService) Delete(classroomId string, userId string) error {
-	err := c.classroomRepository.Delete(classroomId, userId)
-	if err != nil {
-		return err
-	}
-	return nil
+	return c.classroomRepository.Delete(classroomId, userId)
+
 }
