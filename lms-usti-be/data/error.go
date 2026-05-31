@@ -6,7 +6,9 @@ func ErrEmailNotFound(err error) *AppError      { return NewAppError(404, "email
 func ErrAccountNotVerified(err error) *AppError { return NewAppError(403, "akun belum diverifikasi", err) }
 func ErrInvalidToken(err error) *AppError       { return NewAppError(400, "token tidak valid", err) }
 func ErrTokenExpired(err error) *AppError       { return NewAppError(400, "token sudah kedaluwarsa", err) }
-
+func ErrClassroomNotFound(err error) *AppError { return NewAppError(404, "kelas tidak ditemukan", err) }
+func ErrAlreadyEnrolled(err error) *AppError   { return NewAppError(409, "sudah bergabung di kelas ini", err) }
+func ErrInternalServer(err error) *AppError      { return NewAppError(500, "terjadi kesalahan", err) }
 
 type AppError struct {
 	Code    int

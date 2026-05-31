@@ -2,15 +2,13 @@ package controllers
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
-	"github.com/MhmdEagel/lms-usti-be/lib"
 	"github.com/MhmdEagel/lms-usti-be/services"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
 
@@ -25,9 +23,7 @@ func NewClassroomController(classroomService services.ClassroomServiceInterface)
 func (c *ClassroomController) Create(ctx *gin.Context) {
 	var req data.CreateClassroomRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		msg := lib.GetValidationMessage(err.(validator.ValidationErrors))
-		res := data.NewResponse(http.StatusBadRequest, msg, nil)
-		ctx.JSON(http.StatusBadRequest, res)
+		bindJSONError(ctx, err)
 		return
 	}
 	val, exist := ctx.Get("user")
@@ -36,28 +32,38 @@ func (c *ClassroomController) Create(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	user := val.(data.MeResponse)
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
 	req.DosenId = user.UserId
 	err := c.classroomService.Create(req)
 	if err != nil {
-		res := data.NewResponse(http.StatusInternalServerError, "something went wrong", nil)
+		log.Printf("Classroom Create: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
 
 	res := data.NewResponse(http.StatusOK, "successfully create classroom", nil)
 	ctx.JSON(http.StatusOK, res)
-
 }
 
 func (c *ClassroomController) FindAllByDosenId(ctx *gin.Context) {
 	val, exist := ctx.Get("user")
 	if !exist {
-		res := data.NewResponse(http.StatusInternalServerError, "something went wrong", nil)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	user := val.(data.MeResponse)
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
 
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
@@ -65,8 +71,11 @@ func (c *ClassroomController) FindAllByDosenId(ctx *gin.Context) {
 	pagination := data.Pagination{Limit: limit, Current: page}
 	paginationResult, err := c.classroomService.FindAllByDosenId(user.UserId, pagination)
 	if err != nil {
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
+		log.Printf("FindAllByDosenId: %v", err)
+		appErr := data.ErrInternalServer(nil)
+		res := data.NewResponseFromError(appErr)
 		ctx.JSON(http.StatusInternalServerError, res)
+		return
 	}
 	res := data.NewPaginationResponse(http.StatusOK, "successfully find all dosen classrooms", paginationResult.Pagination, paginationResult.Data)
 	ctx.JSON(http.StatusOK, res)
@@ -81,11 +90,12 @@ func (c *ClassroomController) FindById(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, res)
 			return
 		}
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
+		log.Printf("FindById: %v", err)
+		appErr := data.ErrInternalServer(nil)
+		res := data.NewResponseFromError(appErr)
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	fmt.Println(classroom, err)
 
 	res := data.NewResponse(http.StatusOK, "success find classroom by id", classroom)
 	ctx.JSON(http.StatusOK, res)
@@ -94,11 +104,16 @@ func (c *ClassroomController) FindById(ctx *gin.Context) {
 func (c *ClassroomController) FindAllByMahasiswaId(ctx *gin.Context) {
 	val, exist := ctx.Get("user")
 	if !exist {
-		res := data.NewResponse(http.StatusInternalServerError, "something went wrong", nil)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	user := val.(data.MeResponse)
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
 
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
@@ -106,8 +121,10 @@ func (c *ClassroomController) FindAllByMahasiswaId(ctx *gin.Context) {
 	pagination := data.Pagination{Limit: limit, Current: page}
 	paginationResult, err := c.classroomService.FindAllByMahasiswaId(user.UserId, pagination)
 	if err != nil {
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
+		log.Printf("FindAllByMahasiswaId: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
 		ctx.JSON(http.StatusInternalServerError, res)
+		return
 	}
 
 	res := data.NewPaginationResponse(http.StatusOK, "successfully find all mahasiswa classrooms", paginationResult.Pagination, paginationResult.Data)
@@ -117,9 +134,7 @@ func (c *ClassroomController) FindAllByMahasiswaId(ctx *gin.Context) {
 func (c *ClassroomController) Update(ctx *gin.Context) {
 	var req data.UpdateClassroomRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		msg := lib.GetValidationMessage(err.(validator.ValidationErrors))
-		res := data.NewResponse(http.StatusBadRequest, msg, nil)
-		ctx.JSON(http.StatusBadRequest, res)
+		bindJSONError(ctx, err)
 		return
 	}
 	classroomId := ctx.Param("id")
@@ -127,12 +142,12 @@ func (c *ClassroomController) Update(ctx *gin.Context) {
 	err := c.classroomService.Update(req)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			fmt.Println("API HITTO!")
 			res := data.NewResponse(http.StatusNotFound, "classroom not found", nil)
 			ctx.JSON(http.StatusNotFound, res)
 			return
 		}
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
+		log.Printf("Update: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
@@ -145,11 +160,16 @@ func (c *ClassroomController) Delete(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
 	val, exist := ctx.Get("user")
 	if !exist {
-		res := data.NewResponse(http.StatusInternalServerError, "something went wrong", nil)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	user := val.(data.MeResponse)
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
 	err := c.classroomService.Delete(classroomId, user.UserId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -157,7 +177,8 @@ func (c *ClassroomController) Delete(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, res)
 			return
 		}
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
+		log.Printf("Delete: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
@@ -169,26 +190,31 @@ func (c *ClassroomController) Delete(ctx *gin.Context) {
 func (c *ClassroomController) Enroll(ctx *gin.Context) {
 	var req data.JoinClassroomRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		msg := lib.GetValidationMessage(err.(validator.ValidationErrors))
-		res := data.NewResponse(http.StatusBadRequest, msg, nil)
-		ctx.JSON(http.StatusBadRequest, res)
+		bindJSONError(ctx, err)
 		return
 	}
 	val, exist := ctx.Get("user")
 	if !exist {
-		res := data.NewResponse(http.StatusInternalServerError, "something went wrong", nil)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	user := val.(data.MeResponse)
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
 	err := c.classroomService.EnrollMahasiswa(req, user.UserId)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			res := data.NewResponse(http.StatusBadRequest, "classroom not found", nil)
-			ctx.JSON(http.StatusBadRequest, res)
+		appErr, ok := err.(*data.AppError)
+		if ok {
+			res := data.NewResponseFromError(appErr)
+			ctx.JSON(appErr.Code, res)
 			return
 		}
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
+		log.Printf("Enroll: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
@@ -205,7 +231,8 @@ func (c *ClassroomController) FindAllClassroomMember(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, res)
 			return
 		}
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
+		log.Printf("FindAllClassroomMember: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
