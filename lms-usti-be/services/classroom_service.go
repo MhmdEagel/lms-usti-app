@@ -154,7 +154,7 @@ func (c *ClassroomService) EnrollMahasiswa(joinClassroomRequest data.JoinClassro
 	if isAlreadyEnrolled {
 		return data.ErrAlreadyEnrolled(nil)
 	}
-	isSubmissionAlreadyCreated := c.submissionService.IsAlreadyCreated(mahasiswaId)
+	isSubmissionAlreadyCreated := c.submissionService.IsAlreadyCreated(mahasiswaId, classroom.ID)
 	if !isSubmissionAlreadyCreated {
 		assignments, _ := c.assignmentService.FindAll(classroom.ID)
 		if len(assignments) > 0 {

@@ -20,7 +20,7 @@ type SubmissionServiceInterface interface {
 	FindAll(assignmentId string) (result []data.SubmissionResponse, err error)
 	FindById(req data.SubmissionDetailRequest) (result data.SubmissionDetailResponse, err error)
 	Submit(submitReq data.SubmitRequest) error
-	IsAlreadyCreated(studentId string) bool
+	IsAlreadyCreated(studentId string, classroomId string) bool
 }
 
 func NewSubmissionService(submissionRepository repositories.SubmissionRepositoryInterface, assignmentRepository repositories.AssignmentRepositoryInterface) SubmissionServiceInterface {
@@ -162,6 +162,6 @@ func (s *SubmissionService) Submit(submitReq data.SubmitRequest) error {
 	return nil
 }
 
-func (s *SubmissionService) IsAlreadyCreated(studentId string) bool {
-	return s.submissionRepository.IsAlreadyCreated(studentId)
+func (s *SubmissionService) IsAlreadyCreated(studentId string, classroomId string) bool {
+	return s.submissionRepository.IsAlreadyCreated(studentId, classroomId)
 }
