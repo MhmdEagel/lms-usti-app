@@ -1,271 +1,154 @@
-# Issue: Unit Test untuk Fitur Autentikasi
+# Issue: Unit Test Fitur Classroom Management Backend
 
 ## Goal
 
-Membuat unit test yang komprehensif untuk seluruh fitur autentikasi backend (login, register, aktivasi email, resend aktivasi, reset password, new password) menggunakan `net/http/httptest` mengikuti pattern Gin testing. File utama bernama `main_auth_test.go`.
+Membuat unit test untuk fitur manajemen classroom backend menggunakan `net/http/httptest` mengikuti pattern dari [Gin Testing Guide](https://gin-gonic.com/id/docs/testing/). File test: `main_classroom_test.go`.
 
 ---
 
-## Pertimbangan Arsitektur Test
+## Arsitektur Test
 
-**Masalah:** Fungsi `InitRouter()` di `router/api.go` memanggil `config.ConnectDatabase()` yang terkoneksi ke MySQL langsung. Jika tidak ada database, fungsi ini akan panic.
+**Masalah:** `InitRouter()` memanggil `config.ConnectDatabase()` yang panicking jika tidak ada MySQL.
 
-**Solusi yang harus dilakukan:**
+**Solusi:** Buat `setupTestRouter(db *gorm.DB) *gin.Engine` yang menerima `*gorm.DB` dari SQLite in-memory, bukan dari `config.ConnectDatabase()`.
 
-Buat fungsi helper `setupAuthTestRouter` di file test. Fungsi ini tidak memanggil `config.ConnectDatabase()`, melainkan menerima `*gorm.DB` sebagai parameter (atau membuat in-memory test database sendiri).
+**Flow test untuk setiap function:**
+```
+1. cleanupDatabase(db)     ← bersihkan data lama
+2. seed data test          ← buat user, classroom, dll
+3. buat request            ← kirim request via httptest
+4. assert response         ← cek status code dan body
+```
 
-Dengan pola ini, test bisa menggunakan:
-- **SQLite in-memory** untuk test ringan dan cepat
-- **Test MySQL database** untuk test yang lebih realistis
-
-Pilih salah satu. Untuk kemudahan dan portabilitas, rekomendasi: SQLite in-memory via `gorm.io/driver/sqlite`.
-
-> **Catatan:** Pastikan `go.mod` tidak berantakan. Jika pakai SQLite, tambahkan dependency `gorm.io/driver/sqlite` dengan `go get`.
+**Flow auth untuk test route yang protected:**
+```
+1. Seed user (dengan role DOSEN atau MAHASISWA)
+2. Login user → dapat access_token
+3. Kirim request dengan header Authorization: Bearer <token>
+```
 
 ---
 
 ## Tahapan
 
-### Tahap 1 — Setup Infrastructure Test
+### Tahap 1 — Setup Infrastructure
 
-Buat file: `lms-usti-be/main_auth_test.go`
+Buat file `lms-usti-be/main_classroom_test.go`.
 
-Di dalam file ini, buat:
+Buat fungsi-fungsi berikut:
 
-1. **Package declaration:** `package main` (atau `package test` — pilih salah satu dan konsisten)
+1. **`setupTestDB() *gorm.DB`**
+   - Buka koneksi ke SQLite in-memory
+   - Auto-migrate: `model.User`, `model.Classroom`, `model.ClassroomMahasiswa`, `model.VerificationToken`
+   - Return `*gorm.DB`
 
-2. **Fungsi `setupTestDB()`:**
-   - Membuat koneksi ke database in-memory (SQLite atau test MySQL)
-   - Menjalankan auto-migrate untuk model yang diperlukan: `User` dan `VerificationToken`
-   - Mengembalikan `*gorm.DB`
-   - Jika gagal, panggil `t.Fatal()`
+2. **`cleanupDatabase(db *gorm.DB)`**
+   - Hapus semua data dari tabel secara berurutan (foreign key): `submissions`, `assignments`, `materials`, `announcements`, `classroom_mahasiswas`, `classrooms`, `verification_tokens`, `users`
 
-3. **Fungsi `setupAuthTestRouter(db *gorm.DB) *gin.Engine`:**
-   - Mirip seperti `InitRouter()` di `router/api.go` tapi tidak memanggil `config.ConnectDatabase()`
-   - Menerima `*gorm.DB` sebagai parameter
-   - Membuat repositories dari DB yang diberikan
-   - Membuat authService dan authController dari repositories
-   - Mendaftarkan route auth yang diperlukan:
-     - `POST /lms-usti-api/auth/login`
-     - `POST /lms-usti-api/auth/register`
-     - `POST /lms-usti-api/auth/activation`
-     - `POST /lms-usti-api/auth/activation/resend`
-     - `POST /lms-usti-api/auth/reset-password`
-     - `POST /lms-usti-api/auth/new-password`
-     - `GET /lms-usti-api/auth/me` (tanpa auth middleware — atau dengan mock)
-   - Mengembalikan `*gin.Engine`
+3. **`setupTestRouter(db *gorm.DB) *gin.Engine`**
+   - Buat `gin.Default()`
+   - Buat repositories, services, controllers dari `db` parameter
+   - Register semua classroom routes dengan auth middleware dan ACL middleware
+   - Return `*gin.Engine`
 
-> **Catatan penting:** Untuk `GET /me`, test perlu bypass auth middleware. Strateginya bisa dengan membuat middleware test khusus yang inject user ke context, atau mengirim Authorization header dengan token yang valid. Pilih yang paling sederhana.
+4. **Helper functions:**
+   - `seedUser(db, fullname, email, password, role string) model.User` — langsung set `EmailVerified` valid (tidak perlu parameter, skip verifikasi)
+   - `seedClassroom(db, dosenId, className string) model.Classroom`
+   - `loginAndGetToken(router, email, password string) string` — login dan return access_token
 
 ---
 
-### Tahap 2 — Test Helper: Seed Data & Cleanup
+### Tahap 2 — Test Create Classroom
 
-Buat fungsi helper untuk menyiapkan dan membersihkan data test:
+Function: `TestCreateClassroom`
 
-1. **`cleanupDatabase(db *gorm.DB) error`**
-   - Fungsi ini **wajib dipanggil di awal setiap function test**
-   - Menghapus semua data dari tabel yang akan dipakai: `users` dan `verification_tokens`
-   - Gunakan `db.Exec("DELETE FROM verification_tokens")` dan `db.Exec("DELETE FROM users")`
-   - Urutan penting: hapus `verification_tokens` dulu baru `users` (karena foreign key)
-   - Jika menggunakan SQLite, foreign key mungkin perlu diaktifkan manual via `PRAGMA foreign_keys = OFF`
-
-2. **`seedUser(db *gorm.DB, ...) model.User`**
-   - Menerima parameter yang dibutuhkan (email, password, role, fullname, emailVerified)
-   - Hash password memakai `lib.HashPassword`
-   - Simpan ke DB, return user yang sudah tersimpan (lengkap dengan ID)
-
-3. **`seedVerificationToken(db *gorm.DB, email string, expired bool) model.VerificationToken`**
-   - Membuat verification token untuk email tertentu
-   - Jika `expired == true`, set expires ke waktu lalu (1 jam yang lalu)
-   - Jika `expired == false`, set expires ke waktu depan (10 menit lagi)
-   - Simpan ke DB, return token yang sudah tersimpan
-
-4. **`makeRequest(router *gin.Engine, method, path, body string, token string) *httptest.ResponseRecorder`**
-   - Membuat HTTP request dengan method, path, body JSON, dan optional Bearer token
-   - Mengembalikan response recorder
+1. **Create berhasil (DOSEN)** — 200, "successfully create classroom"
+2. **Create dengan body kosong** — 400, validation error
+3. **Create dengan class_name kurang dari 8 karakter** — 400
+4. **Create tanpa token** — 401
+5. **Create dengan token MAHASISWA** — 401 (ACL reject)
 
 ---
 
-### Tahap 3 — Test Register
+### Tahap 3 — Test FindAllByDosenId
 
-Buat function `TestRegister` dengan sub-test. Setiap function test diawali dengan:
+Function: `TestFindAllByDosenId`
 
-```go
-func TestRegister(t *testing.T) {
-    db := setupTestDB()
-    router := setupAuthTestRouter(db)
-
-    // Hapus semua data dari database sebelum test
-    cleanupDatabase(db)
-
-    t.Run("...", func(t *testing.T) {
-        // ...
-    })
-}
-```
-
-1. **Register berhasil (DOSEN)**
-   - Kirim `POST /lms-usti-api/auth/register` dengan body berisi fullname, email, password (min 8 karakter), role "DOSEN"
-   - Assert: HTTP 200, `meta.message` = "register success"
-
-2. **Register berhasil (MAHASISWA)**
-   - Sama seperti di atas, role "MAHASISWA"
-   - Assert: HTTP 200
-
-3. **Register dengan email duplikat**
-   - Seed user dengan email tertentu
-   - Kirim register request dengan email yang sama
-   - Assert: HTTP 409, `meta.message` mengandung "email sudah terdaftar"
-
-4. **Register dengan body tidak valid**
-   - Kirim body kosong
-   - Assert: HTTP 400 dengan validation message
-   - Kirim email tanpa `@`
-   - Assert: HTTP 400
-   - Kirim password kurang dari 8 karakter
-   - Assert: HTTP 400
-   - Kirim role bukan DOSEN/MAHASISWA
-   - Assert: HTTP 400
+1. **Find berhasil** — 200, ada data classrooms
+2. **Find tanpa token** — 401
+3. **Find dengan token MAHASISWA** — 401 (ACL reject)
+4. **Pagination: page 1, limit 2** — Seed 3 classrooms, kirim `?page=1&limit=2`. Assert: 200, `pagination.total` = 3, `pagination.total_pages` = 2, `data` berisi 2 item
+5. **Pagination: page 2, limit 2** — Seed 3 classrooms, kirim `?page=2&limit=2`. Assert: 200, `data` berisi 1 item (sisa)
+6. **Pagination: page melebihi total** — Seed 3 classrooms, kirim `?page=10&limit=2`. Assert: 200, `data` kosong
 
 ---
 
-### Tahap 4 — Test Login
+### Tahap 4 — Test FindAllByMahasiswaId
 
-Buat function `TestLogin` dengan sub-test. Awal function test, panggil `cleanupDatabase(db)`.
+Function: `TestFindAllByMahasiswaId`
 
-1. **Login berhasil**
-   - Seed user dengan email, password, role, dan `EmailVerified` valid
-   - Kirim `POST /lms-usti-api/auth/login` dengan email dan password yang benar
-   - Assert: HTTP 200, `meta.message` = "login success", `data.access_token` tidak kosong, `data.token_type` = "Bearer"
-
-2. **Login dengan email yang tidak terdaftar**
-   - Kirim login dengan email yang belum pernah di-register
-   - Assert: HTTP 401, `meta.message` = "email atau password salah"
-
-3. **Login dengan password salah**
-   - Seed user
-   - Kirim login dengan password yang berbeda
-   - Assert: HTTP 401, `meta.message` = "email atau password salah"
-
-4. **Login dengan email belum diverifikasi**
-   - Seed user dengan `EmailVerified` tidak valid (null)
-   - Kirim login
-   - Assert: HTTP 403, `meta.message` = "akun belum diverifikasi"
-
-5. **Login dengan body tidak valid**
-   - Kirim body kosong
-   - Assert: HTTP 400
+1. **Find berhasil** — 200, ada data classrooms
+2. **Find tanpa token** — 401
+3. **Find dengan token DOSEN** — 401 (ACL reject)
+4. **Pagination: page 1, limit 2** — Seed 3 classroom + enroll mahasiswa, kirim `?page=1&limit=2`. Assert: 200, `pagination.total` = 3, `pagination.total_pages` = 2, `data` berisi 2 item
+5. **Pagination: page 2, limit 2** — Seed 3 classroom + enroll mahasiswa, kirim `?page=2&limit=2`. Assert: 200, `data` berisi 1 item
+6. **Pagination: tanpa query param** — Seed 3 classroom + enroll mahasiswa, kirim tanpa `?page=&limit=`. Assert: 200, gunakan default pagination (limit 10, page 1)
 
 ---
 
-### Tahap 5 — Test Activation
+### Tahap 5 — Test FindById
 
-Buat function `TestActivateUser` dengan sub-test. Awal function test, panggil `cleanupDatabase(db)`.
+Function: `TestFindClassroomById`
 
-1. **Aktivasi berhasil**
-   - Seed user dengan `EmailVerified` null
-   - Seed verification token untuk email user tersebut (tidak expired)
-   - Kirim `POST /lms-usti-api/auth/activation` dengan token yang valid
-   - Assert: HTTP 200, `meta.message` = "account successfully activated"
-   - Ambil user dari DB, cek `EmailVerified.Valid` = true
-
-2. **Aktivasi dengan token tidak valid**
-   - Kirim token random yang tidak ada di DB
-   - Assert: HTTP 400, `meta.message` = "token tidak valid"
-
-3. **Aktivasi dengan token expired**
-   - Seed verification token dengan expired = true
-   - Kirim request dengan token tersebut
-   - Assert: HTTP 400, `meta.message` = "token sudah kedaluwarsa"
-
-4. **Aktivasi dengan body kosong**
-   - Assert: HTTP 400
+1. **Find berhasil** — 200, classroom data sesuai
+2. **Find dengan ID tidak ada** — 404, "classroom not found"
+3. **Find tanpa token** — 401
 
 ---
 
-### Tahap 6 — Test Resend Activation
+### Tahap 6 — Test Update Classroom
 
-Buat function `TestResendActivation` dengan sub-test. Awal function test, panggil `cleanupDatabase(db)`.
+Function: `TestUpdateClassroom`
 
-1. **Resend untuk email terdaftar**
-   - Seed user dengan email tertentu
-   - Kirim `POST /lms-usti-api/auth/activation/resend` dengan email yang benar
-   - Assert: HTTP 200, `meta.message` = "email successfully sent"
-
-2. **Resend untuk email tidak terdaftar**
-   - Kirim email yang tidak ada di DB
-   - Assert: HTTP 404, `meta.message` = "email tidak ditemukan"
-
-3. **Resend dengan body tidak valid**
-   - Kirim body kosong atau email tanpa `@`
-   - Assert: HTTP 400
+1. **Update berhasil** — 200, "classroom successfully updated"
+2. **Update field tertentu saja (partial update)** — 200, field lain tidak berubah
+3. **Update dengan ID tidak ada** — 404
+4. **Update tanpa token** — 401
+5. **Update dengan token MAHASISWA** — 401 (ACL reject)
 
 ---
 
-### Tahap 7 — Test Send Reset Password Email
+### Tahap 7 — Test Delete Classroom
 
-Buat function `TestSendResetPasswordEmail` dengan sub-test. Awal function test, panggil `cleanupDatabase(db)`.
+Function: `TestDeleteClassroom`
 
-1. **Reset password untuk email terdaftar**
-   - Seed user
-   - Kirim `POST /lms-usti-api/auth/reset-password` dengan email yang benar
-   - Assert: HTTP 200, `meta.message` = "email successfully sent"
-
-2. **Reset password untuk email tidak terdaftar**
-   - Assert: HTTP 404, `meta.message` = "email tidak ditemukan"
-
-3. **Reset password dengan body tidak valid**
-   - Assert: HTTP 400
+1. **Delete berhasil** — 200, "classroom successfully deleted"
+2. **Delete dengan ID tidak ada** — 404
+3. **Delete dengan dosenId berbeda** — 404 (bukan classroom milik dosen ini)
+4. **Delete tanpa token** — 401
+5. **Delete dengan token MAHASISWA** — 401 (ACL reject)
 
 ---
 
-### Tahap 8 — Test New Password (Reset Password Execute)
+### Tahap 8 — Test Enroll (Join Classroom)
 
-Buat function `TestNewPassword` dengan sub-test. Awal function test, panggil `cleanupDatabase(db)`.
+Function: `TestEnrollClassroom`
 
-1. **Reset password berhasil**
-   - Seed user dengan password lama yang diketahui
-   - Seed verification token untuk email user (tidak expired)
-   - Kirim `POST /lms-usti-api/auth/new-password` dengan token, old_password, new_password
-   - Assert: HTTP 200, `meta.message` = "password successfully changed"
-   - Coba login dengan password baru — assert berhasil
-   - Coba login dengan password lama — assert gagal
-
-2. **Reset password dengan token tidak valid**
-   - Assert: HTTP 400, `meta.message` = "token tidak valid"
-
-3. **Reset password dengan token expired**
-   - Seed verification token expired
-   - Assert: HTTP 400, `meta.message` = "token sudah kedaluwarsa"
-
-4. **Reset password dengan password lama salah**
-   - Seed user + verification token valid
-   - Kirim request dengan old_password yang salah
-   - Assert: HTTP 401, `meta.message` = "email atau password salah"
-
-5. **Reset password dengan body tidak valid**
-   - Assert: HTTP 400
+1. **Enroll berhasil** — 200, "success join classroom"
+2. **Enroll dengan class_code tidak ada** — 404, "kelas tidak ditemukan"
+3. **Enroll dua kali** — 409, "sudah bergabung di kelas ini"
+4. **Enroll tanpa token** — 401
+5. **Enroll dengan token DOSEN** — 401 (ACL reject)
 
 ---
 
-### Tahap 9 — Test Me (Get Current User)
+### Tahap 9 — Test FindAllClassroomMember
 
-Buat function `TestMe` dengan sub-test. Awal function test, panggil `cleanupDatabase(db)`.
+Function: `TestFindAllClassroomMember`
 
-1. **Me dengan token valid**
-   - Seed user
-   - Login untuk mendapatkan token
-   - Kirim `GET /lms-usti-api/auth/me` dengan Bearer token
-   - Assert: HTTP 200, `data.email`, `data.role`, `data.fullname` sesuai
-
-2. **Me tanpa token**
-   - Kirim request tanpa Authorization header
-   - Assert: HTTP 401
-
-3. **Me dengan token tidak valid**
-   - Kirim Authorization header dengan token random
-   - Assert: HTTP 401
+1. **Find berhasil** — 200, ada data dosen dan mahasiswa
+2. **Find dengan classroomId tidak ada** — 404
+3. **Find tanpa token** — 401
 
 ---
 
@@ -273,54 +156,25 @@ Buat function `TestMe` dengan sub-test. Awal function test, panggil `cleanupData
 
 | File | Aksi |
 |------|------|
-| `lms-usti-be/main_auth_test.go` | **Buat baru** — semua test auth |
-| `lms-usti-be/go.mod` | **Edit** — tambah `gorm.io/driver/sqlite` jika pakai SQLite |
+| `lms-usti-be/main_classroom_test.go` | **Buat baru** |
+| `lms-usti-be/go.mod` | **Edit** — tambah `gorm.io/driver/sqlite` jika belum ada |
 
 ---
 
-## Cara Menjalankan Test
+## Cara Jalankan
 
 ```bash
-# Dari direktori lms-usti-be/
-go test -v -run TestAuth ./...
-```
-
-Atau untuk test spesifik:
-
-```bash
-go test -v -run TestLogin ./...
-go test -v -run TestRegister ./...
+go test -v -run TestCreateClassroom ./...
+go test -v -run TestFindAllByDosenId ./...
 ```
 
 ---
 
-## Urutan Eksekusi
+## Catatan Penting
 
-```
-Tahap 1 (setup infrastructure)    ← harus duluan
-Tahap 2 (helpers)                  ← harus setelah tahap 1
-Tahap 3 (register test)           ← independen (setelah 1 & 2)
-Tahap 4 (login test)              ← independen (setelah 1 & 2)
-Tahap 5 (activation test)         ← independen (setelah 1 & 2)
-Tahap 6 (resend test)             ← independen (setelah 1 & 2)
-Tahap 7 (reset email test)        ← independen (setelah 1 & 2)
-Tahap 8 (new password test)       ← independen (setelah 1 & 2)
-Tahap 9 (me test)                 ← independen (setelah 1 & 2)
-```
-
-> **Tip:** Tahap 3-9 bisa dikerjakan secara paralel karena masing-masing test function independen (setiap function punya setup sendiri-sendiri).
-
----
-
-## Catatan untuk Implementer
-
-- **Setiap sub-test harus independen.** Jangan bergantung pada data yang dibuat di sub-test lain. Setiap sub-test harus seed data sendiri.
-- **`cleanupDatabase` wajib dipanggil di awal setiap function test.** Ini memastikan tidak ada sisa data dari test sebelumnya yang mengganggu. Meskipun SQLite in-memory hilang otomatis, kebiasaan ini penting jika nanti migrasi ke test database yang persist.
-- **Urutan cleanupDatabase:** Hapus `verification_tokens` dulu baru `users` (karena foreign key constraint). Gunakan `db.Exec("DELETE FROM ...")`.
-- **Gunakan `t.Run()`** untuk sub-test agar output lebih rapi dan mudah dilacak saat ada yang fail.
-- **Untuk test `/me`**, diperlukan token JWT asli. Bisa didapat dengan login dulu di dalam test, atau membuat token langsung menggunakan `lib.CreateToken()`.
-- **Untuk test activation,** gunakan token dari hasil `seedVerificationToken` — jangan hardcode.
-- **Test harus bisa jalan tanpa MySQL.** Jika pakai SQLite in-memory, pastikan driver SQLite sudah diinstall.
-- **Jangan test pengiriman email yang sebenarnya.** Fungsi `lib.SendVerificationEmail` akan mencoba kirim email via SMTP. Test harusnya hanya meng-assert response dari controller, bukan mengecek email benar-benar terkirim. Gunakan mock atau pastikan error dari `lib.SendVerificationEmail` di-handle dengan benar: di test, seharusnya return error "email not sent" jika SMTP tidak available.
-- **Setiap function test harus clean up** setelah selesai — meskipun menggunakan database in-memory yang otomatis hilang setelah test selesai.
-- **Gunakan `httptest.NewRecorder()`** untuk menangkap response, lalu `httptest.NewRequest()` untuk membuat request.
+- **`cleanupDatabase` wajib dipanggil di awal setiap function test.** Hapus tabel berurutan sesuai foreign key.
+- **Setiap sub-test harus independen** via `t.Run()`. Seed data sendiri-sendiri.
+- **Untuk route yang butuh auth**, login dulu via helper `loginAndGetToken` untuk mendapatkan token.
+- **Untuk route yang butuh ACL** (DOSEN/MAHASISWA), pastikan login dengan role yang sesuai.
+- **Setiap test harus punya pattern yang sama:** cleanup → seed → request → assert.
+- **Jangan test SMTP beneran.** Cukup assert response dari controller.

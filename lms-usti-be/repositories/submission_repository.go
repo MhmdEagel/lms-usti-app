@@ -21,7 +21,7 @@ type SubmissionRepositoryInterface interface {
 	Delete(submissionId string) error
 	DeleteFiles(submissionFiles []model.SubmissionFile) error
 	DeleteLinks(submissionLinks []model.SubmissionLink) error
-	IsAlreadyCreated(studentId string) bool
+	IsAlreadyCreated(studentId string, classroomId string) bool
 }
 
 func NewSubmissionRepository(Db *gorm.DB) SubmissionRepositoryInterface {
@@ -80,9 +80,12 @@ func (s *SubmissionRepository) FindByAssignmentIdAndStudentId(assignmentId, stud
 	}
 	return submission, nil
 }
-func (s *SubmissionRepository) IsAlreadyCreated(studentId string) bool {
+func (s *SubmissionRepository) IsAlreadyCreated(studentId string, classroomId string) bool {
 	var count int64
-	s.Db.Model(&model.Submission{}).Where("student_id = ?", studentId).Count(&count)
+	s.Db.Model(&model.Submission{}).
+		Joins("JOIN assignments ON assignments.id = submissions.assignment_id").
+		Where("submissions.student_id = ? AND assignments.classroom_id = ?", studentId, classroomId).
+		Count(&count)
 	return count > 0
 }
 func (s *SubmissionRepository) Delete(submissionId string) error {

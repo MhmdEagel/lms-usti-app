@@ -25,11 +25,15 @@ func setupTestDB() *gorm.DB {
 	if err != nil {
 		panic("failed to connect to test database: " + err.Error())
 	}
-	db.AutoMigrate(&model.User{}, &model.VerificationToken{})
+	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.Assignment{}, &model.Submission{})
 	return db
 }
 
 func cleanupDatabase(db *gorm.DB) {
+	db.Exec("DELETE FROM submissions")
+	db.Exec("DELETE FROM assignments")
+	db.Exec("DELETE FROM classroom_mahasiswas")
+	db.Exec("DELETE FROM classrooms")
 	db.Exec("DELETE FROM verification_tokens")
 	db.Exec("DELETE FROM users")
 }
@@ -39,41 +43,63 @@ func setupTestRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 
 	authMiddleware := middleware.NewAuthMiddleware()
+	aclMiddleware := middleware.NewAclMiddleware()
 	globalErrMiddleware := middleware.NewGlobalErrMiddleware()
 	r.Use(globalErrMiddleware.Handle())
 
 	userRepository := repositories.NewUserRepository(db)
 	verificationRepository := repositories.NewVerificationRepository(db)
+	classroomRepository := repositories.NewClassroomRepository(db)
+	assignmentRepository := repositories.NewAssignmentRepository(db)
+	submissionRepository := repositories.NewSubmissionRepository(db)
+
 	authService := services.NewAuthService(userRepository, verificationRepository)
+	submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository)
+	assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService)
+	classroomService := services.NewClassroomService(classroomRepository, submissionService, assignmentService)
+
 	authController := controllers.NewAuthController(authService)
+	classroomController := controllers.NewClassroomController(classroomService)
 
 	api := r.Group("/lms-usti-api")
-	auth := api.Group("/auth")
 	{
-		auth.POST("/login", authController.Login)
-		auth.POST("/register", authController.Register)
-		auth.POST("/activation", authController.ActivateUser)
-		auth.POST("/activation/resend", authController.ResendActivation)
-		auth.POST("/reset-password", authController.SendResetPasswordEmail)
-		auth.POST("/new-password", authController.ResetPassword)
-		auth.Use(authMiddleware.Handle()).GET("/me", authController.Me)
+		auth := api.Group("/auth")
+		{
+			auth.POST("/login", authController.Login)
+			auth.POST("/register", authController.Register)
+			auth.POST("/activation", authController.ActivateUser)
+			auth.POST("/activation/resend", authController.ResendActivation)
+			auth.POST("/reset-password", authController.SendResetPasswordEmail)
+			auth.POST("/new-password", authController.ResetPassword)
+			auth.Use(authMiddleware.Handle()).GET("/me", authController.Me)
+		}
+		classroom := api.Group("/classroom")
+		classroom.Use(authMiddleware.Handle())
+		{
+			classroom.GET("/dosen/classrooms", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.FindAllByDosenId)
+			classroom.GET("/mahasiswa/classrooms", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.FindAllByMahasiswaId)
+			classroom.POST("/create", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Create)
+			classroom.POST("/join", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.Enroll)
+			classroom.GET("/:id", classroomController.FindById)
+			classroom.GET("/:id/members", classroomController.FindAllClassroomMember)
+			classroom.DELETE("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Delete)
+			classroom.PUT("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Update)
+		}
 	}
 	return r
 }
 
-func seedUser(db *gorm.DB, fullname, email, password, role string, emailVerified bool) model.User {
+func seedUser(db *gorm.DB, fullname, email, password, role string) model.User {
 	hashedPassword, err := lib.HashPassword(password)
 	if err != nil {
 		panic("failed to hash password: " + err.Error())
 	}
 	user := model.User{
-		Fullname: fullname,
-		Email:    email,
-		Password: hashedPassword,
-		Role:     role,
-	}
-	if emailVerified {
-		user.EmailVerified = sql.NullTime{Valid: true, Time: time.Now()}
+		Fullname:       fullname,
+		Email:          email,
+		Password:       hashedPassword,
+		Role:           role,
+		EmailVerified:  sql.NullTime{Valid: true, Time: time.Now()},
 	}
 	result := db.Create(&user)
 	if result.Error != nil {
@@ -161,7 +187,7 @@ func TestRegister(t *testing.T) {
 
 	t.Run("Register email duplikat", func(t *testing.T) {
 		cleanupDatabase(db)
-		seedUser(db, "User", "duplicate@test.com", "password123", "DOSEN", false)
+		seedUser(db, "User", "duplicate@test.com", "password123", "DOSEN")
 		body := `{"fullname":"User Lain","email":"duplicate@test.com","password":"password123","role":"DOSEN"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/auth/register", body, "")
 		res := parseResponse(w)
@@ -220,7 +246,7 @@ func TestLogin(t *testing.T) {
 
 	t.Run("Login berhasil", func(t *testing.T) {
 		cleanupDatabase(db)
-		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA", true)
+		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA")
 		body := `{"email":"user@test.com","password":"password123"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/auth/login", body, "")
 		res := parseResponse(w)
@@ -238,7 +264,7 @@ func TestLogin(t *testing.T) {
 
 	t.Run("Login email salah", func(t *testing.T) {
 		cleanupDatabase(db)
-		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA", true)
+		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA")
 		body := `{"email":"wrong@test.com","password":"password123"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/auth/login", body, "")
 		res := parseResponse(w)
@@ -253,7 +279,7 @@ func TestLogin(t *testing.T) {
 
 	t.Run("Login password salah", func(t *testing.T) {
 		cleanupDatabase(db)
-		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA", true)
+		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA")
 		body := `{"email":"user@test.com","password":"wrongpassword"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/auth/login", body, "")
 		res := parseResponse(w)
@@ -268,7 +294,8 @@ func TestLogin(t *testing.T) {
 
 	t.Run("Login email belum diverifikasi", func(t *testing.T) {
 		cleanupDatabase(db)
-		seedUser(db, "Test User", "unverified@test.com", "password123", "MAHASISWA", false)
+		hashedPw, _ := lib.HashPassword("password123")
+		db.Create(&model.User{Fullname: "Test User", Email: "unverified@test.com", Password: hashedPw, Role: "MAHASISWA"})
 		body := `{"email":"unverified@test.com","password":"password123"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/auth/login", body, "")
 		res := parseResponse(w)
@@ -300,7 +327,8 @@ func TestActivateUser(t *testing.T) {
 
 	t.Run("Aktivasi berhasil", func(t *testing.T) {
 		cleanupDatabase(db)
-		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA", false)
+		hashedPw, _ := lib.HashPassword("password123")
+		db.Create(&model.User{Fullname: "Test User", Email: "user@test.com", Password: hashedPw, Role: "MAHASISWA"})
 		token := seedVerificationToken(db, "user@test.com", false)
 		body := `{"token":"` + token.Token + `"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/auth/activation", body, "")
@@ -330,7 +358,8 @@ func TestActivateUser(t *testing.T) {
 
 	t.Run("Token expired", func(t *testing.T) {
 		cleanupDatabase(db)
-		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA", false)
+		hashedPw, _ := lib.HashPassword("password123")
+		db.Create(&model.User{Fullname: "Test User", Email: "user@test.com", Password: hashedPw, Role: "MAHASISWA"})
 		token := seedVerificationToken(db, "user@test.com", true)
 		body := `{"token":"` + token.Token + `"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/auth/activation", body, "")
@@ -363,7 +392,8 @@ func TestResendActivation(t *testing.T) {
 
 	t.Run("Resend berhasil", func(t *testing.T) {
 		cleanupDatabase(db)
-		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA", false)
+		hashedPw, _ := lib.HashPassword("password123")
+		db.Create(&model.User{Fullname: "Test User", Email: "user@test.com", Password: hashedPw, Role: "MAHASISWA"})
 		body := `{"email":"user@test.com"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/auth/activation/resend", body, "")
 		res := parseResponse(w)
@@ -409,7 +439,7 @@ func TestSendResetPasswordEmail(t *testing.T) {
 
 	t.Run("Reset berhasil", func(t *testing.T) {
 		cleanupDatabase(db)
-		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA", true)
+		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA")
 		body := `{"email":"user@test.com"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/auth/reset-password", body, "")
 		res := parseResponse(w)
@@ -455,7 +485,7 @@ func TestNewPassword(t *testing.T) {
 
 	t.Run("Reset password berhasil", func(t *testing.T) {
 		cleanupDatabase(db)
-		user := seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA", true)
+		user := seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA")
 		token := seedVerificationToken(db, "user@test.com", false)
 		body := `{"token":"` + token.Token + `","old_password":"password123","new_password":"newpassword456"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/auth/new-password", body, "")
@@ -491,7 +521,7 @@ func TestNewPassword(t *testing.T) {
 
 	t.Run("Token expired", func(t *testing.T) {
 		cleanupDatabase(db)
-		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA", true)
+		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA")
 		token := seedVerificationToken(db, "user@test.com", true)
 		body := `{"token":"` + token.Token + `","old_password":"password123","new_password":"newpassword456"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/auth/new-password", body, "")
@@ -507,7 +537,7 @@ func TestNewPassword(t *testing.T) {
 
 	t.Run("Password lama salah", func(t *testing.T) {
 		cleanupDatabase(db)
-		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA", true)
+		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA")
 		token := seedVerificationToken(db, "user@test.com", false)
 		body := `{"token":"` + token.Token + `","old_password":"wrongpassword","new_password":"newpassword456"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/auth/new-password", body, "")
@@ -540,7 +570,7 @@ func TestMe(t *testing.T) {
 
 	t.Run("Token valid", func(t *testing.T) {
 		cleanupDatabase(db)
-		user := seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA", true)
+		user := seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA")
 		token, err := lib.CreateToken(user.Fullname, user.Email, user.Role, user.ID)
 		if err != nil {
 			t.Fatalf("failed to create token: %v", err)
