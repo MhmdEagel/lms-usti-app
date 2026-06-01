@@ -1,14 +1,11 @@
 package controllers
 
 import (
-	"errors"
-	"log"
 	"net/http"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/services"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type AssignmentController struct {
@@ -27,14 +24,11 @@ func (a *AssignmentController) Create(ctx *gin.Context) {
 	}
 	classroomId := ctx.Param("id")
 	req.ClassroomId = classroomId
-	err := a.assignmentService.Create(req)
-	if err != nil {
-		log.Printf("Assignment Create: %v", err)
-		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
-		ctx.JSON(http.StatusInternalServerError, res)
+	if err := a.assignmentService.Create(req); err != nil {
+		handleError(ctx, err)
 		return
 	}
-	res := data.NewResponse(http.StatusOK, "assignment successfully created", nil)
+	res := data.NewResponse(http.StatusOK, "assignment berhasil dibuat", nil)
 	ctx.JSON(http.StatusOK, res)
 }
 
@@ -42,17 +36,10 @@ func (a *AssignmentController) FindAll(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
 	assignments, err := a.assignmentService.FindAll(classroomId)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			res := data.NewResponse(http.StatusNotFound, "classroom not found", nil)
-			ctx.JSON(http.StatusNotFound, res)
-			return
-		}
-		log.Printf("Assignment FindAll: %v", err)
-		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
-		ctx.JSON(http.StatusInternalServerError, res)
+		handleError(ctx, err)
 		return
 	}
-	res := data.NewResponse(http.StatusOK, "successfully fetch all assignments", assignments)
+	res := data.NewResponse(http.StatusOK, "berhasil mengambil semua assignment", assignments)
 	ctx.JSON(http.StatusOK, res)
 }
 
@@ -61,17 +48,10 @@ func (a *AssignmentController) FindById(ctx *gin.Context) {
 	assignmentId := ctx.Param("assignmentId")
 	assignment, err := a.assignmentService.FindById(assignmentId, classroomId)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			res := data.NewResponse(http.StatusNotFound, "assignment not found", nil)
-			ctx.JSON(http.StatusNotFound, res)
-			return
-		}
-		log.Printf("Assignment FindById: %v", err)
-		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
-		ctx.JSON(http.StatusInternalServerError, res)
+		handleError(ctx, err)
 		return
 	}
-	res := data.NewResponse(http.StatusOK, "successfully fetch assignment", assignment)
+	res := data.NewResponse(http.StatusOK, "berhasil mengambil assignment", assignment)
 	ctx.JSON(http.StatusOK, res)
 }
 
@@ -85,38 +65,21 @@ func (a *AssignmentController) Update(ctx *gin.Context) {
 	assignmentId := ctx.Param("assignmentId")
 	req.ClassroomId = classroomId
 	req.ID = assignmentId
-	err := a.assignmentService.Update(req)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			res := data.NewResponse(http.StatusNotFound, "assignment not found", nil)
-			ctx.JSON(http.StatusNotFound, res)
-			return
-		}
-		log.Printf("Assignment Update: %v", err)
-		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
-		ctx.JSON(http.StatusInternalServerError, res)
+	if err := a.assignmentService.Update(req); err != nil {
+		handleError(ctx, err)
 		return
 	}
-
-	res := data.NewResponse(http.StatusOK, "assignment successfully updated", nil)
+	res := data.NewResponse(http.StatusOK, "assignment berhasil diperbarui", nil)
 	ctx.JSON(http.StatusOK, res)
 }
 
 func (a *AssignmentController) Delete(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
 	assignmentId := ctx.Param("assignmentId")
-	err := a.assignmentService.Delete(assignmentId, classroomId)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			res := data.NewResponse(http.StatusNotFound, "assignment not found", nil)
-			ctx.JSON(http.StatusNotFound, res)
-			return
-		}
-		log.Printf("Assignment Delete: %v", err)
-		res := data.NewResponse(http.StatusBadRequest, "terjadi kesalahan server", nil)
-		ctx.JSON(http.StatusBadRequest, res)
+	if err := a.assignmentService.Delete(assignmentId, classroomId); err != nil {
+		handleError(ctx, err)
 		return
 	}
-	res := data.NewResponse(http.StatusOK, "assignment successfully deleted", nil)
+	res := data.NewResponse(http.StatusOK, "assignment berhasil dihapus", nil)
 	ctx.JSON(http.StatusOK, res)
 }
