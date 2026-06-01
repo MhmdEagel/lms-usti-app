@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
-	"strings"
 	"testing"
 	"time"
 
@@ -27,14 +25,17 @@ func setupTestDB() *gorm.DB {
 	if err != nil {
 		panic("failed to connect to test database: " + err.Error())
 	}
-	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.Assignment{}, &model.Submission{}, &model.Material{}, &model.MaterialFile{}, &model.MaterialLink{})
+	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.Material{}, &model.MaterialAttachment{}, &model.Assignment{}, &model.AssignmentRubric{}, &model.AssignmentAttachment{}, &model.Submission{}, &model.SubmissionFile{}, &model.SubmissionLink{})
 	return db
 }
 
 func cleanupDatabase(db *gorm.DB) {
-	db.Exec("DELETE FROM material_links")
-	db.Exec("DELETE FROM material_files")
+	db.Exec("DELETE FROM material_attachments")
 	db.Exec("DELETE FROM materials")
+	db.Exec("DELETE FROM assignment_attachments")
+	db.Exec("DELETE FROM assignment_rubrics")
+	db.Exec("DELETE FROM submission_files")
+	db.Exec("DELETE FROM submission_links")
 	db.Exec("DELETE FROM submissions")
 	db.Exec("DELETE FROM assignments")
 	db.Exec("DELETE FROM classroom_mahasiswas")
@@ -62,9 +63,6 @@ func setupTestRouter(db *gorm.DB) *gin.Engine {
 	submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository)
 	assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService)
 	classroomService := services.NewClassroomService(classroomRepository, submissionService, assignmentService)
-	materialRepository := repositories.NewMaterialRepository(db)
-	materialService := services.NewMaterialService(materialRepository, classroomRepository)
-	materialController := controllers.NewMaterialController(materialService)
 
 	authController := controllers.NewAuthController(authService)
 	classroomController := controllers.NewClassroomController(classroomService)
@@ -90,11 +88,6 @@ func setupTestRouter(db *gorm.DB) *gin.Engine {
 			classroom.POST("/join", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.Enroll)
 			classroom.GET("/:id", classroomController.FindById)
 			classroom.GET("/:id/members", classroomController.FindAllClassroomMember)
-			classroom.GET("/:id/materials", materialController.FindAll)
-			classroom.GET("/:id/materials/:materialId", materialController.FindById)
-			classroom.POST("/:id/materials", aclMiddleware.Handle([]string{"DOSEN"}), materialController.Create)
-			classroom.PUT("/:id/materials/:materialId", aclMiddleware.Handle([]string{"DOSEN"}), materialController.Update)
-			classroom.DELETE("/:id/materials/:materialId", aclMiddleware.Handle([]string{"DOSEN"}), materialController.Delete)
 			classroom.DELETE("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Delete)
 			classroom.PUT("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Update)
 		}
@@ -149,21 +142,6 @@ func makeRequest(r *gin.Engine, method, url, body string, token string) *httptes
 	} else {
 		req = httptest.NewRequest(method, url, nil)
 	}
-	if token != "" {
-		req.Header.Set("Authorization", "Bearer "+token)
-	}
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	return w
-}
-
-func makeFormRequest(r *gin.Engine, method, path string, params map[string]string, token string) *httptest.ResponseRecorder {
-	values := url.Values{}
-	for k, v := range params {
-		values.Set(k, v)
-	}
-	req := httptest.NewRequest(method, path, strings.NewReader(values.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}

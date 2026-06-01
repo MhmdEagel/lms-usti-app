@@ -1,230 +1,257 @@
-# Issue: Refactor Attachment — Material & Assignment Backend
+# Issue: Unit Test Material & Assignment API Backend
 
 ## Goal
 
-Menyederhanakan sistem attachment pada material dan assignment menjadi satu model masing-masing. Menambah tipe VIDEO. Refactor backend saja, front-end diabaikan.
+Membuat unit test untuk endpoint Material dan Assignment API menggunakan `net/http/httptest` sesuai panduan Gin Testing. Instruksi high-level untuk junior programmer / AI model murah.
+
+**File yang dibuat:**
+- `lms-usti-be/main_material_test.go`
+- `lms-usti-be/main_assignment_test.go`
+
+**Timeout:** `go test -timeout 60s -run "TestMaterial|TestAssignment" -v`
+
+**Konvensi test:**
+- User sudah teraktivasi secara default (`seedUser` set `EmailVerified` valid)
+- Semua test bersihkan DB di awal setiap sub-test
+- File dummy: `dummy/test_material.pdf`, `dummy/test_video.mp4`
 
 ---
 
-## Arsitektur Baru
+## Endpoint yang Ditest
 
-### Model Lama vs Baru
+### Material (`/lms-usti-api/classroom/:id/materials`)
 
-**Lama (Material):**
-- `MaterialFile` — tabel terpisah (ID, FileName, UniqueFileName, FileUrl, MaterialId)
-- `MaterialLink` — tabel terpisah (ID, LinkName, LinkUrl, MaterialId)
+| # | Method | Path | Auth | Role | Binding |
+|---|--------|------|------|------|---------|
+| 1 | POST | `/classroom/:id/materials` | Ya | DOSEN | Form (`ShouldBind`) |
+| 2 | GET | `/classroom/:id/materials` | Ya | Any | - |
+| 3 | GET | `/classroom/:id/materials/:materialId` | Ya | Any | - |
+| 4 | PUT | `/classroom/:id/materials/:materialId` | Ya | DOSEN | Form (`ShouldBind`) |
+| 5 | DELETE | `/classroom/:id/materials/:materialId` | Ya | DOSEN | - |
 
-**Baru (Material):**
-- `MaterialAttachment` — satu tabel gabungan:
-  - `ID` (primary key)
-  - `Name` (string)
-  - `Type` (enum: FILE, VIDEO, LINK)
-  - `Url` (string)
-  - `UniqueName` (string)
-  - `MaterialId` (FK)
+### Assignment (`/lms-usti-api/classroom/:id/assignments`)
 
-**Lama (Assignment):**
-- Tidak ada attachment (hanya Rubrics)
-
-**Baru (Assignment):**
-- `AssignmentAttachment` — satu tabel:
-  - `ID` (primary key)
-  - `Name` (string)
-  - `Type` (enum: FILE, VIDEO, LINK)
-  - `Url` (string)
-  - `UniqueName` (string)
-  - `AssignmentId` (FK)
-
-### Enum Type
-
-```go
-type AttachmentType string
-
-const (
-    AttachmentTypeFile  AttachmentType = "FILE"
-    AttachmentTypeVideo AttachmentType = "VIDEO"
-    AttachmentTypeLink  AttachmentType = "LINK"
-)
-```
-
-### Validasi Type
-
-| Type | Validasi |
-|------|----------|
-| FILE | `UniqueName` wajib ada, `Url` wajib ada, ekstensi: jpg, jpeg, png, gif, webp, pdf, doc, docx, txt |
-| VIDEO | `UniqueName` wajib ada, `Url` wajib ada, ekstensi: mp4, mkv |
-| LINK | `UniqueName` kosong, `Url` wajib ada (harus valid URL) |
+| # | Method | Path | Auth | Role | Binding |
+|---|--------|------|------|------|---------|
+| 1 | POST | `/classroom/:id/assignments` | Ya | DOSEN | JSON (`ShouldBindJSON`) |
+| 2 | GET | `/classroom/:id/assignments` | Ya | Any | - |
+| 3 | GET | `/classroom/:id/assignments/:assignmentId` | Ya | Any | - |
+| 4 | PUT | `/classroom/:id/assignments/:assignmentId` | Ya | DOSEN | JSON (`ShouldBindJSON`) |
+| 5 | DELETE | `/classroom/:id/assignments/:assignmentId` | Ya | DOSEN | - |
 
 ---
 
 ## Tahapan
 
-### Tahap 1 — Buat Model `AttachmentType` + `MaterialAttachment`
+### Tahap 1 — Setup Test Infrastructure
 
-**File:** `lms-usti-be/model/material.go`
+**Perlu diupdate di `main_auth_test.go`:**
 
-1. Buat type `AttachmentType string` dengan enum `FILE`, `VIDEO`, `LINK`
-2. Buat struct `MaterialAttachment` dengan field: `ID`, `Name`, `Type` (AttachmentType), `Url`, `UniqueName`, `MaterialId`
-3. Tambah `BeforeCreate` hook untuk auto-generate UUID
-4. Hapus `MaterialFile` dan `MaterialLink` structs
-5. Update struct `Material` — ganti `MaterialFiles` dan `MaterialLinks` menjadi `Attachments []MaterialAttachment` dengan foreign key cascade
-6. Hapus `NewMaterialLink` function
+1. Tambahkan model ke `setupTestDB()` AutoMigrate:
+   - `model.Material`, `model.MaterialAttachment`
+   - `model.Assignment`, `model.AssignmentRubric`, `model.AssignmentAttachment`
+   - `model.Submission`, `model.SubmissionFile`, `model.SubmissionLink`
 
----
+2. Tambahkan table ke `cleanupDatabase()`:
+   - `material_attachments`, `materials`
+   - `assignment_attachments`, `assignment_rubrics`
+   - `submission_files`, `submission_links`, `submissions`
 
-### Tahap 2 — Buat Model `AssignmentAttachment`
+**Helper baru (bisa di file test masing-masing atau di `main_auth_test.go`):**
 
-**File:** `lms-usti-be/model/assignment.go`
-
-1. Buat struct `AssignmentAttachment` dengan field: `ID`, `Name`, `Type` (AttachmentType), `Url`, `UniqueName`, `AssignmentId`
-2. Tambah `BeforeCreate` hook untuk auto-generate UUID
-3. Update struct `Assignment` — tambah field `Attachments []AssignmentAttachment` dengan foreign key cascade
-
----
-
-### Tahap 3 — Buat Tipe Data Attachment di `data/`
-
-**File:** `lms-usti-be/data/attachment.go` (buat baru)
-
-1. Buat `AttachmentRequest` — untuk Create/Update:
-   ```go
-   type AttachmentRequest struct {
-       Name       string         `json:"name" binding:"required"`
-       Type       string         `json:"type" binding:"required,oneof=FILE VIDEO LINK"`
-       Url        string         `json:"url" binding:"required"`
-       UniqueName string         `json:"unique_name"`
-   }
-   ```
-
-2. Buat `AttachmentResponse` — untuk response:
-   ```go
-   type AttachmentResponse struct {
-       Id         string `json:"id"`
-       Name       string `json:"name"`
-       Type       string `json:"type"`
-       Url        string `json:"url"`
-       UniqueName string `json:"unique_name"`
-   }
-   ```
-
-3. Update `data/material.go`:
-   - `MaterialRequest.Files` → `MaterialRequest.Attachments []AttachmentRequest`
-   - `MaterialRequest.Links` → dihapus
-   - `MaterialDetailResponse.Files` + `.Links` → `MaterialDetailResponse.Attachments []AttachmentResponse`
-   - `MaterialUpdateRequest.Files` + `.Links` → `MaterialUpdateRequest.Attachments []AttachmentRequest`
-   - Hapus `FileRequest`, `FileResponse`, `LinkRequest`, `LinkResponse`
-
-4. Update `data/assignment.go`:
-   - `AssignmentRequest.Attachments []AttachmentRequest`
-   - `AssignmentDetailResponse.Attachments []AttachmentResponse`
-   - `AssignmentUpdateRequest.Attachments []AttachmentRequest`
+- `seedClassroom(db, dosenUser) model.Classroom` — buat classroom dengan dosen
+- `seedMahasiswaToClassroom(db, user, classroom)` — enroll mahasiswa ke classroom
+- `makeMultipartRequest(r, method, url, fields, files, token)` — buat request multipart/form-data untuk material
+- `loginAndGetToken(r, email, password) string` — login lalu ambil token
 
 ---
 
-### Tahap 4 — Update Repository Material
+### Tahap 2 — Setup Router untuk Material Test
 
-**File:** `lms-usti-be/repositories/material_repository.go`
+Buat `setupMaterialTestRouter(db)` yang include:
+- Auth routes (login, register)
+- Classroom routes dengan middleware (auth + ACL)
+- Material routes (`/:id/materials`, `/:id/materials/:materialId`)
+- Media routes (`/media/materials`) — untuk upload file sebelum create material
 
-1. Hapus `CreateMaterialFile`, `CreateMaterialLink`, `DeleteFiles`, `DeleteLinks`, `DeleteFileByUniqueFileName`
-2. Tambah `CreateAttachments(attachments []model.MaterialAttachment) error`
-3. Tambah `DeleteAttachments(materialId string) error`
-4. Update `FindById` — ganti `Preload("MaterialFiles").Preload("MaterialLinks")` menjadi `Preload("Attachments")`
-5. Update interface `MaterialRepositoryInterface` — sesuaikan method baru
-
----
-
-### Tahap 5 — Update Repository Assignment
-
-**File:** `lms-usti-be/repositories/assignment_repository.go`
-
-1. Tambah `CreateAttachments(attachments []model.AssignmentAttachment) error`
-2. Tambah `DeleteAttachments(assignmentId string) error`
-3. Update `FindById` — tambah `Preload("Attachments")`
-4. Update interface `AssignmentRepositoryInterface` — sesuaikan method baru
+**Kenapa perlu media routes:** Material bisa punya attachment tipe FILE/VIDEO. Sebelum create material, file harus diupload dulu via media API agar ada di filesystem.
 
 ---
 
-### Tahap 6 — Update Service Material
+### Tahap 3 — Test Material: Create
 
-**File:** `lms-usti-be/services/material_service.go`
+**Sub-test:**
 
-1. Update `Create`:
-   - Loop `materialRequest.Attachments`
-   - Validasi type: cek `AttachmentType(req.Type)` valid (FILE/VIDEO/LINK)
-   - Jika FILE/VIDEO: pastikan `UniqueName` tidak kosong
-   - Jika LINK: `UniqueName` boleh kosong, pastikan `Url` valid URL
-   - Konversi ke `[]model.MaterialAttachment` dengan `Type` field
+| Sub-test | Input | Expected |
+|----------|-------|----------|
+| Create berhasil (tanpa attachment) | title + description saja | 200 |
+| Create berhasil (dengan attachment FILE) | upload file dulu, lalu attach | 200 |
+| Create berhasil (dengan attachment VIDEO) | upload video dulu, lalu attach | 200 |
+| Create berhasil (dengan attachment LINK) | url valid | 200 |
+| Create berhasil (campur FILE + LINK) | gabungan | 200 |
+| Title kosong | title="" | 400 |
+| Attachment type invalid (`.php`) | type="PHP" atau type invalid | 400 |
+| Tanpa token | - | 401 |
+| Token MAHASISWA | role=MAHASISWA | 403 |
+| Classroom tidak ada | classroom ID random | 404 |
+| URL link tidak valid | url="bukan-url" | 400 |
+| Attachment FILE tanpa unique_name | type=FILE, unique_name="" | 400 |
 
-2. Update `FindById`:
-   - Loop `res.Attachments` → konversi ke `[]data.AttachmentResponse`
+**Flow untuk test dengan attachment:**
+1. Upload file via `POST /media/materials` (multipart)
+2. Ambil `unique_file_name` dari response
+3. Buat material dengan attachment yang reference `unique_file_name` tersebut
+4. Bersihkan file setelah test selesai
 
-3. Update `Update`:
-   - Hapus logic lama (DeleteLinks, CreateMaterialLink, DeleteFiles, CreateMaterialFile)
-   - Ganti dengan: `repo.DeleteAttachments(material.ID)` → `repo.CreateAttachments(updatedAttachments)`
-
-4. Hapus `fmt.Println` debug (line 38)
-
----
-
-### Tahap 7 — Update Service Assignment
-
-**File:** `lms-usti-be/services/assignment_service.go`
-
-1. Update `Create`:
-   - Setelah create rubrics dan submissions
-   - Loop `assignmentRequest.Attachments`
-   - Validasi type sama seperti material
-   - Konversi ke `[]model.AssignmentAttachment`
-   - Call `repo.CreateAttachments()`
-
-2. Update `FindById`:
-   - Loop `res.Attachments` → konversi ke `[]data.AttachmentResponse`
-
-3. Update `Update`:
-   - Hapus logic rubrics lama
-   - Tambah: `repo.DeleteAttachments(assignment.ID)` → `repo.CreateAttachments(updatedAttachments)`
+**Perhatian binding:** Material pakai form binding (`ShouldBind`). Attachment dikirim sebagai field form JSON string (bukan JSON body). Content-Type: `multipart/form-data`.
 
 ---
 
-### Tahap 8 — Tambah Video Type ke File Detection
+### Tahap 4 — Test Material: FindAll, FindById, Delete
 
-**File:** `lms-usti-be/lib/uploads.go`
+**Sub-test FindAll:**
 
-1. Tambah `FileTypeVideo FileType = "video"`
-2. Update `GetUploadConfig` — tambah `FileTypeVideo: []string{"mp4", "mkv"}`
+| Sub-test | Input | Expected |
+|----------|-------|----------|
+| Ada materials | seed material di classroom | 200 + array |
+| Kosong | classroom tanpa material | 200 + array kosong |
+| Classroom tidak ada | ID random | 404 |
 
-**File:** `lib/utils.go`
+**Sub-test FindById:**
 
-1. Update `DetectFileType` — tambah deteksi `.mp4`, `.mkv` → `FileTypeVideo`
-2. Update `IsAllowedFileType` — tambah case `FileTypeVideo`: `mp4, mkv`
+| Sub-test | Input | Expected |
+|----------|-------|----------|
+| Ada | material ID valid | 200 + data |
+| Tidak ada | material ID random | 404 |
+
+**Sub-test Delete:**
+
+| Sub-test | Input | Expected |
+|----------|-------|----------|
+| Hapus berhasil | material ID valid | 200 |
+| Material tidak ada | ID random | 404 |
+| Tanpa token | - | 401 |
+| Token MAHASISWA | role=MAHASISWA | 403 |
 
 ---
 
-### Tahap 9 — Hapus Migration Lama + Buat Migration Baru
+### Tahap 5 — Test Material: Update
 
-**File:** `lms-usti-be/config/database.go` atau migration file
+**Sub-test:**
 
-1. Drop tabel lama: `material_files`, `material_links`
-2. Buat tabel baru: `material_attachments`, `assignment_attachments`
-3. Update auto-migrate di test setup jika ada
+| Sub-test | Input | Expected |
+|----------|-------|----------|
+| Update berhasil | title + description baru | 200 |
+| Ganti attachment | hapus lama, tambah baru | 200 |
+| Material tidak ada | ID random | 404 |
+| Token MAHASISWA | role=MAHASISWA | 403 |
 
 ---
 
-## Urutan Pengerjaan
+### Tahap 6 — Setup Router untuk Assignment Test
 
-| Tahap | File | Dependensi |
-|-------|------|------------|
-| 1 | `model/material.go` | — |
-| 2 | `model/assignment.go` | — |
-| 3 | `data/attachment.go`, `data/material.go`, `data/assignment.go` | Tahap 1, 2 |
-| 4 | `repositories/material_repository.go` | Tahap 1 |
-| 5 | `repositories/assignment_repository.go` | Tahap 2 |
-| 6 | `services/material_service.go` | Tahap 1, 3, 4 |
-| 7 | `services/assignment_service.go` | Tahap 2, 3, 5 |
-| 8 | `lib/uploads.go`, `lib/utils.go` | — |
-| 9 | Migration database | Tahap 1-8 |
+Buat `setupAssignmentTestRouter(db)` yang include:
+- Auth routes (login)
+- Classroom routes dengan middleware
+- Assignment routes
+- Media routes (`/media/assignments`) — untuk upload file
 
-**Tips:** Tahap 1-2 bisa paralel. Tahap 3 tergantung 1+2. Tahap 4-5 bisa paralel. Tahap 6-7 bisa paralel. Tahap 8 independent. Tahap 9 terakhir.
+---
+
+### Tahap 7 — Test Assignment: Create
+
+**Sub-test:**
+
+| Sub-test | Input | Expected |
+|----------|-------|----------|
+| Create berhasil (tanpa attachment + rubric) | title + deadline + instruction | 200 |
+| Create berhasil (dengan rubric) | + rubrics array | 200 |
+| Create berhasil (dengan attachment FILE) | upload file dulu | 200 |
+| Create berhasil (dengan attachment LINK) | url valid | 200 |
+| Create berhasil (lengkap) | rubric + attachment campur | 200 |
+| Title kosong | title="" | 400 |
+| Deadline kosong | omit deadline | 400 |
+| Attachment type invalid (`.php`) | type="SCRIPT" | 400 |
+| Tanpa token | - | 401 |
+| Token MAHASISWA | role=MAHASISWA | 403 |
+| Classroom tidak ada | ID random | 404 |
+
+**Perhatian binding:** Assignment pakai JSON binding (`ShouldBindJSON`). Content-Type: `application/json`.
+
+---
+
+### Tahap 8 — Test Assignment: FindAll, FindById, Delete
+
+**Sub-test FindAll:**
+
+| Sub-test | Input | Expected |
+|----------|-------|----------|
+| Ada assignments | seed data | 200 + array |
+| Kosong | classroom kosong | 200 + array kosong |
+| Classroom tidak ada | ID random | 404 |
+
+**Sub-test FindById:**
+
+| Sub-test | Input | Expected |
+|----------|-------|----------|
+| Ada | ID valid | 200 + data + rubrics + attachments |
+| Tidak ada | ID random | 404 |
+
+**Sub-test Delete:**
+
+| Sub-test | Input | Expected |
+|----------|-------|----------|
+| Hapus berhasil | ID valid | 200 |
+| Assignment tidak ada | ID random | 404 |
+| Tanpa token | - | 401 |
+| Token MAHASISWA | role=MAHASISWA | 403 |
+
+---
+
+### Tahap 9 — Test Assignment: Update
+
+**Sub-test:**
+
+| Sub-test | Input | Expected |
+|----------|-------|----------|
+| Update berhasil | title baru + rubric baru + attachment baru | 200 |
+| Assignment tidak ada | ID random | 404 |
+| Token MAHASISWA | role=MAHASISWA | 403 |
+
+---
+
+### Tahap 10 — Validasi Keamanan File Upload
+
+Test ini bisa diletakkan di salah satu test file (material atau assignment).
+
+| Sub-test | Endpoint | Input | Expected |
+|----------|----------|-------|----------|
+| Upload `.php` | POST `/media/materials` | file `shell.php` | 400 |
+| Upload `.exe` | POST `/media/materials` | file `malware.exe` | 400 |
+| Upload `.sh` | POST `/media/assignments` | file `script.sh` | 400 |
+| Upload `.pdf` valid | POST `/media/materials` | `dummy/test_material.pdf` | 200 |
+| Upload `.mp4` valid | POST `/media/assignments` | `dummy/test_video.mp4` | 200 |
+
+---
+
+## Referensi
+
+- Panduan testing Gin: https://gin-gonic.com/id/docs/testing/
+- Setup test existing: `main_auth_test.go:23-89`
+- `handleError()` / `bindJSONError()`: `controllers/auth_controller.go:22-45`
+- Material routes: `router/api.go:80-84`
+- Assignment routes: `router/api.go:86-90`
+- Material controller: `controllers/material_controller.go`
+- Assignment controller: `controllers/assignment_controller.go`
+- Material service: `services/material_service.go`
+- Assignment service: `services/assignment_service.go`
+- Media routes: `router/api.go:97-120`
+- Media service: `services/media_service.go`
+- Auth middleware: `middleware/auth.go`
+- ACL middleware: `middleware/acl.go`
+- JWT: `lib/jwt.go` — `lib.CreateToken(fullname, email, role, userId)`
+- Models: `model/material.go`, `model/assignment.go`, `model/classroom.go`, `model/user.go`, `model/submission.go`
+- Dummy files: `dummy/test_material.pdf`, `dummy/test_video.mp4`
 
 ---
 
@@ -232,23 +259,16 @@ const (
 
 | File | Aksi |
 |------|------|
-| `model/material.go` | Edit — ganti MaterialFile/MaterialLink → MaterialAttachment |
-| `model/assignment.go` | Edit — tambah AssignmentAttachment |
-| `data/attachment.go` | **Buat baru** — AttachmentRequest, AttachmentResponse |
-| `data/material.go` | Edit — ganti Files/Links → Attachments |
-| `data/assignment.go` | Edit — tambah Attachments field |
-| `repositories/material_repository.go` | Edit — ganti methods |
-| `repositories/assignment_repository.go` | Edit — tambah attachment methods |
-| `services/material_service.go` | Edit — refactor create/update/find |
-| `services/assignment_service.go` | Edit — tambah attachment handling |
-| `lib/uploads.go` | Edit — tambah FileTypeVideo |
-| `lib/utils.go` | Edit — tambah deteksi video |
+| `main_auth_test.go` | Edit — tambah model di `setupTestDB()` + `cleanupDatabase()` |
+| `main_material_test.go` | Baru — semua test material |
+| `main_assignment_test.go` | Baru — semua test assignment |
 
 ---
 
-## Referensi
+## Catatan Penting
 
-- Pola model: `model/material.go` (MaterialFile/MaterialLink lama)
-- Pola enum: `lib/uploads.go` (FileType)
-- Pola repository: `repositories/material_repository.go`
-- Pola service create: `services/material_service.go:25-69`
+1. **Material binding:** `ShouldBind` (multipart/form-data). Field `attachments` dikirim sebagai JSON string dalam form field.
+2. **Assignment binding:** `ShouldBindJSON` (application/json). Field `attachments` langsung JSON array.
+3. **Attachment type validation** dilakukan di service layer (bukan controller). `AttachmentType` harus salah satu dari: `FILE`, `VIDEO`, `LINK`.
+4. **Submission otomatis dibuat** saat assignment create (untuk setiap mahasiswa di classroom). Test perlu seed mahasiswa dulu.
+5. **Gunakan `t.Parallel()` atau tidak** — karena pakai SQLite in-memory, jangan pakai `t.Parallel()` di sub-test yang share DB yang sama.
