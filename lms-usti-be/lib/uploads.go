@@ -11,6 +11,7 @@ type FileType string
 const (
 	FileTypeImage    FileType = "image"
 	FileTypeDocument FileType = "document"
+	FileTypeVideo    FileType = "video"
 	FileTypeOther    FileType = "other"
 )
 
@@ -27,6 +28,7 @@ func GetUploadConfig() *UploadConfig {
 	allowedTypes := map[FileType][]string{
 		FileTypeDocument: strings.Split("pdf,doc,docx,txt", ","),
 		FileTypeImage:    strings.Split("jpg,jpeg,png,gif,webp", ","),
+		FileTypeVideo:    strings.Split("mp4,mkv", ","),
 	}
 
 	return &UploadConfig{

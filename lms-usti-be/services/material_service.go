@@ -1,10 +1,10 @@
 package services
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
+	"github.com/MhmdEagel/lms-usti-be/lib"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
 )
@@ -35,34 +35,33 @@ func (m *MaterialService) Create(materialRequest data.MaterialRequest) error {
 	if err := m.materialRepository.Create(material); err != nil {
 		return err
 	}
-	fmt.Println(material)
-	var materialLinks []model.MaterialLink
-	for _, v := range materialRequest.Links {
-		materialLink := model.MaterialLink{
-			LinkName:   v.LinkName,
-			LinkUrl:    v.LinkUrl,
-			MaterialId: material.ID,
+	var attachments []model.MaterialAttachment
+	for _, v := range materialRequest.Attachments {
+		attType := model.AttachmentType(v.Type)
+		if attType != model.AttachmentTypeFile && attType != model.AttachmentTypeVideo && attType != model.AttachmentTypeLink {
+			return data.ErrBadRequest(nil)
 		}
-		materialLinks = append(materialLinks, materialLink)
-	}
-	if len(materialLinks) > 0 {
-		if err := m.materialRepository.CreateMaterialLink(materialLinks); err != nil {
-			return err
+		if attType == model.AttachmentTypeFile || attType == model.AttachmentTypeVideo {
+			if v.UniqueName == "" {
+				return data.ErrBadRequest(nil)
+			}
 		}
-	}
-
-	var materialFiles []model.MaterialFile
-	for _, f := range materialRequest.Files {
-		materialFile := model.MaterialFile{
-			FileName:       f.FileName,
-			FileUrl:        f.FileUrl,
-			UniqueFileName: f.UniqueFileName,
-			MaterialId:     material.ID,
+		if attType == model.AttachmentTypeLink {
+			if !lib.IsUrl(v.Url) {
+				return data.ErrBadRequest(nil)
+			}
 		}
-		materialFiles = append(materialFiles, materialFile)
+		attachment := model.MaterialAttachment{
+			Name:        v.Name,
+			Type:        attType,
+			Url:         v.Url,
+			UniqueName:  v.UniqueName,
+			MaterialId:  material.ID,
+		}
+		attachments = append(attachments, attachment)
 	}
-	if len(materialFiles) > 0 {
-		if err := m.materialRepository.CreateMaterialFile(materialFiles); err != nil {
+	if len(attachments) > 0 {
+		if err := m.materialRepository.CreateAttachments(attachments); err != nil {
 			return err
 		}
 	}
@@ -103,22 +102,15 @@ func (m *MaterialService) FindById(materialId, classroomId string) (material dat
 		Title:       res.Title,
 		Description: res.Description,
 	}
-	for _, vFile := range res.MaterialFiles {
-		file := data.FileResponse{
-			Id:             vFile.ID,
-			FileName:       vFile.FileName,
-			FileUrl:        vFile.FileUrl,
-			UniqueFileName: vFile.UniqueFileName,
+	for _, v := range res.Attachments {
+		attachment := data.AttachmentResponse{
+			Id:         v.ID,
+			Name:       v.Name,
+			Type:       string(v.Type),
+			Url:        v.Url,
+			UniqueName: v.UniqueName,
 		}
-		material.Files = append(material.Files, file)
-	}
-	for _, vLink := range res.MaterialLinks {
-		link := data.LinkResponse{
-			Id:       vLink.ID,
-			LinkName: vLink.LinkName,
-			LinkUrl:  vLink.LinkUrl,
-		}
-		material.Links = append(material.Links, link)
+		material.Attachments = append(material.Attachments, attachment)
 	}
 	return material, nil
 }
@@ -137,39 +129,23 @@ func (m *MaterialService) Update(materialUpdateRequest data.MaterialUpdateReques
 		if err := repo.Update(material); err != nil {
 			return err
 		}
-		var updatedLinks []model.MaterialLink
-		for _, v := range materialUpdateRequest.Links {
-			link := model.MaterialLink{
-				ID:         v.Id,
-				LinkName:   v.LinkName,
-				LinkUrl:    v.LinkUrl,
+		var updatedAttachments []model.MaterialAttachment
+		for _, v := range materialUpdateRequest.Attachments {
+			attType := model.AttachmentType(v.Type)
+			attachment := model.MaterialAttachment{
+				Name:       v.Name,
+				Type:       attType,
+				Url:        v.Url,
+				UniqueName: v.UniqueName,
 				MaterialId: material.ID,
 			}
-			updatedLinks = append(updatedLinks, link)
+			updatedAttachments = append(updatedAttachments, attachment)
 		}
-		if err := repo.DeleteLinks(material.ID); err != nil {
+		if err := repo.DeleteAttachments(material.ID); err != nil {
 			return err
 		}
-		if len(updatedLinks) > 0 {
-			if err := repo.CreateMaterialLink(updatedLinks); err != nil {
-				return err
-			}
-		}
-		var updatedFiles []model.MaterialFile
-		for _, v := range materialUpdateRequest.Files {
-			file := model.MaterialFile{
-				ID:         v.Id,
-				FileName:   v.FileName,
-				FileUrl:    v.FileUrl,
-				MaterialId: material.ID,
-			}
-			updatedFiles = append(updatedFiles, file)
-		}
-		if err := repo.DeleteFiles(material.ID); err != nil {
-			return err
-		}
-		if len(updatedFiles) > 0 {
-			if err := repo.CreateMaterialFile(updatedFiles); err != nil {
+		if len(updatedAttachments) > 0 {
+			if err := repo.CreateAttachments(updatedAttachments); err != nil {
 				return err
 			}
 		}

@@ -123,6 +123,7 @@ func DetectFileType(filename string) FileType {
 
 	imageExts := []string{".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg"}
 	documentExts := []string{".pdf", ".doc", ".docx", ".txt", ".rtf", ".odt"}
+	videoExts := []string{".mp4", ".mkv"}
 
 	for _, imageExt := range imageExts {
 		if ext == imageExt {
@@ -133,6 +134,12 @@ func DetectFileType(filename string) FileType {
 	for _, docExt := range documentExts {
 		if ext == docExt {
 			return FileTypeDocument
+		}
+	}
+
+	for _, videoExt := range videoExts {
+		if ext == videoExt {
+			return FileTypeVideo
 		}
 	}
 
@@ -150,6 +157,9 @@ func IsAllowedFileType(filename string, fileType FileType) bool {
 		allowedTypes = strings.Split(allowedTypesStr, ",")
 	case FileTypeDocument:
 		allowedTypesStr := "pdf,doc,docx,txt"
+		allowedTypes = strings.Split(allowedTypesStr, ",")
+	case FileTypeVideo:
+		allowedTypesStr := "mp4,mkv"
 		allowedTypes = strings.Split(allowedTypesStr, ",")
 	default:
 		return false

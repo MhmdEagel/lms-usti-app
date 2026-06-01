@@ -7,6 +7,7 @@ type AssignmentRequest struct {
 	Deadline    time.Time                 `json:"deadline" binding:"required"`
 	Instruction string                    `json:"instruction"`
 	Rubrics     []AssignmentRubricRequest `json:"rubrics"`
+	Attachments []AttachmentRequest       `json:"attachments"`
 	ClassroomId string
 }
 type AssignmentUpdateRequest struct {
@@ -15,6 +16,7 @@ type AssignmentUpdateRequest struct {
 	Deadline    time.Time                       `json:"deadline"`
 	Instruction string                          `json:"instruction"`
 	Rubrics     []AssignmentRubricUpdateRequest `json:"rubrics"`
+	Attachments []AttachmentRequest             `json:"attachments"`
 	ClassroomId string
 }
 
@@ -34,6 +36,7 @@ type AssignmentDetailResponse struct {
 	Deadline    time.Time                  `json:"deadline"`
 	Instruction string                     `json:"instruction"`
 	Rubrics     []AssignmentRubricResponse `json:"rubrics"`
+	Attachments []AttachmentResponse       `json:"attachments"`
 }
 type AssignmentResponse struct {
 	ID          string    `json:"id"`

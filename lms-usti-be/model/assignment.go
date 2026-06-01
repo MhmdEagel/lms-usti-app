@@ -13,7 +13,8 @@ type Assignment struct {
 	Deadline    time.Time 
 	Instruction string    `gorm:"not null"`
 	ClassroomId string
-	Rubrics     []AssignmentRubric `gorm:"constraint:OnDelete:CASCADE;"`
+	Rubrics     []AssignmentRubric      `gorm:"constraint:OnDelete:CASCADE;"`
+	Attachments []AssignmentAttachment `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
 }
 
 type AssignmentRubric struct {
@@ -40,4 +41,20 @@ func (assignmentRubric *AssignmentRubric) BeforeCreate(tx *gorm.DB) error {
 	}
 	assignmentRubric.ID = assignmentRubricId.String()
 	return nil
+}
+
+type AssignmentAttachment struct {
+	ID           string         `gorm:"primaryKey"`
+	Name         string         `gorm:"not null"`
+	Type         AttachmentType `gorm:"not null"`
+	Url          string         `gorm:"not null"`
+	UniqueName   string
+	AssignmentId string
+	Assignment   Assignment `gorm:"foreignKey:AssignmentId"`
+}
+
+func (attachment *AssignmentAttachment) BeforeCreate(tx *gorm.DB) error {
+	id, err := uuid.NewRandom()
+	attachment.ID = id.String()
+	return err
 }

@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/MhmdEagel/lms-usti-be/data"
+	"github.com/MhmdEagel/lms-usti-be/lib"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
 )
@@ -71,8 +72,37 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 			return err
 		}
 	}
+	var assignmentAttachments []model.AssignmentAttachment
+	for _, v := range assignmentRequest.Attachments {
+		attType := model.AttachmentType(v.Type)
+		if attType != model.AttachmentTypeFile && attType != model.AttachmentTypeVideo && attType != model.AttachmentTypeLink {
+			return data.ErrBadRequest(nil)
+		}
+		if attType == model.AttachmentTypeFile || attType == model.AttachmentTypeVideo {
+			if v.UniqueName == "" {
+				return data.ErrBadRequest(nil)
+			}
+		}
+		if attType == model.AttachmentTypeLink {
+			if !lib.IsUrl(v.Url) {
+				return data.ErrBadRequest(nil)
+			}
+		}
+		attachment := model.AssignmentAttachment{
+			Name:         v.Name,
+			Type:         attType,
+			Url:          v.Url,
+			UniqueName:   v.UniqueName,
+			AssignmentId: assignment.ID,
+		}
+		assignmentAttachments = append(assignmentAttachments, attachment)
+	}
+	if len(assignmentAttachments) > 0 {
+		if err := a.assignmentRepository.CreateAttachments(assignmentAttachments); err != nil {
+			return err
+		}
+	}
 	return nil
-
 }
 
 func (a *AssignmentService) FindAll(classroomId string) (assignments []data.AssignmentResponse, err error) {
@@ -119,6 +149,16 @@ func (a *AssignmentService) FindById(assignmentId, classroomId string) (assignme
 		}
 		result.Rubrics = append(result.Rubrics, rubric)
 	}
+	for _, v := range res.Attachments {
+		attachment := data.AttachmentResponse{
+			Id:         v.ID,
+			Name:       v.Name,
+			Type:       string(v.Type),
+			Url:        v.Url,
+			UniqueName: v.UniqueName,
+		}
+		result.Attachments = append(result.Attachments, attachment)
+	}
 	assignment = result
 	return assignment, nil
 }
@@ -155,6 +195,25 @@ func (a *AssignmentService) Update(assignmentRequest data.AssignmentUpdateReques
 			}
 			if len(updatedRubrics) > 0 {
 				if err := repo.CreateRubrics(updatedRubrics); err != nil {
+					return err
+				}
+			}
+			var updatedAttachments []model.AssignmentAttachment
+			for _, v := range assignmentRequest.Attachments {
+				attachment := model.AssignmentAttachment{
+					Name:         v.Name,
+					Type:         model.AttachmentType(v.Type),
+					Url:          v.Url,
+					UniqueName:   v.UniqueName,
+					AssignmentId: assignmentRequest.ID,
+				}
+				updatedAttachments = append(updatedAttachments, attachment)
+			}
+			if err := repo.DeleteAttachments(assignmentRequest.ID); err != nil {
+				return err
+			}
+			if len(updatedAttachments) > 0 {
+				if err := repo.CreateAttachments(updatedAttachments); err != nil {
 					return err
 				}
 			}
