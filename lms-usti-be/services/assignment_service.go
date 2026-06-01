@@ -87,6 +87,7 @@ func (a *AssignmentService) FindAll(classroomId string) (assignments []data.Assi
 	if err != nil {
 		return assignments, err
 	}
+	assignments = []data.AssignmentResponse{}
 	for _, v := range res {
 		assignment := data.AssignmentResponse{
 			ID:          v.ID,
@@ -159,8 +160,10 @@ func (a *AssignmentService) Update(assignmentRequest data.AssignmentUpdateReques
 				updatedRubrics = append(updatedRubrics, rubric)
 			}
 
-			if err := repo.DeleteRubrics(res.Rubrics); err != nil {
-				return err
+			if len(res.Rubrics) > 0 {
+				if err := repo.DeleteRubrics(res.Rubrics); err != nil {
+					return err
+				}
 			}
 			if len(updatedRubrics) > 0 {
 				if err := repo.CreateRubrics(updatedRubrics); err != nil {

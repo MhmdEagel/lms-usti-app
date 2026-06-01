@@ -1,31 +1,35 @@
-# Issue: Unit Test Fitur Classroom Management Backend
+# Issue: Unit Test Fitur Assignment Management Backend
 
 ## Goal
 
-Membuat unit test untuk fitur manajemen classroom backend menggunakan `net/http/httptest` mengikuti pattern dari [Gin Testing Guide](https://gin-gonic.com/id/docs/testing/). File test: `main_classroom_test.go`.
+Membuat unit test untuk fitur assignment management backend menggunakan `net/http/httptest` mengikuti pattern dari [Gin Testing Guide](https://gin-gonic.com/id/docs/testing/). File test: `main_assignment_test.go`.
 
 ---
 
 ## Arsitektur Test
 
-**Masalah:** `InitRouter()` memanggil `config.ConnectDatabase()` yang panicking jika tidak ada MySQL.
-
-**Solusi:** Buat `setupTestRouter(db *gorm.DB) *gin.Engine` yang menerima `*gorm.DB` dari SQLite in-memory, bukan dari `config.ConnectDatabase()`.
-
 **Flow test untuk setiap function:**
 ```
 1. cleanupDatabase(db)     ← bersihkan data lama
-2. seed data test          ← buat user, classroom, dll
-3. buat request            ← kirim request via httptest
-4. assert response         ← cek status code dan body
+2. seed data test          ← buat user DOSEN + MAHASISWA, classroom, assignment
+3. generate token          ← untuk akses route protected
+4. buat request            ← kirim request via httptest
+5. assert response         ← cek status code dan body
 ```
 
-**Flow auth untuk test route yang protected:**
-```
-1. Seed user (dengan role DOSEN atau MAHASISWA)
-2. Login user → dapat access_token
-3. Kirim request dengan header Authorization: Bearer <token>
-```
+**Route assignment:**
+- `POST /classroom/:id/assignments` — Create (DOSEN only)
+- `GET /classroom/:id/assignments` — FindAll
+- `GET /classroom/:id/assignments/:assignmentId` — FindById
+- `PUT /classroom/:id/assignments/:assignmentId` — Update (DOSEN only)
+- `DELETE /classroom/:id/assignments/:assignmentId` — Delete (DOSEN only)
+
+**Catatan penting:**
+- Semua route under `/classroom` memerlukan auth middleware
+- Create, Update, Delete juga memerlukan ACL middleware (DOSEN only)
+- Create otomatis membuat submissions "not_submitted" untuk semua mahasiswa di classroom
+- `AssignmentRequest` menggunakan JSON binding (`ShouldBindJSON`)
+- `Deadline` field format: `"2026-12-31T23:59:00Z"`
 
 ---
 
@@ -33,122 +37,92 @@ Membuat unit test untuk fitur manajemen classroom backend menggunakan `net/http/
 
 ### Tahap 1 — Setup Infrastructure
 
-Buat file `lms-usti-be/main_classroom_test.go`.
+Buat file `lms-usti-be/main_assignment_test.go`.
 
-Buat fungsi-fungsi berikut:
+**1. Setup Router dengan Assignment Routes**
 
-1. **`setupTestDB() *gorm.DB`**
-   - Buka koneksi ke SQLite in-memory
-   - Auto-migrate: `model.User`, `model.Classroom`, `model.ClassroomMahasiswa`, `model.VerificationToken`
-   - Return `*gorm.DB`
+Update `setupTestRouter` di `main_auth_test.go` (atau buat versi baru) — tambahkan assignment routes:
 
-2. **`cleanupDatabase(db *gorm.DB)`**
-   - Hapus semua data dari tabel secara berurutan (foreign key): `submissions`, `assignments`, `materials`, `announcements`, `classroom_mahasiswas`, `classrooms`, `verification_tokens`, `users`
+```
+classroom.GET("/:id/assignments", assignmentController.FindAll)
+classroom.GET("/:id/assignments/:assignmentId", assignmentController.FindById)
+classroom.POST("/:id/assignments", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Create)
+classroom.PUT("/:id/assignments/:assignmentId", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Update)
+classroom.DELETE("/:id/assignments/:assignmentId", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Delete)
+```
 
-3. **`setupTestRouter(db *gorm.DB) *gin.Engine`**
-   - Buat `gin.Default()`
-   - Buat repositories, services, controllers dari `db` parameter
-   - Register semua classroom routes dengan auth middleware dan ACL middleware
-   - Return `*gin.Engine`
+**Catatan:** `cleanupDatabase` harus juga menghapus `assignment_rubrics` dan `materials` jika belum ada.
 
-4. **Helper functions:**
-   - `seedUser(db, fullname, email, password, role string) model.User` — langsung set `EmailVerified` valid (tidak perlu parameter, skip verifikasi)
-   - `seedClassroom(db, dosenId, className string) model.Classroom`
-   - `loginAndGetToken(router, email, password string) string` — login dan return access_token
+**2. Helper Functions**
+
+```go
+func seedAssignment(db *gorm.DB, classroomId, title string) model.Assignment
+```
+- Buat assignment dengan classroomId yang diberikan
+- `Deadline`: `time.Date(2026, 12, 31, 23, 59, 0, 0, time.UTC)`
+- `Instruction`: string hardcoded
+- Return assignment (untuk dapat ID-nya)
 
 ---
 
-### Tahap 2 — Test Create Classroom
+### Tahap 2 — Test Create Assignment
 
-Function: `TestCreateClassroom`
+Function: `TestCreateAssignment`
 
-1. **Create berhasil (DOSEN)** — 200, "successfully create classroom"
-2. **Create dengan body kosong** — 400, validation error
-3. **Create dengan class_name kurang dari 8 karakter** — 400
+1. **Create berhasil** — 200, "assignment berhasil dibuat", cek assignment ada di DB
+2. **Create dengan title kosong** — 400, validation error
+3. **Create dengan deadline kosong** — 400, validation error
 4. **Create tanpa token** — 401
 5. **Create dengan token MAHASISWA** — 401 (ACL reject)
+6. **Create dengan classroomId tidak ada** — 404, "kelas tidak ditemukan"
+7. **Create dengan rubrics** — 200, cek rubrics tersimpan di DB
 
 ---
 
-### Tahap 3 — Test FindAllByDosenId
+### Tahap 3 — Test FindAll Assignment
 
-Function: `TestFindAllByDosenId`
+Function: `TestFindAllAssignment`
 
-1. **Find berhasil** — 200, ada data classrooms
-2. **Find tanpa token** — 401
-3. **Find dengan token MAHASISWA** — 401 (ACL reject)
-4. **Pagination: page 1, limit 2** — Seed 3 classrooms, kirim `?page=1&limit=2`. Assert: 200, `pagination.total` = 3, `pagination.total_pages` = 2, `data` berisi 2 item
-5. **Pagination: page 2, limit 2** — Seed 3 classrooms, kirim `?page=2&limit=2`. Assert: 200, `data` berisi 1 item (sisa)
-6. **Pagination: page melebihi total** — Seed 3 classrooms, kirim `?page=10&limit=2`. Assert: 200, `data` kosong
-
----
-
-### Tahap 4 — Test FindAllByMahasiswaId
-
-Function: `TestFindAllByMahasiswaId`
-
-1. **Find berhasil** — 200, ada data classrooms
-2. **Find tanpa token** — 401
-3. **Find dengan token DOSEN** — 401 (ACL reject)
-4. **Pagination: page 1, limit 2** — Seed 3 classroom + enroll mahasiswa, kirim `?page=1&limit=2`. Assert: 200, `pagination.total` = 3, `pagination.total_pages` = 2, `data` berisi 2 item
-5. **Pagination: page 2, limit 2** — Seed 3 classroom + enroll mahasiswa, kirim `?page=2&limit=2`. Assert: 200, `data` berisi 1 item
-6. **Pagination: tanpa query param** — Seed 3 classroom + enroll mahasiswa, kirim tanpa `?page=&limit=`. Assert: 200, gunakan default pagination (limit 10, page 1)
+1. **FindAll berhasil** — 200, "berhasil mengambil semua assignment", ada data
+2. **FindAll classroom kosong** — 200, data kosong (array kosong)
+3. **FindAll dengan classroomId tidak ada** — 404, "kelas tidak ditemukan"
+4. **FindAll tanpa token** — 401
+5. **FindAll dengan multiple assignments** — 200, cek jumlah data benar
 
 ---
 
-### Tahap 5 — Test FindById
+### Tahap 4 — Test FindById Assignment
 
-Function: `TestFindClassroomById`
+Function: `TestFindAssignmentById`
 
-1. **Find berhasil** — 200, classroom data sesuai
-2. **Find dengan ID tidak ada** — 404, "classroom not found"
-3. **Find tanpa token** — 401
+1. **FindById berhasil** — 200, "berhasil mengambil assignment", data + rubrics
+2. **FindById dengan assignmentId tidak ada** — 404, "assignment tidak ditemukan"
+3. **FindById dengan classroomId berbeda** — 404 (assignment tidak dikenali di classroom lain)
+4. **FindById tanpa token** — 401
 
 ---
 
-### Tahap 6 — Test Update Classroom
+### Tahap 5 — Test Update Assignment
 
-Function: `TestUpdateClassroom`
+Function: `TestUpdateAssignment`
 
-1. **Update berhasil** — 200, "classroom successfully updated"
-2. **Update field tertentu saja (partial update)** — 200, field lain tidak berubah
-3. **Update dengan ID tidak ada** — 404
+1. **Update berhasil** — 200, "assignment berhasil diperbarui"
+2. **Update hanya title (partial update)** — 200, field lain tidak berubah
+3. **Update dengan assignmentId tidak ada** — 404, "assignment tidak ditemukan"
 4. **Update tanpa token** — 401
 5. **Update dengan token MAHASISWA** — 401 (ACL reject)
+6. **Update rubrics** — 200, cek rubrics lama terhapus, rubrics baru tersimpan
 
 ---
 
-### Tahap 7 — Test Delete Classroom
+### Tahap 6 — Test Delete Assignment
 
-Function: `TestDeleteClassroom`
+Function: `TestDeleteAssignment`
 
-1. **Delete berhasil** — 200, "classroom successfully deleted"
-2. **Delete dengan ID tidak ada** — 404
-3. **Delete dengan dosenId berbeda** — 404 (bukan classroom milik dosen ini)
-4. **Delete tanpa token** — 401
-5. **Delete dengan token MAHASISWA** — 401 (ACL reject)
-
----
-
-### Tahap 8 — Test Enroll (Join Classroom)
-
-Function: `TestEnrollClassroom`
-
-1. **Enroll berhasil** — 200, "success join classroom"
-2. **Enroll dengan class_code tidak ada** — 404, "kelas tidak ditemukan"
-3. **Enroll dua kali** — 409, "sudah bergabung di kelas ini"
-4. **Enroll tanpa token** — 401
-5. **Enroll dengan token DOSEN** — 401 (ACL reject)
-
----
-
-### Tahap 9 — Test FindAllClassroomMember
-
-Function: `TestFindAllClassroomMember`
-
-1. **Find berhasil** — 200, ada data dosen dan mahasiswa
-2. **Find dengan classroomId tidak ada** — 404
-3. **Find tanpa token** — 401
+1. **Delete berhasil** — 200, "assignment berhasil dihapus", cek assignment tidak ada di DB
+2. **Delete dengan assignmentId tidak ada** — 404, "assignment tidak ditemukan"
+3. **Delete tanpa token** — 401
+4. **Delete dengan token MAHASISWA** — 401 (ACL reject)
 
 ---
 
@@ -156,25 +130,20 @@ Function: `TestFindAllClassroomMember`
 
 | File | Aksi |
 |------|------|
-| `lms-usti-be/main_classroom_test.go` | **Buat baru** |
-| `lms-usti-be/go.mod` | **Edit** — tambah `gorm.io/driver/sqlite` jika belum ada |
-
----
-
-## Cara Jalankan
-
-```bash
-go test -v -run TestCreateClassroom ./...
-go test -v -run TestFindAllByDosenId ./...
-```
+| `lms-usti-be/main_assignment_test.go` | **Buat baru** |
+| `lms-usti-be/main_auth_test.go` | **Edit** — tambah assignment routes di `setupTestRouter`, tambah `assignment_rubrics` di `cleanupDatabase` |
+| `lms-usti-be/go.mod` | **Cek** — pastikan `gorm.io/driver/sqlite` sudah ada |
 
 ---
 
 ## Catatan Penting
 
-- **`cleanupDatabase` wajib dipanggil di awal setiap function test.** Hapus tabel berurutan sesuai foreign key.
-- **Setiap sub-test harus independen** via `t.Run()`. Seed data sendiri-sendiri.
-- **Untuk route yang butuh auth**, login dulu via helper `loginAndGetToken` untuk mendapatkan token.
-- **Untuk route yang butuh ACL** (DOSEN/MAHASISWA), pastikan login dengan role yang sesuai.
-- **Setiap test harus punya pattern yang sama:** cleanup → seed → request → assert.
-- **Jangan test SMTP beneran.** Cukup assert response dari controller.
+- **`cleanupDatabase` wajib dipanggil di awal setiap sub-test** via `t.Run()`.
+- **Setiap sub-test harus independen** — seed data sendiri-sendiri.
+- **Untuk route Create/Update/Delete** — login sebagai DOSEN.
+- **`AssignmentRequest` menggunakan JSON binding** — kirim via `Content-Type: application/json`.
+- **`Deadline` harus format ISO 8601** — contoh: `"2026-12-31T23:59:00Z"`.
+- **Create otomatis membuat submissions** — jika ada mahasiswa di classroom. Untuk test simpel, cukup buat classroom tanpa mahasiswa.
+- **Timeout test** — pastikan tidak ada operasi berat. SQLite in-memory sudah cukup cepat.
+- **Helper `seedAssignment`** — buat di file test ini sendiri (jangan di `main_auth_test.go`).
+- **Auto-migrate** — pastikan `AssignmentRubric` dan `ClassroomMahasiswa` termasuk di `setupTestDB`.

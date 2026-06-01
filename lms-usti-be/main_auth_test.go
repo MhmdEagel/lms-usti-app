@@ -25,14 +25,16 @@ func setupTestDB() *gorm.DB {
 	if err != nil {
 		panic("failed to connect to test database: " + err.Error())
 	}
-	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.Assignment{}, &model.Submission{})
+	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.Assignment{}, &model.AssignmentRubric{}, &model.Submission{}, &model.ClassroomMahasiswa{}, &model.Material{})
 	return db
 }
 
 func cleanupDatabase(db *gorm.DB) {
+	db.Exec("DELETE FROM assignment_rubrics")
 	db.Exec("DELETE FROM submissions")
 	db.Exec("DELETE FROM assignments")
 	db.Exec("DELETE FROM classroom_mahasiswas")
+	db.Exec("DELETE FROM materials")
 	db.Exec("DELETE FROM classrooms")
 	db.Exec("DELETE FROM verification_tokens")
 	db.Exec("DELETE FROM users")
@@ -59,6 +61,7 @@ func setupTestRouter(db *gorm.DB) *gin.Engine {
 	classroomService := services.NewClassroomService(classroomRepository, submissionService, assignmentService)
 
 	authController := controllers.NewAuthController(authService)
+	assignmentController := controllers.NewAssignmentController(assignmentService)
 	classroomController := controllers.NewClassroomController(classroomService)
 
 	api := r.Group("/lms-usti-api")
@@ -84,6 +87,11 @@ func setupTestRouter(db *gorm.DB) *gin.Engine {
 			classroom.GET("/:id/members", classroomController.FindAllClassroomMember)
 			classroom.DELETE("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Delete)
 			classroom.PUT("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Update)
+			classroom.GET("/:id/assignments", assignmentController.FindAll)
+			classroom.GET("/:id/assignments/:assignmentId", assignmentController.FindById)
+			classroom.POST("/:id/assignments", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Create)
+			classroom.PUT("/:id/assignments/:assignmentId", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Update)
+			classroom.DELETE("/:id/assignments/:assignmentId", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Delete)
 		}
 	}
 	return r
