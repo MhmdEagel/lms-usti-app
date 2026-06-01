@@ -11,9 +11,9 @@ type AssignmentRequest struct {
 }
 type AssignmentUpdateRequest struct {
 	ID          string
-	Title       string                          `json:"title"`
-	Deadline    time.Time                       `json:"deadline"`
-	Instruction string                          `json:"instruction"`
+	Title       *string                         `json:"title"`
+	Deadline    *time.Time                      `json:"deadline"`
+	Instruction *string                         `json:"instruction"`
 	Rubrics     []AssignmentRubricUpdateRequest `json:"rubrics"`
 	ClassroomId string
 }
@@ -24,9 +24,8 @@ type AssignmentRubricRequest struct {
 }
 
 type AssignmentRubricUpdateRequest struct {
-	Id    string `json:"id"`
 	Name  string `json:"name"`
-	Score int `json:"score"`
+	Score int    `json:"score"`
 }
 type AssignmentDetailResponse struct {
 	ID          string                     `json:"id"`
