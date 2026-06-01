@@ -7,6 +7,7 @@ import (
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
+	"gorm.io/gorm"
 )
 type MaterialService struct {
 	materialRepository  repositories.MaterialRepositoryInterface
@@ -97,6 +98,9 @@ func (m *MaterialService) FindById(materialId, classroomId string) (material dat
 	res, err := m.materialRepository.FindById(materialId)
 	if err != nil {
 		return material, err
+	}
+	if res.ClassroomId != classroomId {
+		return material, gorm.ErrRecordNotFound
 	}
 	material = data.MaterialDetailResponse{
 		Id:          res.ID,
