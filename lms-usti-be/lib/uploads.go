@@ -25,8 +25,8 @@ func GetUploadConfig() *UploadConfig {
 	maxFiles, _ := ParseInt(env.MAX_FILE_PER_REQUEST)
 
 	allowedTypes := map[FileType][]string{
-		FileTypeDocument: strings.Split(
-			"pdf,doc,docx,txt", ","),
+		FileTypeDocument: strings.Split("pdf,doc,docx,txt", ","),
+		FileTypeImage:    strings.Split("jpg,jpeg,png,gif,webp", ","),
 	}
 
 	return &UploadConfig{

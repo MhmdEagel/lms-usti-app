@@ -10,6 +10,7 @@ func ErrClassroomNotFound(err error) *AppError { return NewAppError(404, "kelas 
 func ErrAlreadyEnrolled(err error) *AppError   { return NewAppError(409, "sudah bergabung di kelas ini", err) }
 func ErrAssignmentNotFound(err error) *AppError  { return NewAppError(404, "assignment tidak ditemukan", err) }
 func ErrInternalServer(err error) *AppError      { return NewAppError(500, "terjadi kesalahan", err) }
+func ErrBadRequest(err error) *AppError           { return NewAppError(400, "invalid request", err) }
 
 type AppError struct {
 	Code    int

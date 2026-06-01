@@ -39,7 +39,7 @@ func InitRouter() *gin.Engine {
 		classroomService := services.NewClassroomService(classroomRepository, submissionService, assignmentService)
 		announcementService := services.NewAnnouncementService(announcementRepository, classroomRepository)
 		materialService := services.NewMaterialService(materialRepository, classroomRepository)
-		mediaService := services.NewMediaService(materialService)
+		mediaService := services.NewMediaService()
 
 		api.GET("", controllers.Test)
 		auth := api.Group("/auth")

@@ -1,154 +1,148 @@
-# Issue: Unit Test Fitur Classroom Management Backend
+# Issue: Perbaikan Bug & Error Handling — Media API Backend
 
 ## Goal
 
-Membuat unit test untuk fitur manajemen classroom backend menggunakan `net/http/httptest` mengikuti pattern dari [Gin Testing Guide](https://gin-gonic.com/id/docs/testing/). File test: `main_classroom_test.go`.
-
----
-
-## Arsitektur Test
-
-**Masalah:** `InitRouter()` memanggil `config.ConnectDatabase()` yang panicking jika tidak ada MySQL.
-
-**Solusi:** Buat `setupTestRouter(db *gorm.DB) *gin.Engine` yang menerima `*gorm.DB` dari SQLite in-memory, bukan dari `config.ConnectDatabase()`.
-
-**Flow test untuk setiap function:**
-```
-1. cleanupDatabase(db)     ← bersihkan data lama
-2. seed data test          ← buat user, classroom, dll
-3. buat request            ← kirim request via httptest
-4. assert response         ← cek status code dan body
-```
-
-**Flow auth untuk test route yang protected:**
-```
-1. Seed user (dengan role DOSEN atau MAHASISWA)
-2. Login user → dapat access_token
-3. Kirim request dengan header Authorization: Bearer <token>
-```
+Memperbaiki bug dan masalah error handling pada fitur media API (upload, delete, find) backend. Instruksi high-level untuk junior programmer / AI model murah.
 
 ---
 
 ## Tahapan
 
-### Tahap 1 — Setup Infrastructure
+### Tahap 1 — Fix `UploadProfilePicture`: Tidak Save File ke Disk
 
-Buat file `lms-usti-be/main_classroom_test.go`.
+**File:** `lms-usti-be/controllers/media_controller.go` (line 123-146)
 
-Buat fungsi-fungsi berikut:
+**Bug:** `UploadMaterial` dan `UploadAssignment` memanggil `ctx.SaveUploadedFile()`, tapi `UploadProfilePicture` tidak. File tidak pernah tersimpan ke disk meskipun response sukses.
 
-1. **`setupTestDB() *gorm.DB`**
-   - Buka koneksi ke SQLite in-memory
-   - Auto-migrate: `model.User`, `model.Classroom`, `model.ClassroomMahasiswa`, `model.VerificationToken`
-   - Return `*gorm.DB`
-
-2. **`cleanupDatabase(db *gorm.DB)`**
-   - Hapus semua data dari tabel secara berurutan (foreign key): `submissions`, `assignments`, `materials`, `announcements`, `classroom_mahasiswas`, `classrooms`, `verification_tokens`, `users`
-
-3. **`setupTestRouter(db *gorm.DB) *gin.Engine`**
-   - Buat `gin.Default()`
-   - Buat repositories, services, controllers dari `db` parameter
-   - Register semua classroom routes dengan auth middleware dan ACL middleware
-   - Return `*gin.Engine`
-
-4. **Helper functions:**
-   - `seedUser(db, fullname, email, password, role string) model.User` — langsung set `EmailVerified` valid (tidak perlu parameter, skip verifikasi)
-   - `seedClassroom(db, dosenId, className string) model.Classroom`
-   - `loginAndGetToken(router, email, password string) string` — login dan return access_token
+**Fix:** Tambahkan `ctx.SaveUploadedFile(uploadData.File, uploadData.UploadPath)` setelah error check `mediaService.Upload()`, sebelum membuat response. Tiru pola dari `UploadMaterial` (line 82).
 
 ---
 
-### Tahap 2 — Test Create Classroom
+### Tahap 2 — Fix Response Message yang Salah
 
-Function: `TestCreateClassroom`
+**File:** `lms-usti-be/controllers/media_controller.go`
 
-1. **Create berhasil (DOSEN)** — 200, "successfully create classroom"
-2. **Create dengan body kosong** — 400, validation error
-3. **Create dengan class_name kurang dari 8 karakter** — 400
-4. **Create tanpa token** — 401
-5. **Create dengan token MAHASISWA** — 401 (ACL reject)
+**Bug 1 (line 168):** `RemoveAssignment` mengirim `"material successfully removed"` — harusnya `"assignment berhasil dihapus"`.
 
----
+**Bug 2 (line 216):** `RemoveAssignmentBatch` mengirim `"successfully delete materials in batch"` — harusnya `"berhasil menghapus assignment secara batch"`.
 
-### Tahap 3 — Test FindAllByDosenId
+**Bug 3 (line 192):** `RemoveMaterialBatch` grammar salah: `"delete"` harusnya `"deleted"`. Ganti ke `"berhasil menghapus material secara batch"`.
 
-Function: `TestFindAllByDosenId`
-
-1. **Find berhasil** — 200, ada data classrooms
-2. **Find tanpa token** — 401
-3. **Find dengan token MAHASISWA** — 401 (ACL reject)
-4. **Pagination: page 1, limit 2** — Seed 3 classrooms, kirim `?page=1&limit=2`. Assert: 200, `pagination.total` = 3, `pagination.total_pages` = 2, `data` berisi 2 item
-5. **Pagination: page 2, limit 2** — Seed 3 classrooms, kirim `?page=2&limit=2`. Assert: 200, `data` berisi 1 item (sisa)
-6. **Pagination: page melebihi total** — Seed 3 classrooms, kirim `?page=10&limit=2`. Assert: 200, `data` kosong
+**Fix:** Ganti semua message ke Bahasa Indonesia yang konsisten:
+- `RemoveMaterial`: `"material berhasil dihapus"`
+- `RemoveAssignment`: `"assignment berhasil dihapus"`
+- `RemoveMaterialBatch`: `"berhasil menghapus material secara batch"`
+- `RemoveAssignmentBatch`: `"berhasil menghapus assignment secara batch"`
+- `RemoveProfilePicture`: `"profile picture berhasil dihapus"`
 
 ---
 
-### Tahap 4 — Test FindAllByMahasiswaId
+### Tahap 3 — Fix Error Message Leak ke Client
 
-Function: `TestFindAllByMahasiswaId`
+**File:** `lms-usti-be/controllers/media_controller.go`
 
-1. **Find berhasil** — 200, ada data classrooms
-2. **Find tanpa token** — 401
-3. **Find dengan token DOSEN** — 401 (ACL reject)
-4. **Pagination: page 1, limit 2** — Seed 3 classroom + enroll mahasiswa, kirim `?page=1&limit=2`. Assert: 200, `pagination.total` = 3, `pagination.total_pages` = 2, `data` berisi 2 item
-5. **Pagination: page 2, limit 2** — Seed 3 classroom + enroll mahasiswa, kirim `?page=2&limit=2`. Assert: 200, `data` berisi 1 item
-6. **Pagination: tanpa query param** — Seed 3 classroom + enroll mahasiswa, kirim tanpa `?page=&limit=`. Assert: 200, gunakan default pagination (limit 10, page 1)
+**Bug:** Semua error handler menampilkan `err.Error()` langsung ke client. Bisa membocorkan path server dan detail error internal.
 
----
+**Lokasi yang perlu diubah:** line 71, 78, 102, 108, 131, 139, 152, 164, 183, 206, 224
 
-### Tahap 5 — Test FindById
+**Fix:** Untuk setiap error handler:
+1. Tambah `log.Printf()` untuk log error di server
+2. Ganti message ke generic: `"terjadi kesalahan server"` untuk 500, `"invalid request"` untuk 400
 
-Function: `TestFindClassroomById`
+**Pattern yang sudah ada:** Lihat `controllers/auth_controller.go:22-33` — function `handleError()`.
 
-1. **Find berhasil** — 200, classroom data sesuai
-2. **Find dengan ID tidak ada** — 404, "classroom not found"
-3. **Find tanpa token** — 401
+**Catatan:** Jika ingin konsisten dengan auth controller, bisa refactor media controller untuk pakai `handleError()` juga. Tapi untuk perbaikan cepat, cukup ganti `err.Error()` dengan message generic.
 
 ---
 
-### Tahap 6 — Test Update Classroom
+### Tahap 4 — Tambah Validasi File Size di Upload
 
-Function: `TestUpdateClassroom`
+**File:** `lms-usti-be/services/media_service.go` (line 35-45)
 
-1. **Update berhasil** — 200, "classroom successfully updated"
-2. **Update field tertentu saja (partial update)** — 200, field lain tidak berubah
-3. **Update dengan ID tidak ada** — 404
-4. **Update tanpa token** — 401
-5. **Update dengan token MAHASISWA** — 401 (ACL reject)
+**Bug:** `lib.ValidateFile()` sudah ada (utils.go:63-82) dan bisa cek file size, tapi tidak pernah dipanggil di `MediaService.Upload()`. File besar bisa di-upload tanpa batas.
 
----
+**Fix:** Tambahkan `lib.ValidateFile(req.File)` di awal function `Upload()`, sebelum `lib.DetectFileType()`. Jika error, return error.
 
-### Tahap 7 — Test Delete Classroom
+```go
+func (m *MediaService) Upload(req data.MediaSingleRequest, kind MediaKind) (data.MediaUpload, error) {
+    if err := lib.ValidateFile(req.File); err != nil {
+        return data.MediaUpload{}, err
+    }
+    // ... existing code
+}
+```
 
-Function: `TestDeleteClassroom`
-
-1. **Delete berhasil** — 200, "classroom successfully deleted"
-2. **Delete dengan ID tidak ada** — 404
-3. **Delete dengan dosenId berbeda** — 404 (bukan classroom milik dosen ini)
-4. **Delete tanpa token** — 401
-5. **Delete dengan token MAHASISWA** — 401 (ACL reject)
+**Catatan:** Pastikan `env.MAX_FILE_SIZE` sudah di-set di `.env`. Jika kosong, `ParseSize` return 0 dan semua file akan ditolak.
 
 ---
 
-### Tahap 8 — Test Enroll (Join Classroom)
+### Tahap 5 — Hapus `fmt.Println` Debug Statement
 
-Function: `TestEnrollClassroom`
+**File:** `lms-usti-be/services/media_service.go` (line 51)
 
-1. **Enroll berhasil** — 200, "success join classroom"
-2. **Enroll dengan class_code tidak ada** — 404, "kelas tidak ditemukan"
-3. **Enroll dua kali** — 409, "sudah bergabung di kelas ini"
-4. **Enroll tanpa token** — 401
-5. **Enroll dengan token DOSEN** — 401 (ACL reject)
+**Bug:** `fmt.Println(fullPath)` — debug print yang tertinggal.
+
+**Fix:** Hapus baris tersebut. Jika perlu logging, gunakan `log.Printf("Remove: %s", fullPath)`.
 
 ---
 
-### Tahap 9 — Test FindAllClassroomMember
+### Tahap 6 — Fix Path Traversal Check
 
-Function: `TestFindAllClassroomMember`
+**File:** `lms-usti-be/services/media_service.go`
 
-1. **Find berhasil** — 200, ada data dosen dan mahasiswa
-2. **Find dengan classroomId tidak ada** — 404
-3. **Find tanpa token** — 401
+**Bug:** `strings.HasPrefix(fullPath, root)` bisa bypass. Contoh: root=`/storage/materials`, fullPath=`/storage/materials-other/evil.txt` — prefix sama tapi path berbeda.
+
+**Lokasi:** `Remove` (line 53) dan `RemoveBatch` (line 70)
+
+**Fix:** Tambah separator di akhir root saat comparison:
+```go
+if !strings.HasPrefix(filepath.Clean(fullPath), filepath.Clean(root)+string(filepath.Separator)) {
+    return errors.New("Invalid file path")
+}
+```
+
+---
+
+### Tahap 7 — Tambah Image Types ke `GetUploadConfig`
+
+**File:** `lms-usti-be/lib/uploads.go` (line 27-29)
+
+**Bug:** `AllowedTypes` hanya punya `FileTypeDocument`. `FileTypeImage` tidak ada. Jika `ValidateFile` diaktifkan (Tahap 4), semua image file akan ditolak.
+
+**Fix:** Tambahkan `FileTypeImage` ke `allowedTypes`:
+```go
+allowedTypes := map[FileType][]string{
+    FileTypeDocument: strings.Split("pdf,doc,docx,txt", ","),
+    FileTypeImage:    strings.Split("jpg,jpeg,png,gif,webp", ","),
+}
+```
+
+---
+
+### Tahap 8 — Hapus Dead Code `MediaMultipleRequest`
+
+**File:** `lms-usti-be/data/media.go` (line 8-11)
+
+**Bug:** `MediaMultipleRequest` tidak digunakan di mana pun.
+
+**Fix:** Hapus struct `MediaMultipleRequest`.
+
+---
+
+## Urutan Pengerjaan
+
+| Tahap | File | Prioritas | Dependensi |
+|-------|------|-----------|------------|
+| 1 | `controllers/media_controller.go` | Critical | — |
+| 2 | `controllers/media_controller.go` | Critical | — |
+| 3 | `controllers/media_controller.go` | High | — |
+| 4 | `services/media_service.go` | High | Tahap 7 |
+| 5 | `services/media_service.go` | Medium | — |
+| 6 | `services/media_service.go` | Medium | — |
+| 7 | `lib/uploads.go` | Medium | — |
+| 8 | `data/media.go` | Low | — |
+
+**Tips:** Tahap 1, 2, 3 bisa dikerjakan bersama karena file yang sama (`controllers/media_controller.go`). Tahap 4 harus setelah Tahap 7. Tahap 5, 6, 8 independent.
 
 ---
 
@@ -156,25 +150,16 @@ Function: `TestFindAllClassroomMember`
 
 | File | Aksi |
 |------|------|
-| `lms-usti-be/main_classroom_test.go` | **Buat baru** |
-| `lms-usti-be/go.mod` | **Edit** — tambah `gorm.io/driver/sqlite` jika belum ada |
+| `lms-usti-be/controllers/media_controller.go` | Edit — fix save file, fix messages, fix error leak |
+| `lms-usti-be/services/media_service.go` | Edit — tambah validasi, hapus debug, fix path traversal |
+| `lms-usti-be/lib/uploads.go` | Edit — tambah image types |
+| `lms-usti-be/data/media.go` | Edit — hapus dead code |
 
 ---
 
-## Cara Jalankan
+## Referensi
 
-```bash
-go test -v -run TestCreateClassroom ./...
-go test -v -run TestFindAllByDosenId ./...
-```
-
----
-
-## Catatan Penting
-
-- **`cleanupDatabase` wajib dipanggil di awal setiap function test.** Hapus tabel berurutan sesuai foreign key.
-- **Setiap sub-test harus independen** via `t.Run()`. Seed data sendiri-sendiri.
-- **Untuk route yang butuh auth**, login dulu via helper `loginAndGetToken` untuk mendapatkan token.
-- **Untuk route yang butuh ACL** (DOSEN/MAHASISWA), pastikan login dengan role yang sesuai.
-- **Setiap test harus punya pattern yang sama:** cleanup → seed → request → assert.
-- **Jangan test SMTP beneran.** Cukup assert response dari controller.
+- Pola `handleError()`: `controllers/auth_controller.go:22-33`
+- Pola `ctx.SaveUploadedFile()`: `controllers/media_controller.go:82` (UploadMaterial)
+- Pola validasi file: `lib/utils.go:63-82` (ValidateFile)
+- Pola allowed types: `lib/uploads.go:27-29`
