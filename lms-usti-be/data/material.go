@@ -1,9 +1,9 @@
 package data
 
 type MaterialRequest struct {
-	Title       string              `form:"title" binding:"required"`
-	Description string              `form:"description"`
-	Attachments []AttachmentRequest `form:"attachments"`
+	Title       string              `json:"title" binding:"required"`
+	Description string              `json:"description"`
+	Attachments []AttachmentRequest `json:"attachments"`
 	ClassroomId string
 }
 
@@ -24,8 +24,8 @@ type MaterialDetailResponse struct {
 
 type MaterialUpdateRequest struct {
 	Id          string
-	Title       string              `form:"title"`
-	Description string              `form:"description"`
-	Attachments []AttachmentRequest `form:"attachments"`
+	Title       string              `json:"title"`
+	Description string              `json:"description"`
+	Attachments []AttachmentRequest `json:"attachments"`
 	ClassroomId string
 }

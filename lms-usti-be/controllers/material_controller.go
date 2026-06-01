@@ -1,15 +1,11 @@
 package controllers
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
-	"github.com/MhmdEagel/lms-usti-be/lib"
 	"github.com/MhmdEagel/lms-usti-be/services"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
-	"gorm.io/gorm"
 )
 
 type MaterialController struct {
@@ -22,32 +18,18 @@ func NewMaterialController(materialService services.MaterialServiceInterface) *M
 
 func (m *MaterialController) Create(c *gin.Context) {
 	var req data.MaterialRequest
-	if err := c.ShouldBind(&req); err != nil {
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			msg := lib.GetValidationMessage(ve)
-			res := data.NewResponse(http.StatusBadRequest, msg, nil)
-			c.JSON(http.StatusBadRequest, res)
-			return
-		}
-		res := data.NewResponse(http.StatusBadRequest, err.Error(), nil)
-		c.JSON(http.StatusBadRequest, res)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		bindJSONError(c, err)
 		return
 	}
 	classroomId := c.Param("id")
 	req.ClassroomId = classroomId
 	err := m.materialService.Create(req)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			res := data.NewResponse(http.StatusNotFound, "classroom not found", nil)
-			c.JSON(http.StatusNotFound, res)
-			return
-		}
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
-		c.JSON(http.StatusInternalServerError, res)
+		handleError(c, err)
 		return
 	}
-	res := data.NewResponse(http.StatusOK, "material successfully created", nil)
+	res := data.NewResponse(http.StatusOK, "material berhasil dibuat", nil)
 	c.JSON(http.StatusOK, res)
 }
 
@@ -55,16 +37,10 @@ func (m *MaterialController) FindAll(c *gin.Context) {
 	id := c.Param("id")
 	materials, err := m.materialService.FindAll(id)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			res := data.NewResponse(http.StatusNotFound, "classroom not found", nil)
-			c.JSON(http.StatusNotFound, res)
-			return
-		}
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
-		c.JSON(http.StatusInternalServerError, res)
+		handleError(c, err)
 		return
 	}
-	res := data.NewResponse(http.StatusOK, "success find all materials", materials)
+	res := data.NewResponse(http.StatusOK, "berhasil mengambil semua material", materials)
 	c.JSON(http.StatusOK, res)
 }
 
@@ -73,31 +49,17 @@ func (m *MaterialController) FindById(c *gin.Context) {
 	materialId := c.Param("materialId")
 	material, err := m.materialService.FindById(materialId, classroomId)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			res := data.NewResponse(http.StatusNotFound, "classroom or material not found", nil)
-			c.JSON(http.StatusNotFound, res)
-			return
-		}
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
-		c.JSON(http.StatusInternalServerError, res)
+		handleError(c, err)
 		return
 	}
-	res := data.NewResponse(http.StatusOK, "success find material by id", material)
+	res := data.NewResponse(http.StatusOK, "berhasil mengambil material", material)
 	c.JSON(http.StatusOK, res)
 }
 
 func (m *MaterialController) Update(c *gin.Context) {
 	var req data.MaterialUpdateRequest
-	if err := c.ShouldBind(&req); err != nil {
-		var ve validator.ValidationErrors
-		if errors.As(err, &ve) {
-			msg := lib.GetValidationMessage(ve)
-			res := data.NewResponse(http.StatusBadRequest, msg, nil)
-			c.JSON(http.StatusBadRequest, res)
-			return
-		}
-		res := data.NewResponse(http.StatusBadRequest, err.Error(), nil)
-		c.JSON(http.StatusBadRequest, res)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		bindJSONError(c, err)
 		return
 	}
 	classroomId := c.Param("id")
@@ -106,33 +68,21 @@ func (m *MaterialController) Update(c *gin.Context) {
 	req.Id = materialId
 	err := m.materialService.Update(req)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			res := data.NewResponse(http.StatusNotFound, "classroom or material not found", nil)
-			c.JSON(http.StatusNotFound, res)
-			return
-		}
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
-		c.JSON(http.StatusInternalServerError, res)
+		handleError(c, err)
 		return
 	}
-	res := data.NewResponse(http.StatusOK, "material successfully updated", nil)
+	res := data.NewResponse(http.StatusOK, "material berhasil diperbarui", nil)
 	c.JSON(http.StatusOK, res)
 }
 
 func (m *MaterialController) Delete(ctx *gin.Context) {
+	classroomId := ctx.Param("id")
 	materialId := ctx.Param("materialId")
-	err := m.materialService.Delete(materialId)
+	err := m.materialService.Delete(materialId, classroomId)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			res := data.NewResponse(http.StatusNotFound, "material not found", nil)
-			ctx.JSON(http.StatusNotFound, res)
-			return
-		}
-		res := data.NewResponse(http.StatusInternalServerError, err.Error(), nil)
-		ctx.JSON(http.StatusInternalServerError, res)
+		handleError(ctx, err)
 		return
 	}
-
-	res := data.NewResponse(http.StatusOK, "material successfully deleted", nil)
+	res := data.NewResponse(http.StatusOK, "material berhasil dihapus", nil)
 	ctx.JSON(http.StatusOK, res)
 }
