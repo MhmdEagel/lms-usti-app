@@ -11,15 +11,12 @@ type MaterialRepository struct {
 
 type MaterialRepositoryInterface interface {
 	Create(material *model.Material) error
-	CreateMaterialFile(materialFile []model.MaterialFile) error
-	CreateMaterialLink(materialLink []model.MaterialLink) error
+	CreateAttachments(attachments []model.MaterialAttachment) error
 	FindAll(classroomId string) (materials []model.Material, err error)
 	FindById(materialId string) (material model.Material, err error)
 	Update(material model.Material) error
 	Delete(materialId string) error
-	DeleteFileByUniqueFileName(uniqueFileName string) error
-	DeleteFiles(materialId string) error
-	DeleteLinks(materialId string) error
+	DeleteAttachments(materialId string) error
 	Transaction(fn func(repo MaterialRepositoryInterface) error) error
 }
 
@@ -33,15 +30,8 @@ func (m *MaterialRepository) Create(material *model.Material) error {
 	}
 	return nil
 }
-func (m *MaterialRepository) CreateMaterialFile(materialFile []model.MaterialFile) error {
-	result := m.Db.Create(&materialFile)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
-func (m *MaterialRepository) CreateMaterialLink(materialLink []model.MaterialLink) error {
-	result := m.Db.Create(&materialLink)
+func (m *MaterialRepository) CreateAttachments(attachments []model.MaterialAttachment) error {
+	result := m.Db.Create(&attachments)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -62,7 +52,7 @@ func (m *MaterialRepository) FindAll(classroomId string) (materials []model.Mate
 	return materials, err
 }
 func (m *MaterialRepository) FindById(materialId string) (material model.Material, err error) {
-	result := m.Db.Where("id = ?", materialId).Preload("MaterialFiles").Preload("MaterialLinks").First(&material)
+	result := m.Db.Where("id = ?", materialId).Preload("Attachments").First(&material)
 	if result.Error != nil {
 		return model.Material{}, result.Error
 	}
@@ -79,22 +69,8 @@ func (m *MaterialRepository) Delete(materialId string) error {
 	}
 	return nil
 }
-func (m *MaterialRepository) DeleteFiles(materialId string) error {
-	res := m.Db.Where("material_id = ?", materialId).Delete(&model.MaterialFile{})
-	if res.Error != nil {
-		return res.Error
-	}
-	return nil
-}
-func (m *MaterialRepository) DeleteFileByUniqueFileName(uniqueFileName string) error {
-	res := m.Db.Where("unique_file_name = ?", uniqueFileName).Delete(&model.MaterialFile{})
-	if res.Error != nil {
-		return res.Error
-	}
-	return nil
-}
-func (m *MaterialRepository) DeleteLinks(materialId string) error {
-	res := m.Db.Where("material_id = ?", materialId).Delete(&model.MaterialLink{})
+func (m *MaterialRepository) DeleteAttachments(materialId string) error {
+	res := m.Db.Where("material_id = ?", materialId).Delete(&model.MaterialAttachment{})
 	if res.Error != nil {
 		return res.Error
 	}

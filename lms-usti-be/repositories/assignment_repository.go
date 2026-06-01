@@ -12,6 +12,7 @@ type AssignmentRepository struct {
 type AssignmentRepositoryInterface interface {
 	Create(assignment *model.Assignment) error
 	CreateRubrics(assignmentRubric []model.AssignmentRubric) error
+	CreateAttachments(attachments []model.AssignmentAttachment) error
 	CreateSubmissions(submissions []model.Submission) error
 	FindAll(classroomId string) (assignments []model.Assignment, err error)
 	FindAllClassroomMahasiswa(classroomId string) ([]model.ClassroomMahasiswa, error)
@@ -19,6 +20,7 @@ type AssignmentRepositoryInterface interface {
 	Update(assignment model.Assignment) error
 	Delete(assignmentId string, classroomId string) error
 	DeleteRubrics(assignmentRubrics []model.AssignmentRubric) error
+	DeleteAttachments(assignmentId string) error
 	Transaction(fn func(repo AssignmentRepositoryInterface) error) error
 }
 
@@ -50,7 +52,7 @@ func (a *AssignmentRepository) FindAll(classroomId string) (assignments []model.
 }
 
 func (a *AssignmentRepository) FindById(assignmentId, classroomId string) (assignment model.Assignment, err error) {
-	result := a.Db.Preload("Rubrics").Where("id = ? AND classroom_id = ?", assignmentId, classroomId).First(&assignment)
+	result := a.Db.Preload("Rubrics").Preload("Attachments").Where("id = ? AND classroom_id = ?", assignmentId, classroomId).First(&assignment)
 	if result.Error != nil {
 		return model.Assignment{}, result.Error
 	}
@@ -95,6 +97,17 @@ func (a *AssignmentRepository) DeleteRubrics(assignmentRubrics []model.Assignmen
 		return res.Error
 	}
 	return nil
+}
+
+func (a *AssignmentRepository) CreateAttachments(attachments []model.AssignmentAttachment) error {
+	if len(attachments) == 0 {
+		return nil
+	}
+	return a.Db.Create(&attachments).Error
+}
+
+func (a *AssignmentRepository) DeleteAttachments(assignmentId string) error {
+	return a.Db.Where("assignment_id = ?", assignmentId).Delete(&model.AssignmentAttachment{}).Error
 }
 
 func (a *AssignmentRepository) withTx(tx *gorm.DB) AssignmentRepositoryInterface {

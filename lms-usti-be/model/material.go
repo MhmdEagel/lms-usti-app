@@ -7,15 +7,22 @@ import (
 	"gorm.io/gorm"
 )
 
+type AttachmentType string
+
+const (
+	AttachmentTypeFile  AttachmentType = "FILE"
+	AttachmentTypeVideo AttachmentType = "VIDEO"
+	AttachmentTypeLink  AttachmentType = "LINK"
+)
+
 type Material struct {
-	ID            string `gorm:"primaryKey"`
-	Title         string `gorm:"not null"`
-	Description   string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	ClassroomId   string
-	MaterialFiles []MaterialFile `gorm:"foreignKey:MaterialId;constraint:OnDelete:CASCADE;"`
-	MaterialLinks []MaterialLink `gorm:"foreignKey:MaterialId;constraint:OnDelete:CASCADE;"`
+	ID          string `gorm:"primaryKey"`
+	Title       string `gorm:"not null"`
+	Description string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	ClassroomId string
+	Attachments []MaterialAttachment `gorm:"foreignKey:MaterialId;constraint:OnDelete:CASCADE;"`
 }
 
 func (material *Material) BeforeCreate(tx *gorm.DB) error {
@@ -24,33 +31,18 @@ func (material *Material) BeforeCreate(tx *gorm.DB) error {
 	return err
 }
 
-type MaterialFile struct {
-	ID         string `gorm:"primaryKey"`
-	FileName   string `gorm:"not null"`
-	UniqueFileName string `gorm:"not null"`
-	FileUrl    string `gorm:"not null"`
-	MaterialId string
+type MaterialAttachment struct {
+	ID          string         `gorm:"primaryKey"`
+	Name        string         `gorm:"not null"`
+	Type        AttachmentType `gorm:"not null"`
+	Url         string         `gorm:"not null"`
+	UniqueName  string
+	MaterialId  string
+	Material    Material `gorm:"foreignKey:MaterialId"`
 }
 
-func (materialFile *MaterialFile) BeforeCreate(tx *gorm.DB) error {
+func (attachment *MaterialAttachment) BeforeCreate(tx *gorm.DB) error {
 	id, err := uuid.NewRandom()
-	materialFile.ID = id.String()
+	attachment.ID = id.String()
 	return err
-}
-
-type MaterialLink struct {
-	ID         string `gorm:"primaryKey"`
-	LinkName   string `gorm:"not null"`
-	LinkUrl    string `gorm:"not null"`
-	MaterialId string
-}
-
-func (materialLink *MaterialLink) BeforeCreate(tx *gorm.DB) error {
-	id, err := uuid.NewRandom()
-	materialLink.ID = id.String()
-	return err
-}
-
-func NewMaterialLink(linkName, linkUrl, materialId string) *MaterialLink {
-	return &MaterialLink{LinkName: linkName, LinkUrl: linkUrl, MaterialId: materialId}
 }
