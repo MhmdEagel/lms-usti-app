@@ -12,7 +12,9 @@ type AssignmentRepository struct {
 type AssignmentRepositoryInterface interface {
 	Create(assignment *model.Assignment) error
 	CreateRubrics(assignmentRubric []model.AssignmentRubric) error
+	CreateSubmissions(submissions []model.Submission) error
 	FindAll(classroomId string) (assignments []model.Assignment, err error)
+	FindAllClassroomMahasiswa(classroomId string) ([]model.ClassroomMahasiswa, error)
 	FindById(assignmentId, classroomId string) (assignment model.Assignment, err error)
 	Update(assignment model.Assignment) error
 	Delete(assignmentId string, classroomId string) error
@@ -60,6 +62,9 @@ func (a *AssignmentRepository) Update(assignment model.Assignment) error {
 	if res.Error != nil {
 		return res.Error
 	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
 	return nil
 }
 func (a *AssignmentRepository) Delete(assignmentId, classroomId string) error {
@@ -72,6 +77,18 @@ func (a *AssignmentRepository) Delete(assignmentId, classroomId string) error {
 	}
 	return nil
 }
+func (a *AssignmentRepository) FindAllClassroomMahasiswa(classroomId string) (mahasiswa []model.ClassroomMahasiswa, err error) {
+	result := a.Db.Where("classroom_id = ?", classroomId).Find(&mahasiswa)
+	if result.Error != nil {
+		return []model.ClassroomMahasiswa{}, result.Error
+	}
+	return mahasiswa, nil
+}
+
+func (a *AssignmentRepository) CreateSubmissions(submissions []model.Submission) error {
+	return a.Db.Create(&submissions).Error
+}
+
 func (a *AssignmentRepository) DeleteRubrics(assignmentRubrics []model.AssignmentRubric) error {
 	res := a.Db.Delete(&assignmentRubrics)
 	if res.Error != nil {

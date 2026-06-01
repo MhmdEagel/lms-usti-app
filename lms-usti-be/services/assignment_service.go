@@ -1,6 +1,8 @@
 package services
 
 import (
+	"database/sql"
+
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
@@ -53,22 +55,22 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 					return err
 				}
 			}
-			classroomMembers, err := a.classroomRepository.FindAllClassroomMahasiswa(classroom.ID)
+			classroomMembers, err := repo.FindAllClassroomMahasiswa(classroom.ID)
 			if err != nil {
 				return err
 			}
-			var submissions []data.SubmissionRequest
+			var modelSubmissions []model.Submission
 			for _, v := range classroomMembers {
-				submissionData := data.SubmissionRequest{
+				modelSubmission := model.Submission{
 					Status:         "not_submitted",
-					SubmissionDate: nil,
+					SubmissionDate: sql.NullTime{},
 					AssignmentId:   assignment.ID,
 					StudentId:      v.UserId,
 				}
-				submissions = append(submissions, submissionData)
+				modelSubmissions = append(modelSubmissions, modelSubmission)
 			}
-			if len(submissions) > 0 {
-				if err := a.submissionService.Create(submissions); err != nil {
+			if len(modelSubmissions) > 0 {
+				if err := repo.CreateSubmissions(modelSubmissions); err != nil {
 					return err
 				}
 			}
@@ -174,5 +176,8 @@ func (a *AssignmentService) Delete(assignmentId, classroomId string) error {
 	if err != nil {
 		return data.ErrClassroomNotFound(err)
 	}
-	return a.assignmentRepository.Delete(assignmentId, classroom.ID)
+	if err := a.assignmentRepository.Delete(assignmentId, classroom.ID); err != nil {
+		return data.ErrAssignmentNotFound(err)
+	}
+	return nil
 }
