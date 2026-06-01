@@ -7,8 +7,8 @@ import (
 	"github.com/MhmdEagel/lms-usti-be/lib"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
-	"gorm.io/gorm"
 )
+
 type MaterialService struct {
 	materialRepository  repositories.MaterialRepositoryInterface
 	classroomRepository repositories.ClassroomRepositoryInterface
@@ -18,7 +18,7 @@ type MaterialServiceInterface interface {
 	FindAll(classroomId string) (materials []data.MaterialResponse, err error)
 	FindById(materialId, classroomId string) (material data.MaterialDetailResponse, err error)
 	Update(materialUpdateRequest data.MaterialUpdateRequest) error
-	Delete(materialId string) error
+	Delete(materialId, classroomId string) error
 }
 func NewMaterialService(materialRepository repositories.MaterialRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface) MaterialServiceInterface {
 	return &MaterialService{materialRepository: materialRepository, classroomRepository: classroomRepository}
@@ -26,7 +26,7 @@ func NewMaterialService(materialRepository repositories.MaterialRepositoryInterf
 func (m *MaterialService) Create(materialRequest data.MaterialRequest) error {
 	classroom, err := m.classroomRepository.FindById(materialRequest.ClassroomId)
 	if err != nil {
-		return err
+		return data.ErrClassroomNotFound(err)
 	}
 	material := &model.Material{
 		Title:       materialRequest.Title,
@@ -71,7 +71,7 @@ func (m *MaterialService) Create(materialRequest data.MaterialRequest) error {
 func (m *MaterialService) FindAll(classroomId string) (materials []data.MaterialResponse, err error) {
 	classroom, err := m.classroomRepository.FindById(classroomId)
 	if err != nil {
-		return []data.MaterialResponse{}, err
+		return nil, data.ErrClassroomNotFound(err)
 	}
 	res, err := m.materialRepository.FindAll(classroom.ID)
 	if err != nil {
@@ -92,14 +92,14 @@ func (m *MaterialService) FindAll(classroomId string) (materials []data.Material
 }
 func (m *MaterialService) FindById(materialId, classroomId string) (material data.MaterialDetailResponse, err error) {
 	if _, err := m.classroomRepository.FindById(classroomId); err != nil {
-		return material, err
+		return material, data.ErrClassroomNotFound(err)
 	}
 	res, err := m.materialRepository.FindById(materialId)
 	if err != nil {
-		return material, err
+		return material, data.ErrMaterialNotFound(err)
 	}
 	if res.ClassroomId != classroomId {
-		return material, gorm.ErrRecordNotFound
+		return material, data.ErrMaterialNotFound(nil)
 	}
 	material = data.MaterialDetailResponse{
 		Id:          res.ID,
@@ -120,12 +120,12 @@ func (m *MaterialService) FindById(materialId, classroomId string) (material dat
 }
 func (m *MaterialService) Update(materialUpdateRequest data.MaterialUpdateRequest) error {
 	if _, err := m.classroomRepository.FindById(materialUpdateRequest.ClassroomId); err != nil {
-		return err
+		return data.ErrClassroomNotFound(err)
 	}
 	return m.materialRepository.Transaction(func(repo repositories.MaterialRepositoryInterface) error {
 		material, err := repo.FindById(materialUpdateRequest.Id)
 		if err != nil {
-			return err
+			return data.ErrMaterialNotFound(err)
 		}
 		material.Title = materialUpdateRequest.Title
 		material.Description = materialUpdateRequest.Description
@@ -136,6 +136,19 @@ func (m *MaterialService) Update(materialUpdateRequest data.MaterialUpdateReques
 		var updatedAttachments []model.MaterialAttachment
 		for _, v := range materialUpdateRequest.Attachments {
 			attType := model.AttachmentType(v.Type)
+			if attType != model.AttachmentTypeFile && attType != model.AttachmentTypeVideo && attType != model.AttachmentTypeLink {
+				return data.ErrBadRequest(nil)
+			}
+			if attType == model.AttachmentTypeFile || attType == model.AttachmentTypeVideo {
+				if v.UniqueName == "" {
+					return data.ErrBadRequest(nil)
+				}
+			}
+			if attType == model.AttachmentTypeLink {
+				if !lib.IsUrl(v.Url) {
+					return data.ErrBadRequest(nil)
+				}
+			}
 			attachment := model.MaterialAttachment{
 				Name:       v.Name,
 				Type:       attType,
@@ -156,10 +169,14 @@ func (m *MaterialService) Update(materialUpdateRequest data.MaterialUpdateReques
 		return nil
 	})
 }
-func (m *MaterialService) Delete(materialId string) error {
-	err := m.materialRepository.Delete(materialId)
+
+func (m *MaterialService) Delete(materialId, classroomId string) error {
+	if _, err := m.classroomRepository.FindById(classroomId); err != nil {
+		return data.ErrClassroomNotFound(err)
+	}
+	err := m.materialRepository.Delete(materialId, classroomId)
 	if err != nil {
-		return err
+		return data.ErrMaterialNotFound(err)
 	}
 	return nil
 }

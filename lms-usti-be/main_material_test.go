@@ -218,7 +218,7 @@ func TestMaterialCreate(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "material successfully created" {
+		if res.Meta.Message != "material berhasil dibuat" {
 			t.Errorf("expected 'material successfully created', got '%s'", res.Meta.Message)
 		}
 	})
@@ -245,7 +245,7 @@ func TestMaterialCreate(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "material successfully created" {
+		if res.Meta.Message != "material berhasil dibuat" {
 			t.Errorf("expected 'material successfully created', got '%s'", res.Meta.Message)
 		}
 	})
@@ -266,7 +266,7 @@ func TestMaterialCreate(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "material successfully created" {
+		if res.Meta.Message != "material berhasil dibuat" {
 			t.Errorf("expected 'material successfully created', got '%s'", res.Meta.Message)
 		}
 	})
@@ -294,7 +294,7 @@ func TestMaterialCreate(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "material successfully created" {
+		if res.Meta.Message != "material berhasil dibuat" {
 			t.Errorf("expected 'material successfully created', got '%s'", res.Meta.Message)
 		}
 	})
@@ -337,8 +337,8 @@ func TestMaterialCreate(t *testing.T) {
 
 		body := createMaterialRequestJSON("Materi", "Deskripsi", nil)
 		w := makeRequest(r, "POST", "/lms-usti-api/classroom/nonexistent-id/materials", body, dosenToken)
-		if w.Code != http.StatusInternalServerError {
-			t.Errorf("expected 500, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusNotFound {
+			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 
@@ -416,7 +416,7 @@ func TestMaterialFindAll(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "success find all materials" {
+		if res.Meta.Message != "berhasil mengambil semua material" {
 			t.Errorf("expected 'success find all materials', got '%s'", res.Meta.Message)
 		}
 		if res.Data == nil {
@@ -436,7 +436,7 @@ func TestMaterialFindAll(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "success find all materials" {
+		if res.Meta.Message != "berhasil mengambil semua material" {
 			t.Errorf("expected 'success find all materials', got '%s'", res.Meta.Message)
 		}
 	})
@@ -446,8 +446,8 @@ func TestMaterialFindAll(t *testing.T) {
 		token := createTestToken("DOSEN")
 
 		w := makeRequest(r, "GET", "/lms-usti-api/classroom/nonexistent-id/materials", "", token)
-		if w.Code != http.StatusInternalServerError {
-			t.Errorf("expected 500, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusNotFound {
+			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 }
@@ -494,7 +494,7 @@ func TestMaterialFindById(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "success find material by id" {
+		if res.Meta.Message != "berhasil mengambil material" {
 			t.Errorf("expected 'success find material by id', got '%s'", res.Meta.Message)
 		}
 	})
@@ -506,8 +506,8 @@ func TestMaterialFindById(t *testing.T) {
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		w := makeRequest(r, "GET", "/lms-usti-api/classroom/"+classroom.ID+"/materials/nonexistent-id", "", token)
-		if w.Code != http.StatusInternalServerError {
-			t.Errorf("expected 500, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusNotFound {
+			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 }
@@ -550,7 +550,7 @@ func TestMaterialDelete(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "material successfully deleted" {
+		if res.Meta.Message != "material berhasil dihapus" {
 			t.Errorf("expected 'material successfully deleted', got '%s'", res.Meta.Message)
 		}
 	})
@@ -562,8 +562,8 @@ func TestMaterialDelete(t *testing.T) {
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/"+classroom.ID+"/materials/nonexistent-id", "", dosenToken)
-		if w.Code != http.StatusInternalServerError {
-			t.Errorf("expected 500, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusNotFound {
+			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 
@@ -625,7 +625,7 @@ func TestMaterialUpdate(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "material successfully updated" {
+		if res.Meta.Message != "material berhasil diperbarui" {
 			t.Errorf("expected 'material successfully updated', got '%s'", res.Meta.Message)
 		}
 	})
@@ -672,7 +672,7 @@ func TestMaterialUpdate(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "material successfully updated" {
+		if res.Meta.Message != "material berhasil diperbarui" {
 			t.Errorf("expected 'material successfully updated', got '%s'", res.Meta.Message)
 		}
 	})
@@ -685,8 +685,8 @@ func TestMaterialUpdate(t *testing.T) {
 
 		updateBody := createMaterialUpdateRequestJSON("Materi", "Deskripsi", nil)
 		w := makeRequest(r, "PUT", "/lms-usti-api/classroom/"+classroom.ID+"/materials/nonexistent-id", updateBody, dosenToken)
-		if w.Code != http.StatusInternalServerError {
-			t.Errorf("expected 500, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusNotFound {
+			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 

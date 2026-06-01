@@ -56,6 +56,36 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 					return err
 				}
 			}
+			var assignmentAttachments []model.AssignmentAttachment
+			for _, v := range assignmentRequest.Attachments {
+				attType := model.AttachmentType(v.Type)
+				if attType != model.AttachmentTypeFile && attType != model.AttachmentTypeVideo && attType != model.AttachmentTypeLink {
+					return data.ErrBadRequest(nil)
+				}
+				if attType == model.AttachmentTypeFile || attType == model.AttachmentTypeVideo {
+					if v.UniqueName == "" {
+						return data.ErrBadRequest(nil)
+					}
+				}
+				if attType == model.AttachmentTypeLink {
+					if !lib.IsUrl(v.Url) {
+						return data.ErrBadRequest(nil)
+					}
+				}
+				attachment := model.AssignmentAttachment{
+					Name:         v.Name,
+					Type:         attType,
+					Url:          v.Url,
+					UniqueName:   v.UniqueName,
+					AssignmentId: assignment.ID,
+				}
+				assignmentAttachments = append(assignmentAttachments, attachment)
+			}
+			if len(assignmentAttachments) > 0 {
+				if err := repo.CreateAttachments(assignmentAttachments); err != nil {
+					return err
+				}
+			}
 			classroomMembers, err := repo.FindAllClassroomMahasiswa(classroom.ID)
 			if err != nil {
 				return err
@@ -180,9 +210,23 @@ func (a *AssignmentService) Update(assignmentRequest data.AssignmentUpdateReques
 			}
 			var updatedAttachments []model.AssignmentAttachment
 			for _, v := range assignmentRequest.Attachments {
+				attType := model.AttachmentType(v.Type)
+				if attType != model.AttachmentTypeFile && attType != model.AttachmentTypeVideo && attType != model.AttachmentTypeLink {
+					return data.ErrBadRequest(nil)
+				}
+				if attType == model.AttachmentTypeFile || attType == model.AttachmentTypeVideo {
+					if v.UniqueName == "" {
+						return data.ErrBadRequest(nil)
+					}
+				}
+				if attType == model.AttachmentTypeLink {
+					if !lib.IsUrl(v.Url) {
+						return data.ErrBadRequest(nil)
+					}
+				}
 				attachment := model.AssignmentAttachment{
 					Name:         v.Name,
-					Type:         model.AttachmentType(v.Type),
+					Type:         attType,
 					Url:          v.Url,
 					UniqueName:   v.UniqueName,
 					AssignmentId: assignmentRequest.ID,

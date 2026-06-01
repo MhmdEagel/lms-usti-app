@@ -1,274 +1,183 @@
-# Issue: Unit Test Material & Assignment API Backend
+# Issue: Perbaikan Bug & Error Handling Material dan Assignment API Backend
 
 ## Goal
 
-Membuat unit test untuk endpoint Material dan Assignment API menggunakan `net/http/httptest` sesuai panduan Gin Testing. Instruksi high-level untuk junior programmer / AI model murah.
+Perbaiki bug dan error handling pada material dan assignment API agar konsisten dengan pattern yang sudah ada di assignment controller/service dan auth controller.
 
-**File yang dibuat:**
-- `lms-usti-be/main_material_test.go`
-- `lms-usti-be/main_assignment_test.go`
+**Fokus:** Backend only (Go/Gin). Frontend diabaikan.
 
-**Timeout:** `go test -timeout 60s -run "TestMaterial|TestAssignment" -v`
+**File yang diubah:**
+- `lms-usti-be/data/error.go`
+- `lms-usti-be/data/material.go`
+- `lms-usti-be/controllers/material_controller.go`
+- `lms-usti-be/controllers/assignment_controller.go`
+- `lms-usti-be/services/material_service.go`
+- `lms-usti-be/services/assignment_service.go`
+- `lms-usti-be/repositories/material_repository.go`
 
-**Konvensi test:**
-- User sudah teraktivasi secara default (`seedUser` set `EmailVerified` valid)
-- Semua test bersihkan DB di awal setiap sub-test
-- File dummy: `dummy/test_material.pdf`, `dummy/test_video.mp4`
+**Referensi pattern (sudah benar):**
+- Assignment controller: `controllers/assignment_controller.go` — sudah pakai `handleError()`
+- Assignment service: `services/assignment_service.go` — sudah pakai `data.ErrClassroomNotFound()` dan `data.ErrAssignmentNotFound()`
+- `handleError()` / `bindJSONError()`: `controllers/auth_controller.go:22-45`
 
 ---
 
-## Endpoint yang Ditest
+## Bug List
 
-### Material (`/lms-usti-api/classroom/:id/materials`)
-
-| # | Method | Path | Auth | Role | Binding |
-|---|--------|------|------|------|---------|
-| 1 | POST | `/classroom/:id/materials` | Ya | DOSEN | Form (`ShouldBind`) |
-| 2 | GET | `/classroom/:id/materials` | Ya | Any | - |
-| 3 | GET | `/classroom/:id/materials/:materialId` | Ya | Any | - |
-| 4 | PUT | `/classroom/:id/materials/:materialId` | Ya | DOSEN | Form (`ShouldBind`) |
-| 5 | DELETE | `/classroom/:id/materials/:materialId` | Ya | DOSEN | - |
-
-### Assignment (`/lms-usti-api/classroom/:id/assignments`)
-
-| # | Method | Path | Auth | Role | Binding |
-|---|--------|------|------|------|---------|
-| 1 | POST | `/classroom/:id/assignments` | Ya | DOSEN | JSON (`ShouldBindJSON`) |
-| 2 | GET | `/classroom/:id/assignments` | Ya | Any | - |
-| 3 | GET | `/classroom/:id/assignments/:assignmentId` | Ya | Any | - |
-| 4 | PUT | `/classroom/:id/assignments/:assignmentId` | Ya | DOSEN | JSON (`ShouldBindJSON`) |
-| 5 | DELETE | `/classroom/:id/assignments/:assignmentId` | Ya | DOSEN | - |
+| # | Severity | Lokasi | Deskripsi |
+|---|----------|--------|-----------|
+| 1 | HIGH | `material_controller.go` | Error leak ke client via `err.Error()` |
+| 2 | HIGH | `material_service.go` | Raw error dari `classroomRepository.FindById` tanpa `AppError` wrapping |
+| 3 | HIGH | `material_service.go` | Raw error dari `materialRepository.FindById` / `Delete` tanpa `AppError` wrapping |
+| 4 | HIGH | `material_controller.go` | Error handling manual (`errors.Is` + `err.Error()`) bukan `handleError()` |
+| 5 | MEDIUM | `material_service.go` | `Delete(materialId)` tidak terima `classroomId` — tidak bisa verifikasi ownership |
+| 6 | MEDIUM | `material_controller.go` | `ShouldBind` (form) bukan `ShouldBindJSON` — binding tidak konsisten |
+| 7 | MEDIUM | `data/material.go` | Tag `form:` bukan `json:` — harus match dengan binding method |
+| 8 | MEDIUM | `assignment_service.go` | `Create` tidak buat attachment meski field `Attachments` tersedia di request |
+| 9 | MEDIUM | `material_service.go` + `assignment_service.go` | `Update` tidak validasi attachment type |
+| 10 | LOW | `material_controller.go` | Response message bahasa Inggris — tidak konsisten dengan assignment controller |
 
 ---
 
 ## Tahapan
 
-### Tahap 1 — Setup Test Infrastructure
+### Tahap 1 — Tambah `ErrMaterialNotFound` di `data/error.go`
 
-**Perlu diupdate di `main_auth_test.go`:**
+**Apa:** Tambah sentinel error baru untuk material tidak ditemukan.
 
-1. Tambahkan model ke `setupTestDB()` AutoMigrate:
-   - `model.Material`, `model.MaterialAttachment`
-   - `model.Assignment`, `model.AssignmentRubric`, `model.AssignmentAttachment`
-   - `model.Submission`, `model.SubmissionFile`, `model.SubmissionLink`
-
-2. Tambahkan table ke `cleanupDatabase()`:
-   - `material_attachments`, `materials`
-   - `assignment_attachments`, `assignment_rubrics`
-   - `submission_files`, `submission_links`, `submissions`
-
-**Helper baru (bisa di file test masing-masing atau di `main_auth_test.go`):**
-
-- `seedClassroom(db, dosenUser) model.Classroom` — buat classroom dengan dosen
-- `seedMahasiswaToClassroom(db, user, classroom)` — enroll mahasiswa ke classroom
-- `makeMultipartRequest(r, method, url, fields, files, token)` — buat request multipart/form-data untuk material
-- `loginAndGetToken(r, email, password) string` — login lalu ambil token
+**Cara:**
+- Tambah fungsi `ErrMaterialNotFound(err error) *AppError` di `data/error.go`
+- Ikuti pattern yang sama dengan `ErrAssignmentNotFound`
+- Message: `"material tidak ditemukan"`
 
 ---
 
-### Tahap 2 — Setup Router untuk Material Test
+### Tahap 2 — Perbaiki error wrapping di `services/material_service.go`
 
-Buat `setupMaterialTestRouter(db)` yang include:
-- Auth routes (login, register)
-- Classroom routes dengan middleware (auth + ACL)
-- Material routes (`/:id/materials`, `/:id/materials/:materialId`)
-- Media routes (`/media/materials`) — untuk upload file sebelum create material
+**Apa:** Semua error dari repository harus di-wrap dengan `AppError` yang sesuai.
 
-**Kenapa perlu media routes:** Material bisa punya attachment tipe FILE/VIDEO. Sebelum create material, file harus diupload dulu via media API agar ada di filesystem.
+**Cara:**
+- **Create** (line 28-29): Ganti `return err` jadi `return data.ErrClassroomNotFound(err)` untuk error dari `classroomRepository.FindById`
+- **FindAll** (line 72-74): Ganti `return []data.MaterialResponse{}, err` jadi `return nil, data.ErrClassroomNotFound(err)`
+- **FindById** (line 94-96): Ganti `return material, err` jadi `return material, data.ErrClassroomNotFound(err)` untuk error classroom
+- **FindById** (line 98-100): Ganti `return material, err` jadi `return material, data.ErrMaterialNotFound(err)` untuk error material
+- **FindById** (line 102): Ganti `return material, gorm.ErrRecordNotFound` jadi `return material, data.ErrMaterialNotFound(nil)`
+- **Update** (line 122-124): Ganti `return err` jadi `return data.ErrClassroomNotFound(err)` untuk error classroom
+- **Update** (line 127-128): Ganti `return err` jadi `return data.ErrMaterialNotFound(err)` untuk error material
+- **Delete** (line 159-163): Ganti `return err` jadi `return data.ErrMaterialNotFound(err)`
 
----
-
-### Tahap 3 — Test Material: Create
-
-**Sub-test:**
-
-| Sub-test | Input | Expected |
-|----------|-------|----------|
-| Create berhasil (tanpa attachment) | title + description saja | 200 |
-| Create berhasil (dengan attachment FILE) | upload file dulu, lalu attach | 200 |
-| Create berhasil (dengan attachment VIDEO) | upload video dulu, lalu attach | 200 |
-| Create berhasil (dengan attachment LINK) | url valid | 200 |
-| Create berhasil (campur FILE + LINK) | gabungan | 200 |
-| Title kosong | title="" | 400 |
-| Attachment type invalid (`.php`) | type="PHP" atau type invalid | 400 |
-| Tanpa token | - | 401 |
-| Token MAHASISWA | role=MAHASISWA | 403 |
-| Classroom tidak ada | classroom ID random | 404 |
-| URL link tidak valid | url="bukan-url" | 400 |
-| Attachment FILE tanpa unique_name | type=FILE, unique_name="" | 400 |
-
-**Flow untuk test dengan attachment:**
-1. Upload file via `POST /media/materials` (multipart)
-2. Ambil `unique_file_name` dari response
-3. Buat material dengan attachment yang reference `unique_file_name` tersebut
-4. Bersihkan file setelah test selesai
-
-**Perhatian binding:** Material pakai form binding (`ShouldBind`). Attachment dikirim sebagai field form JSON string (bukan JSON body). Content-Type: `multipart/form-data`.
+**Catatan:** Setelah tahap ini, import `"gorm.io/gorm"` di `material_service.go` bisa dihapus (sudah tidak pakai `gorm.ErrRecordNotFound`).
 
 ---
 
-### Tahap 4 — Test Material: FindAll, FindById, Delete
+### Tahap 3 — Tambah `classroomId` ke `Delete` di material
 
-**Sub-test FindAll:**
+**Apa:** Material Delete harus terima `classroomId` supaya bisa verifikasi ownership, sama seperti assignment.
 
-| Sub-test | Input | Expected |
-|----------|-------|----------|
-| Ada materials | seed material di classroom | 200 + array |
-| Kosong | classroom tanpa material | 200 + array kosong |
-| Classroom tidak ada | ID random | 404 |
-
-**Sub-test FindById:**
-
-| Sub-test | Input | Expected |
-|----------|-------|----------|
-| Ada | material ID valid | 200 + data |
-| Tidak ada | material ID random | 404 |
-
-**Sub-test Delete:**
-
-| Sub-test | Input | Expected |
-|----------|-------|----------|
-| Hapus berhasil | material ID valid | 200 |
-| Material tidak ada | ID random | 404 |
-| Tanpa token | - | 401 |
-| Token MAHASISWA | role=MAHASISWA | 403 |
+**Cara:**
+- **Interface** (`services/material_service.go`): Ganti `Delete(materialId string)` jadi `Delete(materialId, classroomId string)`
+- **Service** (`services/material_service.go`):
+  - Terima `classroomId` parameter baru
+  - Validasi classroom existence dulu (pakai `classroomRepository.FindById`)
+  - Kirim `classroomId` ke repository
+- **Repository interface** (`repositories/material_repository.go`): Ganti `Delete(materialId string)` jadi `Delete(materialId, classroomId string)`
+- **Repository** (`repositories/material_repository.go`): Update query `WHERE id = ? AND classroom_id = ?` — tambah `RowsAffected == 0` check
+- **Controller** (`controllers/material_controller.go`): Baca `classroomId` dari `ctx.Param("id")`, kirim ke service
 
 ---
 
-### Tahap 5 — Test Material: Update
+### Tahap 4 — Refactor `material_controller.go` ke `handleError()`
 
-**Sub-test:**
+**Apa:** Hapus semua error handling manual dan ganti dengan `handleError()`. Ikuti pola yang sama dengan assignment controller.
 
-| Sub-test | Input | Expected |
-|----------|-------|----------|
-| Update berhasil | title + description baru | 200 |
-| Ganti attachment | hapus lama, tambah baru | 200 |
-| Material tidak ada | ID random | 404 |
-| Token MAHASISWA | role=MAHASISWA | 403 |
-
----
-
-### Tahap 6 — Setup Router untuk Assignment Test
-
-Buat `setupAssignmentTestRouter(db)` yang include:
-- Auth routes (login)
-- Classroom routes dengan middleware
-- Assignment routes
-- Media routes (`/media/assignments`) — untuk upload file
+**Cara:**
+- **Create**: Hapus blok `errors.Is(err, gorm.ErrRecordNotFound)` dan `err.Error()`. Ganti dengan `handleError(c, err)`.
+- **FindAll**: Sama — hapus manual error handling, pakai `handleError(c, err)`
+- **FindById**: Sama
+- **Update**: Sama
+- **Delete**: Sama — tambahkan `classroomId` ke parameter service call
+- **Binding error**: Ganti `c.ShouldBind` jadi `c.ShouldBindJSON` (lihat Tahap 5)
+- **Hapus imports** yang tidak dipakai: `"errors"`, `"gorm.io/gorm"`, `"github.com/go-playground/validator/v10"`
 
 ---
 
-### Tahap 7 — Test Assignment: Create
+### Tahap 5 — Fix binding di `data/material.go` dan `material_controller.go`
 
-**Sub-test:**
+**Apa:** Material Create/Update harus pakai JSON binding seperti assignment, bukan form binding.
 
-| Sub-test | Input | Expected |
-|----------|-------|----------|
-| Create berhasil (tanpa attachment + rubric) | title + deadline + instruction | 200 |
-| Create berhasil (dengan rubric) | + rubrics array | 200 |
-| Create berhasil (dengan attachment FILE) | upload file dulu | 200 |
-| Create berhasil (dengan attachment LINK) | url valid | 200 |
-| Create berhasil (lengkap) | rubric + attachment campur | 200 |
-| Title kosong | title="" | 400 |
-| Deadline kosong | omit deadline | 400 |
-| Attachment type invalid (`.php`) | type="SCRIPT" | 400 |
-| Tanpa token | - | 401 |
-| Token MAHASISWA | role=MAHASISWA | 403 |
-| Classroom tidak ada | ID random | 404 |
+**Cara:**
+- **`data/material.go`**: Ganti semua tag `form:` jadi `json:` di `MaterialRequest` dan `MaterialUpdateRequest`
+- **`material_controller.go` Create**: Ganti `c.ShouldBind(&req)` jadi `c.ShouldBindJSON(&req)`
+- **`material_controller.go` Update**: Sama — `c.ShouldBind` → `cShouldBindJSON`
+- **`material_controller.go`**: Ganti binding error handling dari manual jadi `bindJSONError(c, err)` (helper yang sama seperti auth controller)
 
-**Perhatian binding:** Assignment pakai JSON binding (`ShouldBindJSON`). Content-Type: `application/json`.
+**Catatan:** Setelah ini, import `lib` di `material_controller.go` bisa dihapus (tidak pakai `lib.GetValidationMessage` langsung).
 
 ---
 
-### Tahap 8 — Test Assignment: FindAll, FindById, Delete
+### Tahap 6 — Fix attachment creation di assignment `Create`
 
-**Sub-test FindAll:**
+**Apa:** `assignment_service.go` Create method tidak buat attachment meski request punya field `Attachments`.
 
-| Sub-test | Input | Expected |
-|----------|-------|----------|
-| Ada assignments | seed data | 200 + array |
-| Kosong | classroom kosong | 200 + array kosong |
-| Classroom tidak ada | ID random | 404 |
-
-**Sub-test FindById:**
-
-| Sub-test | Input | Expected |
-|----------|-------|----------|
-| Ada | ID valid | 200 + data + rubrics + attachments |
-| Tidak ada | ID random | 404 |
-
-**Sub-test Delete:**
-
-| Sub-test | Input | Expected |
-|----------|-------|----------|
-| Hapus berhasil | ID valid | 200 |
-| Assignment tidak ada | ID random | 404 |
-| Tanpa token | - | 401 |
-| Token MAHASISWA | role=MAHASISWA | 403 |
+**Cara:**
+- **`assignment_service.go` Create** (setelah loop rubrics, sebelum submission):
+  - Loop `assignmentRequest.Attachments`
+  - Validasi type (FILE/VIDEO/LINK) — ikuti pattern validasi di material service Create
+  - Validasi `UniqueName` untuk FILE/VIDEO, validasi URL untuk LINK
+  - Append ke `[]model.AssignmentAttachment`
+  - Call `repo.CreateAttachments(attachments)` jika ada
+- **`assignment_service.go` Update**: Tambah validasi attachment type juga (lihat Tahap 7)
 
 ---
 
-### Tahap 9 — Test Assignment: Update
+### Tahap 7 — Tambah validasi attachment type di `Update`
 
-**Sub-test:**
+**Apa:** Method `Update` di material dan assignment service tidak validasi type attachment.
 
-| Sub-test | Input | Expected |
-|----------|-------|----------|
-| Update berhasil | title baru + rubric baru + attachment baru | 200 |
-| Assignment tidak ada | ID random | 404 |
-| Token MAHASISWA | role=MAHASISWA | 403 |
-
----
-
-### Tahap 10 — Validasi Keamanan File Upload
-
-Test ini bisa diletakkan di salah satu test file (material atau assignment).
-
-| Sub-test | Endpoint | Input | Expected |
-|----------|----------|-------|----------|
-| Upload `.php` | POST `/media/materials` | file `shell.php` | 400 |
-| Upload `.exe` | POST `/media/materials` | file `malware.exe` | 400 |
-| Upload `.sh` | POST `/media/assignments` | file `script.sh` | 400 |
-| Upload `.pdf` valid | POST `/media/materials` | `dummy/test_material.pdf` | 200 |
-| Upload `.mp4` valid | POST `/media/assignments` | `dummy/test_video.mp4` | 200 |
+**Cara:**
+- **`material_service.go` Update**: Di loop `updatedAttachments`, tambahkan validasi yang sama seperti Create:
+  - Cek type harus `FILE`, `VIDEO`, atau `LINK`
+  - Cek `UniqueName` wajib untuk FILE/VIDEO
+  - Cek URL valid untuk LINK
+- **`assignment_service.go` Update**: Tambahkan validasi yang sama di loop `updatedAttachments`
 
 ---
 
-## Referensi
+### Tahap 8 — Standardisasi response message ke bahasa Indonesia
 
-- Panduan testing Gin: https://gin-gonic.com/id/docs/testing/
-- Setup test existing: `main_auth_test.go:23-89`
-- `handleError()` / `bindJSONError()`: `controllers/auth_controller.go:22-45`
-- Material routes: `router/api.go:80-84`
-- Assignment routes: `router/api.go:86-90`
-- Material controller: `controllers/material_controller.go`
-- Assignment controller: `controllers/assignment_controller.go`
-- Material service: `services/material_service.go`
-- Assignment service: `services/assignment_service.go`
-- Media routes: `router/api.go:97-120`
-- Media service: `services/media_service.go`
-- Auth middleware: `middleware/auth.go`
-- ACL middleware: `middleware/acl.go`
-- JWT: `lib/jwt.go` — `lib.CreateToken(fullname, email, role, userId)`
-- Models: `model/material.go`, `model/assignment.go`, `model/classroom.go`, `model/user.go`, `model/submission.go`
-- Dummy files: `dummy/test_material.pdf`, `dummy/test_video.mp4`
+**Apa:** Material controller pakai bahasa Inggris, assignment controller pakai bahasa Indonesia.
+
+**Cara:**
+- **`material_controller.go`**: Ganti semua message:
+  - `"material successfully created"` → `"material berhasil dibuat"`
+  - `"success find all materials"` → `"berhasil mengambil semua material"`
+  - `"success find material by id"` → `"berhasil mengambil material"`
+  - `"material successfully updated"` → `"material berhasil diperbarui"`
+  - `"material successfully deleted"` → `"material berhasil dihapus"`
 
 ---
 
 ## File yang Terlibat
 
-| File | Aksi |
-|------|------|
-| `main_auth_test.go` | Edit — tambah model di `setupTestDB()` + `cleanupDatabase()` |
-| `main_material_test.go` | Baru — semua test material |
-| `main_assignment_test.go` | Baru — semua test assignment |
+| File | Tahap | Aksi |
+|------|-------|------|
+| `data/error.go` | 1 | Tambah `ErrMaterialNotFound` |
+| `services/material_service.go` | 2, 3, 7 | Fix error wrapping, tambah `classroomId` ke Delete, validasi attachment di Update |
+| `repositories/material_repository.go` | 3 | Update `Delete` — tambah `classroomId` parameter + `RowsAffected` check |
+| `controllers/material_controller.go` | 4, 5, 8 | Refactor ke `handleError()`, fix binding, standardisasi message |
+| `data/material.go` | 5 | Ganti tag `form:` → `json:` |
+| `services/assignment_service.go` | 6, 7 | Tambah attachment creation di Create, validasi attachment type di Update |
 
 ---
 
-## Catatan Penting
+## Verifikasi
 
-1. **Material binding:** `ShouldBind` (multipart/form-data). Field `attachments` dikirim sebagai JSON string dalam form field.
-2. **Assignment binding:** `ShouldBindJSON` (application/json). Field `attachments` langsung JSON array.
-3. **Attachment type validation** dilakukan di service layer (bukan controller). `AttachmentType` harus salah satu dari: `FILE`, `VIDEO`, `LINK`.
-4. **Submission otomatis dibuat** saat assignment create (untuk setiap mahasiswa di classroom). Test perlu seed mahasiswa dulu.
-5. **Gunakan `t.Parallel()` atau tidak** — karena pakai SQLite in-memory, jangan pakai `t.Parallel()` di sub-test yang share DB yang sama.
+Setelah semua tahap selesai:
+1. Run `go build ./...` — pasti compile tanpa error
+2. Run `go vet ./...` — tidak ada warning
+3. Test manual via Postman/Thunder Client:
+   - Create material dengan attachment (pasti attachment tersimpan)
+   - Update material (ganti attachment type invalid → harus reject)
+   - Delete material (pasti classroom ID divalidasi)
+   - Create assignment dengan attachment (pasti attachment tersimpan)
+   - Delete assignment yang bukan milik classroom → harus 404

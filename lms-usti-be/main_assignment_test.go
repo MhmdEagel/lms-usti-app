@@ -136,7 +136,7 @@ func TestAssignmentCreate(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "assignment successfully created" {
+		if res.Meta.Message != "assignment berhasil dibuat" {
 			t.Errorf("expected 'assignment successfully created', got '%s'", res.Meta.Message)
 		}
 	})
@@ -158,7 +158,7 @@ func TestAssignmentCreate(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "assignment successfully created" {
+		if res.Meta.Message != "assignment berhasil dibuat" {
 			t.Errorf("expected 'assignment successfully created', got '%s'", res.Meta.Message)
 		}
 	})
@@ -185,7 +185,7 @@ func TestAssignmentCreate(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "assignment successfully created" {
+		if res.Meta.Message != "assignment berhasil dibuat" {
 			t.Errorf("expected 'assignment successfully created', got '%s'", res.Meta.Message)
 		}
 	})
@@ -206,7 +206,7 @@ func TestAssignmentCreate(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "assignment successfully created" {
+		if res.Meta.Message != "assignment berhasil dibuat" {
 			t.Errorf("expected 'assignment successfully created', got '%s'", res.Meta.Message)
 		}
 	})
@@ -241,7 +241,7 @@ func TestAssignmentCreate(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "assignment successfully created" {
+		if res.Meta.Message != "assignment berhasil dibuat" {
 			t.Errorf("expected 'assignment successfully created', got '%s'", res.Meta.Message)
 		}
 	})
@@ -313,8 +313,8 @@ func TestAssignmentCreate(t *testing.T) {
 
 		body := createAssignmentJSON("Tugas", deadline, "Kerjakan", nil, nil)
 		w := makeRequest(r, "POST", "/lms-usti-api/classroom/nonexistent-id/assignments", body, dosenToken)
-		if w.Code != http.StatusInternalServerError {
-			t.Errorf("expected 500, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusNotFound {
+			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 }
@@ -346,7 +346,7 @@ func TestAssignmentFindAll(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "successfully fetch all assignments" {
+		if res.Meta.Message != "berhasil mengambil semua assignment" {
 			t.Errorf("expected 'successfully fetch all assignments', got '%s'", res.Meta.Message)
 		}
 	})
@@ -363,7 +363,7 @@ func TestAssignmentFindAll(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "successfully fetch all assignments" {
+		if res.Meta.Message != "berhasil mengambil semua assignment" {
 			t.Errorf("expected 'successfully fetch all assignments', got '%s'", res.Meta.Message)
 		}
 	})
@@ -373,8 +373,8 @@ func TestAssignmentFindAll(t *testing.T) {
 		token := createTestToken("DOSEN")
 
 		w := makeRequest(r, "GET", "/lms-usti-api/classroom/nonexistent-id/assignments", "", token)
-		if w.Code != http.StatusInternalServerError {
-			t.Errorf("expected 500, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusNotFound {
+			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 }
@@ -419,7 +419,7 @@ func TestAssignmentFindById(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "successfully fetch assignment" {
+		if res.Meta.Message != "berhasil mengambil assignment" {
 			t.Errorf("expected 'successfully fetch assignment', got '%s'", res.Meta.Message)
 		}
 	})
@@ -431,8 +431,8 @@ func TestAssignmentFindById(t *testing.T) {
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		w := makeRequest(r, "GET", "/lms-usti-api/classroom/"+classroom.ID+"/assignments/nonexistent-id", "", token)
-		if w.Code != http.StatusInternalServerError {
-			t.Errorf("expected 500, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusNotFound {
+			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 }
@@ -477,7 +477,7 @@ func TestAssignmentDelete(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "assignment successfully deleted" {
+		if res.Meta.Message != "assignment berhasil dihapus" {
 			t.Errorf("expected 'assignment successfully deleted', got '%s'", res.Meta.Message)
 		}
 	})
@@ -489,8 +489,8 @@ func TestAssignmentDelete(t *testing.T) {
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/"+classroom.ID+"/assignments/nonexistent-id", "", dosenToken)
-		if w.Code != http.StatusOK {
-			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusNotFound {
+			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 
@@ -573,7 +573,7 @@ func TestAssignmentUpdate(t *testing.T) {
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		if res.Meta.Message != "assignment successfully updated" {
+		if res.Meta.Message != "assignment berhasil diperbarui" {
 			t.Errorf("expected 'assignment successfully updated', got '%s'", res.Meta.Message)
 		}
 	})
@@ -586,8 +586,8 @@ func TestAssignmentUpdate(t *testing.T) {
 
 		updateBody := createAssignmentUpdateJSON("Tugas", deadline, "Kerjakan", nil, nil)
 		w := makeRequest(r, "PUT", "/lms-usti-api/classroom/"+classroom.ID+"/assignments/nonexistent-id", updateBody, dosenToken)
-		if w.Code != http.StatusInternalServerError {
-			t.Errorf("expected 500, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusNotFound {
+			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 

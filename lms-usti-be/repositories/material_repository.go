@@ -15,7 +15,7 @@ type MaterialRepositoryInterface interface {
 	FindAll(classroomId string) (materials []model.Material, err error)
 	FindById(materialId string) (material model.Material, err error)
 	Update(material model.Material) error
-	Delete(materialId string) error
+	Delete(materialId, classroomId string) error
 	DeleteAttachments(materialId string) error
 	Transaction(fn func(repo MaterialRepositoryInterface) error) error
 }
@@ -58,14 +58,13 @@ func (m *MaterialRepository) FindById(materialId string) (material model.Materia
 	}
 	return material, nil
 }
-func (m *MaterialRepository) Delete(materialId string) error {
-	material, err := m.FindById(materialId)
-	if err != nil {
-		return err
-	}
-	res := m.Db.Where("id = ? ", material.ID).Delete(model.Material{})
+func (m *MaterialRepository) Delete(materialId, classroomId string) error {
+	res := m.Db.Where("id = ? AND classroom_id = ?", materialId, classroomId).Delete(model.Material{})
 	if res.Error != nil {
 		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
 	}
 	return nil
 }
