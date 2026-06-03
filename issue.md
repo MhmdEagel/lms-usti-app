@@ -1,24 +1,21 @@
-# Issue: Perbaikan Bug & Error Handling Material dan Assignment API Backend
+# Issue: Perbaikan Bug & Error Handling Backend (Sisa yang Belum Diperbaiki)
 
 ## Goal
 
-Perbaiki bug dan error handling pada material dan assignment API agar konsisten dengan pattern yang sudah ada di assignment controller/service dan auth controller.
+Perbaiki bug dan error handling pada material, assignment, dan announcement API yang masih perlu diperbaiki setelah tahap sebelumnya.
 
 **Fokus:** Backend only (Go/Gin). Frontend diabaikan.
 
 **File yang diubah:**
-- `lms-usti-be/data/error.go`
-- `lms-usti-be/data/material.go`
-- `lms-usti-be/controllers/material_controller.go`
-- `lms-usti-be/controllers/assignment_controller.go`
-- `lms-usti-be/services/material_service.go`
-- `lms-usti-be/services/assignment_service.go`
-- `lms-usti-be/repositories/material_repository.go`
+- `lms-usti-be/controllers/announcement_controller.go`
+- `lms-usti-be/services/announcement_service.go`
+- `lms-usti-be/data/classroom.go`
 
 **Referensi pattern (sudah benar):**
-- Assignment controller: `controllers/assignment_controller.go` — sudah pakai `handleError()`
+- Assignment controller: `controllers/assignment_controller.go` — sudah pakai `handleError()` dan `bindJSONError()`
 - Assignment service: `services/assignment_service.go` — sudah pakai `data.ErrClassroomNotFound()` dan `data.ErrAssignmentNotFound()`
-- `handleError()` / `bindJSONError()`: `controllers/auth_controller.go:22-45`
+- `handleError()` / `bindJSONError()`: `controllers/auth_controller.go`
+- Classroom controller Create: `controllers/classroom_controller.go` — cara extract user dari context
 
 ---
 
@@ -26,134 +23,52 @@ Perbaiki bug dan error handling pada material dan assignment API agar konsisten 
 
 | # | Severity | Lokasi | Deskripsi |
 |---|----------|--------|-----------|
-| 1 | HIGH | `material_controller.go` | Error leak ke client via `err.Error()` |
-| 2 | HIGH | `material_service.go` | Raw error dari `classroomRepository.FindById` tanpa `AppError` wrapping |
-| 3 | HIGH | `material_service.go` | Raw error dari `materialRepository.FindById` / `Delete` tanpa `AppError` wrapping |
-| 4 | HIGH | `material_controller.go` | Error handling manual (`errors.Is` + `err.Error()`) bukan `handleError()` |
-| 5 | MEDIUM | `material_service.go` | `Delete(materialId)` tidak terima `classroomId` — tidak bisa verifikasi ownership |
-| 6 | MEDIUM | `material_controller.go` | `ShouldBind` (form) bukan `ShouldBindJSON` — binding tidak konsisten |
-| 7 | MEDIUM | `data/material.go` | Tag `form:` bukan `json:` — harus match dengan binding method |
-| 8 | MEDIUM | `assignment_service.go` | `Create` tidak buat attachment meski field `Attachments` tersedia di request |
-| 9 | MEDIUM | `material_service.go` + `assignment_service.go` | `Update` tidak validasi attachment type |
-| 10 | LOW | `material_controller.go` | Response message bahasa Inggris — tidak konsisten dengan assignment controller |
+| 1 | HIGH | `announcement_controller.go` | Create tidak extract `DosenId` dari context — `DosenId` akan kosong → DB FK violation |
+| 2 | MEDIUM | `announcement_service.go` | FindAll return raw error dari repository — tidak wrap dengan `AppError` |
+| 3 | LOW | `data/classroom.go` | `AnnouncementResponse` tidak ada field `CreatedAt` — beda dengan material/assignment |
 
 ---
 
 ## Tahapan
 
-### Tahap 1 — Tambah `ErrMaterialNotFound` di `data/error.go`
+### Tahap 1 — Fix `DosenId` tidak terisi di Announcement Create
 
-**Apa:** Tambah sentinel error baru untuk material tidak ditemukan.
+**Apa:** Controller `Create` tidak extract user dari context. Field `DosenId` di `AnnouncementRequest` tidak punya json binding tag, jadi tidak terisi dari request body. Harus diambil dari JWT token yang sudah di-set oleh auth middleware.
 
 **Cara:**
-- Tambah fungsi `ErrMaterialNotFound(err error) *AppError` di `data/error.go`
-- Ikuti pattern yang sama dengan `ErrAssignmentNotFound`
-- Message: `"material tidak ditemukan"`
+- **`controllers/announcement_controller.go` Create**: Setelah bind JSON dan sebelum panggil service, tambahkan code untuk ambil user dari context:
+  - Baca user dari context: `ctx.Get("user")`
+  - Type assert ke `data.MeResponse`
+  - Set `req.DosenId = user.UserId`
+- Ikuti pola yang sama dengan `controllers/classroom_controller.go` Create
+
+**Catatan:** Ini bug critical — tanpa fix ini, setiap create announcement akan gagal karena foreign key constraint pada `DosenId`.
+
+**Checkpoint:** `go build ./...`
 
 ---
 
-### Tahap 2 — Perbaiki error wrapping di `services/material_service.go`
+### Tahap 2 — Wrap raw error di Announcement FindAll
 
-**Apa:** Semua error dari repository harus di-wrap dengan `AppError` yang sesuai.
+**Apa:** `announcement_service.go` FindAll return raw error dari repository tanpa AppError wrapping.
 
 **Cara:**
-- **Create** (line 28-29): Ganti `return err` jadi `return data.ErrClassroomNotFound(err)` untuk error dari `classroomRepository.FindById`
-- **FindAll** (line 72-74): Ganti `return []data.MaterialResponse{}, err` jadi `return nil, data.ErrClassroomNotFound(err)`
-- **FindById** (line 94-96): Ganti `return material, err` jadi `return material, data.ErrClassroomNotFound(err)` untuk error classroom
-- **FindById** (line 98-100): Ganti `return material, err` jadi `return material, data.ErrMaterialNotFound(err)` untuk error material
-- **FindById** (line 102): Ganti `return material, gorm.ErrRecordNotFound` jadi `return material, data.ErrMaterialNotFound(nil)`
-- **Update** (line 122-124): Ganti `return err` jadi `return data.ErrClassroomNotFound(err)` untuk error classroom
-- **Update** (line 127-128): Ganti `return err` jadi `return data.ErrMaterialNotFound(err)` untuk error material
-- **Delete** (line 159-163): Ganti `return err` jadi `return data.ErrMaterialNotFound(err)`
+- Ganti `return nil, err` pada error dari `announcementRepository.FindAll` menjadi `return nil, data.ErrInternalServer(err)`
 
-**Catatan:** Setelah tahap ini, import `"gorm.io/gorm"` di `material_service.go` bisa dihapus (sudah tidak pakai `gorm.ErrRecordNotFound`).
+**Checkpoint:** `go build ./...`
 
 ---
 
-### Tahap 3 — Tambah `classroomId` ke `Delete` di material
+### Tahap 3 — Tambah `CreatedAt` ke `AnnouncementResponse`
 
-**Apa:** Material Delete harus terima `classroomId` supaya bisa verifikasi ownership, sama seperti assignment.
-
-**Cara:**
-- **Interface** (`services/material_service.go`): Ganti `Delete(materialId string)` jadi `Delete(materialId, classroomId string)`
-- **Service** (`services/material_service.go`):
-  - Terima `classroomId` parameter baru
-  - Validasi classroom existence dulu (pakai `classroomRepository.FindById`)
-  - Kirim `classroomId` ke repository
-- **Repository interface** (`repositories/material_repository.go`): Ganti `Delete(materialId string)` jadi `Delete(materialId, classroomId string)`
-- **Repository** (`repositories/material_repository.go`): Update query `WHERE id = ? AND classroom_id = ?` — tambah `RowsAffected == 0` check
-- **Controller** (`controllers/material_controller.go`): Baca `classroomId` dari `ctx.Param("id")`, kirim ke service
-
----
-
-### Tahap 4 — Refactor `material_controller.go` ke `handleError()`
-
-**Apa:** Hapus semua error handling manual dan ganti dengan `handleError()`. Ikuti pola yang sama dengan assignment controller.
+**Apa:** `AnnouncementResponse` tidak punya field `CreatedAt`. Material dan assignment response sudah punya timestamp.
 
 **Cara:**
-- **Create**: Hapus blok `errors.Is(err, gorm.ErrRecordNotFound)` dan `err.Error()`. Ganti dengan `handleError(c, err)`.
-- **FindAll**: Sama — hapus manual error handling, pakai `handleError(c, err)`
-- **FindById**: Sama
-- **Update**: Sama
-- **Delete**: Sama — tambahkan `classroomId` ke parameter service call
-- **Binding error**: Ganti `c.ShouldBind` jadi `c.ShouldBindJSON` (lihat Tahap 5)
-- **Hapus imports** yang tidak dipakai: `"errors"`, `"gorm.io/gorm"`, `"github.com/go-playground/validator/v10"`
+- **`data/classroom.go`**: Tambah field `CreatedAt string` dengan tag `json:"created_at"` di `AnnouncementResponse`
+- **`services/announcement_service.go` FindAll**: Saat mapping response, format `CreatedAt` menggunakan `time.RFC3339Nano` (ikuti pola di material service)
+- Tambah import `"time"` di `announcement_service.go` jika belum ada
 
----
-
-### Tahap 5 — Fix binding di `data/material.go` dan `material_controller.go`
-
-**Apa:** Material Create/Update harus pakai JSON binding seperti assignment, bukan form binding.
-
-**Cara:**
-- **`data/material.go`**: Ganti semua tag `form:` jadi `json:` di `MaterialRequest` dan `MaterialUpdateRequest`
-- **`material_controller.go` Create**: Ganti `c.ShouldBind(&req)` jadi `c.ShouldBindJSON(&req)`
-- **`material_controller.go` Update**: Sama — `c.ShouldBind` → `cShouldBindJSON`
-- **`material_controller.go`**: Ganti binding error handling dari manual jadi `bindJSONError(c, err)` (helper yang sama seperti auth controller)
-
-**Catatan:** Setelah ini, import `lib` di `material_controller.go` bisa dihapus (tidak pakai `lib.GetValidationMessage` langsung).
-
----
-
-### Tahap 6 — Fix attachment creation di assignment `Create`
-
-**Apa:** `assignment_service.go` Create method tidak buat attachment meski request punya field `Attachments`.
-
-**Cara:**
-- **`assignment_service.go` Create** (setelah loop rubrics, sebelum submission):
-  - Loop `assignmentRequest.Attachments`
-  - Validasi type (FILE/VIDEO/LINK) — ikuti pattern validasi di material service Create
-  - Validasi `UniqueName` untuk FILE/VIDEO, validasi URL untuk LINK
-  - Append ke `[]model.AssignmentAttachment`
-  - Call `repo.CreateAttachments(attachments)` jika ada
-- **`assignment_service.go` Update**: Tambah validasi attachment type juga (lihat Tahap 7)
-
----
-
-### Tahap 7 — Tambah validasi attachment type di `Update`
-
-**Apa:** Method `Update` di material dan assignment service tidak validasi type attachment.
-
-**Cara:**
-- **`material_service.go` Update**: Di loop `updatedAttachments`, tambahkan validasi yang sama seperti Create:
-  - Cek type harus `FILE`, `VIDEO`, atau `LINK`
-  - Cek `UniqueName` wajib untuk FILE/VIDEO
-  - Cek URL valid untuk LINK
-- **`assignment_service.go` Update**: Tambahkan validasi yang sama di loop `updatedAttachments`
-
----
-
-### Tahap 8 — Standardisasi response message ke bahasa Indonesia
-
-**Apa:** Material controller pakai bahasa Inggris, assignment controller pakai bahasa Indonesia.
-
-**Cara:**
-- **`material_controller.go`**: Ganti semua message:
-  - `"material successfully created"` → `"material berhasil dibuat"`
-  - `"success find all materials"` → `"berhasil mengambil semua material"`
-  - `"success find material by id"` → `"berhasil mengambil material"`
-  - `"material successfully updated"` → `"material berhasil diperbarui"`
-  - `"material successfully deleted"` → `"material berhasil dihapus"`
+**Checkpoint:** `go build ./...`
 
 ---
 
@@ -161,12 +76,9 @@ Perbaiki bug dan error handling pada material dan assignment API agar konsisten 
 
 | File | Tahap | Aksi |
 |------|-------|------|
-| `data/error.go` | 1 | Tambah `ErrMaterialNotFound` |
-| `services/material_service.go` | 2, 3, 7 | Fix error wrapping, tambah `classroomId` ke Delete, validasi attachment di Update |
-| `repositories/material_repository.go` | 3 | Update `Delete` — tambah `classroomId` parameter + `RowsAffected` check |
-| `controllers/material_controller.go` | 4, 5, 8 | Refactor ke `handleError()`, fix binding, standardisasi message |
-| `data/material.go` | 5 | Ganti tag `form:` → `json:` |
-| `services/assignment_service.go` | 6, 7 | Tambah attachment creation di Create, validasi attachment type di Update |
+| `controllers/announcement_controller.go` | 1 | Tambah user extraction untuk DosenId |
+| `services/announcement_service.go` | 2, 3 | Wrap error di FindAll, tambah CreatedAt mapping |
+| `data/classroom.go` | 3 | Tambah field CreatedAt di AnnouncementResponse |
 
 ---
 
@@ -176,8 +88,7 @@ Setelah semua tahap selesai:
 1. Run `go build ./...` — pasti compile tanpa error
 2. Run `go vet ./...` — tidak ada warning
 3. Test manual via Postman/Thunder Client:
-   - Create material dengan attachment (pasti attachment tersimpan)
-   - Update material (ganti attachment type invalid → harus reject)
-   - Delete material (pasti classroom ID divalidasi)
-   - Create assignment dengan attachment (pasti attachment tersimpan)
-   - Delete assignment yang bukan milik classroom → harus 404
+   - Create announcement — pasti berhasil dan `created_by` terisi dengan nama dosen
+   - FindAll announcement — pasti ada field `created_at` di response
+   - Create announcement tanpa token — harus return 401
+   - Create announcement dengan role MAHASISWA — harus return 403

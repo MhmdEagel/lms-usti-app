@@ -9,7 +9,8 @@ func ErrTokenExpired(err error) *AppError       { return NewAppError(400, "token
 func ErrClassroomNotFound(err error) *AppError { return NewAppError(404, "kelas tidak ditemukan", err) }
 func ErrAlreadyEnrolled(err error) *AppError   { return NewAppError(409, "sudah bergabung di kelas ini", err) }
 func ErrAssignmentNotFound(err error) *AppError  { return NewAppError(404, "assignment tidak ditemukan", err) }
-func ErrMaterialNotFound(err error) *AppError    { return NewAppError(404, "material tidak ditemukan", err) }
+func ErrMaterialNotFound(err error) *AppError      { return NewAppError(404, "material tidak ditemukan", err) }
+func ErrAnnouncementNotFound(err error) *AppError  { return NewAppError(404, "announcement tidak ditemukan", err) }
 func ErrInternalServer(err error) *AppError      { return NewAppError(500, "terjadi kesalahan", err) }
 func ErrBadRequest(err error) *AppError           { return NewAppError(400, "invalid request", err) }
 
