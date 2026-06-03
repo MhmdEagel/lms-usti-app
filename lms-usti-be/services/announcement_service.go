@@ -1,6 +1,8 @@
 package services
 
 import (
+	"time"
+
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
@@ -24,7 +26,7 @@ func NewAnnouncementService(announcementRepository repositories.AnnouncementRepo
 func (a *AnnouncementService) Create(announcementRequest data.AnnouncementRequest) error {
 	classroom, err := a.classroomRepository.FindById(announcementRequest.ClassroomId)
 	if err != nil {
-		return err
+		return data.ErrClassroomNotFound(err)
 	}
 	announcement := model.Announcement{
 		Title:       announcementRequest.Title,
@@ -33,30 +35,34 @@ func (a *AnnouncementService) Create(announcementRequest data.AnnouncementReques
 		DosenId:     announcementRequest.DosenId,
 	}
 	if err := a.announcementRepository.Create(announcement); err != nil {
-		return err
+		return data.ErrInternalServer(err)
 	}
 	return nil
 }
 func (a *AnnouncementService) FindAll(classroomId string) (announcements []data.AnnouncementResponse, err error) {
+	if _, err := a.classroomRepository.FindById(classroomId); err != nil {
+		return nil, data.ErrClassroomNotFound(err)
+	}
 	res, err := a.announcementRepository.FindAll(classroomId)
+	if err != nil {
+		return nil, data.ErrInternalServer(err)
+	}
 	for _, v := range res {
 		announcement := data.AnnouncementResponse{
 			Id:        v.ID,
 			Title:     v.Title,
 			Content:   v.Content,
 			CreatedBy: v.Dosen.Fullname,
+			CreatedAt: v.CreatedAt.Format(time.RFC3339Nano),
 		}
 		announcements = append(announcements, announcement)
-	}
-	if err != nil {
-		return announcements, err
 	}
 	return announcements, nil
 }
 func (a *AnnouncementService) Delete(announcementId, classroomId string) error {
 	err := a.announcementRepository.Delete(announcementId, classroomId)
 	if err != nil {
-		return err
+		return data.ErrAnnouncementNotFound(err)
 	}
 	return nil
 }

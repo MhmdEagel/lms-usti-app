@@ -37,5 +37,8 @@ func (a *AnnouncementRepository) Delete(announcementId, classroomId string) erro
 	if res.Error != nil {
 		return res.Error
 	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
 	return nil
 }

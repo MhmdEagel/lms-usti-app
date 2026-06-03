@@ -38,10 +38,11 @@ type AnnouncementRequest struct {
 	DosenId     string
 }
 type AnnouncementResponse struct {
-	Id      string `json:"id"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
+	Id        string `json:"id"`
+	Title     string `json:"title"`
+	Content   string `json:"content"`
 	CreatedBy string `json:"created_by"`
+	CreatedAt string `json:"created_at"`
 
 }
 
