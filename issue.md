@@ -1,94 +1,151 @@
-# Issue: Perbaikan Bug & Error Handling Backend (Sisa yang Belum Diperbaiki)
+# Issue: Unit Test Announcement API Backend
 
 ## Goal
 
-Perbaiki bug dan error handling pada material, assignment, dan announcement API yang masih perlu diperbaiki setelah tahap sebelumnya.
+Membuat unit test untuk endpoint Announcement API menggunakan `net/http/httptest` sesuai panduan Gin Testing. Instruksi high-level untuk junior programmer / AI model murah.
 
-**Fokus:** Backend only (Go/Gin). Frontend diabaikan.
+**File yang dibuat:**
+- `lms-usti-be/main_announcement_test.go`
 
-**File yang diubah:**
-- `lms-usti-be/controllers/announcement_controller.go`
-- `lms-usti-be/services/announcement_service.go`
-- `lms-usti-be/data/classroom.go`
+**Timeout:** `go test -timeout 60s -run "TestAnnouncement" -v`
 
-**Referensi pattern (sudah benar):**
-- Assignment controller: `controllers/assignment_controller.go` — sudah pakai `handleError()` dan `bindJSONError()`
-- Assignment service: `services/assignment_service.go` — sudah pakai `data.ErrClassroomNotFound()` dan `data.ErrAssignmentNotFound()`
-- `handleError()` / `bindJSONError()`: `controllers/auth_controller.go`
-- Classroom controller Create: `controllers/classroom_controller.go` — cara extract user dari context
+**Konvensi test:**
+- User sudah teraktivasi secara default (`seedUser` set `EmailVerified` valid)
+- Semua test bersihkan DB di awal setiap sub-test
+- File dummy sudah tersedia di folder `dummy/`
 
 ---
 
-## Bug List
+## Endpoint yang Ditest
 
-| # | Severity | Lokasi | Deskripsi |
-|---|----------|--------|-----------|
-| 1 | HIGH | `announcement_controller.go` | Create tidak extract `DosenId` dari context — `DosenId` akan kosong → DB FK violation |
-| 2 | MEDIUM | `announcement_service.go` | FindAll return raw error dari repository — tidak wrap dengan `AppError` |
-| 3 | LOW | `data/classroom.go` | `AnnouncementResponse` tidak ada field `CreatedAt` — beda dengan material/assignment |
+### Announcement (`/lms-usti-api/classroom/:id/announcements`)
+
+| # | Method | Path | Auth | Role | Binding |
+|---|--------|------|------|------|---------|
+| 1 | POST | `/classroom/:id/announcements` | Ya | DOSEN | JSON (`ShouldBindJSON`) |
+| 2 | GET | `/classroom/:id/announcements` | Ya | Any | - |
+| 3 | DELETE | `/classroom/:id/announcements/:announcementId` | Ya | DOSEN | - |
+
+**Catatan:** Announcement tidak punya attachment/file upload, jadi tidak perlu test media upload untuk endpoint ini.
 
 ---
 
 ## Tahapan
 
-### Tahap 1 — Fix `DosenId` tidak terisi di Announcement Create
+### Tahap 1 — Setup Test Infrastructure
 
-**Apa:** Controller `Create` tidak extract user dari context. Field `DosenId` di `AnnouncementRequest` tidak punya json binding tag, jadi tidak terisi dari request body. Harus diambil dari JWT token yang sudah di-set oleh auth middleware.
+**Perlu diupdate di `main_auth_test.go`:**
 
-**Cara:**
-- **`controllers/announcement_controller.go` Create**: Setelah bind JSON dan sebelum panggil service, tambahkan code untuk ambil user dari context:
-  - Baca user dari context: `ctx.Get("user")`
-  - Type assert ke `data.MeResponse`
-  - Set `req.DosenId = user.UserId`
-- Ikuti pola yang sama dengan `controllers/classroom_controller.go` Create
+1. Tambahkan model ke `setupTestDB()` AutoMigrate:
+   - `model.Announcement`
 
-**Catatan:** Ini bug critical — tanpa fix ini, setiap create announcement akan gagal karena foreign key constraint pada `DosenId`.
-
-**Checkpoint:** `go build ./...`
+2. Tambahkan table ke `cleanupDatabase()`:
+   - `announcements` (sebelum `classrooms` karena FK dependency)
 
 ---
 
-### Tahap 2 — Wrap raw error di Announcement FindAll
+### Tahap 2 — Setup Router untuk Announcement Test
 
-**Apa:** `announcement_service.go` FindAll return raw error dari repository tanpa AppError wrapping.
+Buat `setupAnnouncementTestRouter(db)` di `main_announcement_test.go` yang include:
+- Auth routes (login, register)
+- Classroom routes dengan middleware (auth + ACL)
+- Announcement routes (`/:id/announcements`, `/:id/announcements/:announcementId`)
 
-**Cara:**
-- Ganti `return nil, err` pada error dari `announcementRepository.FindAll` menjadi `return nil, data.ErrInternalServer(err)`
-
-**Checkpoint:** `go build ./...`
+**Kenapa tidak perlu media routes:** Announcement tidak punya file attachment.
 
 ---
 
-### Tahap 3 — Tambah `CreatedAt` ke `AnnouncementResponse`
+### Tahap 3 — Test Announcement: Create
 
-**Apa:** `AnnouncementResponse` tidak punya field `CreatedAt`. Material dan assignment response sudah punya timestamp.
+**Sub-test:**
 
-**Cara:**
-- **`data/classroom.go`**: Tambah field `CreatedAt string` dengan tag `json:"created_at"` di `AnnouncementResponse`
-- **`services/announcement_service.go` FindAll**: Saat mapping response, format `CreatedAt` menggunakan `time.RFC3339Nano` (ikuti pola di material service)
-- Tambah import `"time"` di `announcement_service.go` jika belum ada
+| Sub-test | Input | Expected |
+|----------|-------|----------|
+| Create berhasil | title + content valid | 200 |
+| Title kosong | title="" | 400 |
+| Content kosong | content="" | 400 |
+| Tanpa token | - | 401 |
+| Token MAHASISWA | role=MAHASISWA | 403 |
+| Classroom tidak ada | classroom ID random | 404 |
 
-**Checkpoint:** `go build ./...`
+**Perhatian binding:** Announcement pakai JSON binding (`ShouldBindJSON`). `DosenId` diambil dari JWT context (bukan dari request body).
+
+**Flow test Create:**
+1. Seed user DOSEN
+2. Login untuk dapat token
+3. Seed classroom
+4. Kirim POST request dengan JSON body `{"title":"...", "content":"..."}`
+5. Pastikan response 200 dan announcement tersimpan
+
+---
+
+### Tahap 4 — Test Announcement: FindAll
+
+**Sub-test FindAll:**
+
+| Sub-test | Input | Expected |
+|----------|-------|----------|
+| Ada announcements | seed announcement di classroom | 200 + array |
+| Kosong | classroom tanpa announcement | 200 + array kosong |
+| Classroom tidak ada | ID random | 404 |
+
+**Flow test FindAll:**
+1. Seed user DOSEN + classroom
+2. Create announcement via POST
+3. Kirim GET request ke `/classroom/:id/announcements`
+4. Pastikan response 200 dan ada data
+
+---
+
+### Tahap 5 — Test Announcement: Delete
+
+**Sub-test Delete:**
+
+| Sub-test | Input | Expected |
+|----------|-------|----------|
+| Hapus berhasil | announcement ID valid | 200 |
+| Announcement tidak ada | ID random | 404 |
+| Tanpa token | - | 401 |
+| Token MAHASISWA | role=MAHASISWA | 403 |
+
+**Flow test Delete:**
+1. Seed user DOSEN + classroom
+2. Create announcement via POST
+3. Ambil announcement ID dari response
+4. Kirim DELETE request ke `/classroom/:id/announcements/:announcementId`
+5. Pastikan response 200
 
 ---
 
 ## File yang Terlibat
 
-| File | Tahap | Aksi |
-|------|-------|------|
-| `controllers/announcement_controller.go` | 1 | Tambah user extraction untuk DosenId |
-| `services/announcement_service.go` | 2, 3 | Wrap error di FindAll, tambah CreatedAt mapping |
-| `data/classroom.go` | 3 | Tambah field CreatedAt di AnnouncementResponse |
+| File | Aksi |
+|------|------|
+| `main_auth_test.go` | Edit — tambah model di `setupTestDB()` + `cleanupDatabase()` |
+| `main_announcement_test.go` | Baru — semua test announcement |
 
 ---
 
-## Verifikasi
+## Referensi
 
-Setelah semua tahap selesai:
-1. Run `go build ./...` — pasti compile tanpa error
-2. Run `go vet ./...` — tidak ada warning
-3. Test manual via Postman/Thunder Client:
-   - Create announcement — pasti berhasil dan `created_by` terisi dengan nama dosen
-   - FindAll announcement — pasti ada field `created_at` di response
-   - Create announcement tanpa token — harus return 401
-   - Create announcement dengan role MAHASISWA — harus return 403
+- Panduan testing Gin: https://gin-gonic.com/id/docs/testing/
+- Setup test existing: `main_auth_test.go`
+- Helper functions: `seedUser()`, `seedClassroom()`, `loginAndGetToken()`, `makeRequest()`, `parseResponse()`
+- `handleError()` / `bindJSONError()`: `controllers/auth_controller.go`
+- Announcement routes: `router/api.go:76-78`
+- Announcement controller: `controllers/announcement_controller.go`
+- Announcement service: `services/announcement_service.go`
+- Announcement model: `model/announcement.go`
+- Auth middleware: `middleware/auth.go`
+- ACL middleware: `middleware/acl.go`
+- JWT: `lib/jwt.go` — `lib.CreateToken(fullname, email, role, userId)`
+
+---
+
+## Catatan Penting
+
+1. **Announcement binding:** `ShouldBindJSON` (application/json). Field `title` dan `content` wajib.
+2. **`DosenId` diambil dari JWT context**, bukan dari request body. Controller extract user dari `ctx.Get("user")`.
+3. **Announcement tidak punya attachment** — tidak perlu test file upload.
+4. **Gunakan `t.Parallel()` atau tidak** — karena pakai SQLite in-memory, jangan pakai `t.Parallel()` di sub-test yang share DB yang sama.
+5. **`seedClassroom`** sudah ada di `main_classroom_test.go` — bisa langsung dipakai.

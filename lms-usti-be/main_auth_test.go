@@ -25,7 +25,7 @@ func setupTestDB() *gorm.DB {
 	if err != nil {
 		panic("failed to connect to test database: " + err.Error())
 	}
-	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.Material{}, &model.MaterialAttachment{}, &model.Assignment{}, &model.AssignmentRubric{}, &model.AssignmentAttachment{}, &model.Submission{}, &model.SubmissionFile{}, &model.SubmissionLink{})
+	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.Announcement{}, &model.Material{}, &model.MaterialAttachment{}, &model.Assignment{}, &model.AssignmentRubric{}, &model.AssignmentAttachment{}, &model.Submission{}, &model.SubmissionFile{}, &model.SubmissionLink{})
 	return db
 }
 
@@ -38,6 +38,7 @@ func cleanupDatabase(db *gorm.DB) {
 	db.Exec("DELETE FROM submission_links")
 	db.Exec("DELETE FROM submissions")
 	db.Exec("DELETE FROM assignments")
+	db.Exec("DELETE FROM announcements")
 	db.Exec("DELETE FROM classroom_mahasiswas")
 	db.Exec("DELETE FROM classrooms")
 	db.Exec("DELETE FROM verification_tokens")
