@@ -1,6 +1,6 @@
 import instance from "@/lib/axios";
 import endpoint from "./endpoint.constant";
-import { IFileMaterial } from "@/types/Classroom";
+import { IAttachment } from "@/types/Classroom";
 
 export const mediaServices = {
   uploadMaterial: (payload: FormData) =>
@@ -19,6 +19,8 @@ export const mediaServices = {
     instance.delete(`${endpoint.MEDIA}/materials/${fileName}`),
   deleteAssignment: (fileName: string) =>
     instance.delete(`${endpoint.MEDIA}/assignments/${fileName}`),
-  deleteBatch: (payload: { files: IFileMaterial[] }) =>
+  deleteBatch: (payload: { files: IAttachment[] }) =>
     instance.post(`${endpoint.MEDIA}/materials/delete-batch`, payload),
+  deleteAssignmentBatch: (payload: { files: IAttachment[] }) =>
+    instance.post(`${endpoint.MEDIA}/assignments/delete-batch`, payload),
 };

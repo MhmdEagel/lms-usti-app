@@ -1,12 +1,12 @@
 type ErrorResponse = {
   meta: {
-    status: string;
+    status: number;
     message: string;
   };
 };
 type APIResponse = {
   meta: {
-    status: string;
+    status: number;
     message: string;
   }
   data: any

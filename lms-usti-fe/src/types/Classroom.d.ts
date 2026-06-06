@@ -30,6 +30,7 @@ interface ICreateAnnouncement {
 interface IAnnouncement extends ICreateAnnouncement {
   id: string;
   created_by: string;
+  created_at: string;
 }
 
 interface IClassroom {
@@ -50,12 +51,20 @@ interface IClassroomMembers {
   mahasiswa: User[] 
 }
 
+interface IAttachment {
+  id?: string;
+  name: string;
+  type: "FILE" | "VIDEO" | "LINK";
+  url: string;
+  unique_name: string;
+  status?: "original" | "new" | "deleted";
+}
+
 interface IMaterial {
   id: string
   title: string;
   description: string;
-  files: IFileMaterial[];
-  links: ILinkMaterial[];
+  attachments: IAttachment[];
   created_at: string;
   updated_at: string
 }
@@ -63,30 +72,13 @@ interface IMaterial {
 interface INewMaterial {
   title: string;
   description?: string | null | undefined;
-  files?: IFileMaterial[] | undefined;
-  links?: ILinkMaterial[] | undefined;
+  attachments?: IAttachment[] | undefined;
 }
 
 interface IUpdateMaterial {
   title?: string;
   description?: string | null | undefined;
-  files?: IFileMaterial[] | undefined;
-  links?: ILinkMaterial[] | undefined;
-}
-
-
-interface ILinkMaterial {
-  id?: string?;
-  link_name: string;
-  link_url: string;
-}
-
-interface IFileMaterial {
-  id?: string?;
-  file_name: string;
-  unique_file_name: string;
-  file_url: string;
-  status?: "original" | "new" | "deleted";
+  attachments?: IAttachment[] | undefined;
 }
 
 interface IAssignment {
@@ -94,20 +86,22 @@ interface IAssignment {
   title: string;
   deadline?: string?;
   instruction?: string?;
-  rubrics?: IRubrics[]
+  rubrics?: IRubrics[];
+  attachments?: IAttachment[];
 }
 interface IUpdateAssignment {
   id?: string?;
   title?: string;
   deadline?: string;
   instruction?: string;
-  rubrics?: IRubrics[]
+  rubrics?: IRubrics[];
+  attachments?: IAttachment[];
 }
 
 interface IRubrics {
   id?: string?;
   name: string;
-  score: string;
+  score: number;
 }
 
 export type {
@@ -123,9 +117,7 @@ export type {
   IMaterial,
   INewMaterial,
   IUpdateMaterial,
-  IFileMaterial,
-  ILinkMaterial,
-
+  IAttachment,
 
   IAssignment,
   IUpdateAssignment,
