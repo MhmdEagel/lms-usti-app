@@ -1,151 +1,179 @@
-# Issue: Unit Test Announcement API Backend
+# Issue: Perbaikan Frontend Types & Service Handlers
 
 ## Goal
 
-Membuat unit test untuk endpoint Announcement API menggunakan `net/http/httptest` sesuai panduan Gin Testing. Instruksi high-level untuk junior programmer / AI model murah.
+Perbaiki TypeScript types dan service handlers agar sync dengan backend API setelah refactor attachment model dan announcement fixes.
 
-**File yang dibuat:**
-- `lms-usti-be/main_announcement_test.go`
+**Fokus:** Frontend only — types, services, dan server actions. Tidak ada perubahan di backend.
 
-**Timeout:** `go test -timeout 60s -run "TestAnnouncement" -v`
-
-**Konvensi test:**
-- User sudah teraktivasi secara default (`seedUser` set `EmailVerified` valid)
-- Semua test bersihkan DB di awal setiap sub-test
-- File dummy sudah tersedia di folder `dummy/`
+**File yang diubah:**
+- `lms-usti-fe/src/types/Classroom.d.ts`
+- `lms-usti-fe/src/types/Response.d.ts`
+- `lms-usti-fe/src/services/material.service.ts`
+- `lms-usti-fe/src/services/assignment.service.ts`
+- `lms-usti-fe/src/services/media.service.ts`
 
 ---
 
-## Endpoint yang Ditest
+## Bug List
 
-### Announcement (`/lms-usti-api/classroom/:id/announcements`)
+| # | Severity | Lokasi | Deskripsi |
+|---|----------|--------|-----------|
+| 1 | HIGH | `Classroom.d.ts` | Material types masih pakai model lama `files` + `links`, backend sudah pakai unified `attachments` |
+| 2 | HIGH | `Classroom.d.ts` | Assignment types tidak ada field `attachments` |
+| 3 | HIGH | `material.service.ts` | Create/update tidak transform ke format `attachments` backend |
+| 4 | HIGH | `assignment.service.ts` | Create/update tidak kirim `attachments` |
+| 5 | MEDIUM | `Classroom.d.ts` | `IRubrics.score` adalah `string`, backend expect `int` |
+| 6 | LOW | `Response.d.ts` | `meta.status` adalah `string`, backend kirim `number` |
+| 7 | LOW | `Classroom.d.ts` | `IAnnouncement` tidak ada field `created_at` |
+| 8 | LOW | `media.service.ts` | Missing `deleteBatch` untuk assignments |
 
-| # | Method | Path | Auth | Role | Binding |
-|---|--------|------|------|------|---------|
-| 1 | POST | `/classroom/:id/announcements` | Ya | DOSEN | JSON (`ShouldBindJSON`) |
-| 2 | GET | `/classroom/:id/announcements` | Ya | Any | - |
-| 3 | DELETE | `/classroom/:id/announcements/:announcementId` | Ya | DOSEN | - |
+---
 
-**Catatan:** Announcement tidak punya attachment/file upload, jadi tidak perlu test media upload untuk endpoint ini.
+## Backend Reference (untuk sinkronisasi)
+
+### AttachmentRequest (untuk kirim ke backend)
+```json
+{
+  "name": "string (required)",
+  "type": "FILE | VIDEO | LINK (required)",
+  "url": "string (required)",
+  "unique_name": "string (required untuk FILE/VIDEO)"
+}
+```
+
+### AttachmentResponse (dari backend)
+```json
+{
+  "id": "string",
+  "name": "string",
+  "type": "FILE | VIDEO | LINK",
+  "url": "string",
+  "unique_name": "string"
+}
+```
+
+### MaterialRequest
+```json
+{
+  "title": "string (required)",
+  "description": "string",
+  "attachments": ["AttachmentRequest"]
+}
+```
+
+### AssignmentRequest
+```json
+{
+  "title": "string (required)",
+  "deadline": "time (required)",
+  "instruction": "string",
+  "rubrics": [{"name": "string", "score": 0}],
+  "attachments": ["AttachmentRequest"]
+}
+```
 
 ---
 
 ## Tahapan
 
-### Tahap 1 — Setup Test Infrastructure
+### Tahap 1 — Fix types di `Classroom.d.ts`
 
-**Perlu diupdate di `main_auth_test.go`:**
+**Apa:** Update semua TypeScript interface agar sync dengan backend response/request.
 
-1. Tambahkan model ke `setupTestDB()` AutoMigrate:
-   - `model.Announcement`
+**Cara:**
+- **Hapus** interface `ILinkMaterial` dan `IFileMaterial`
+- **Tambah** interface baru `IAttachment`:
+  ```
+  id?: string
+  name: string
+  type: "FILE" | "VIDEO" | "LINK"
+  url: string
+  unique_name: string
+  ```
+- **Update `IMaterial`**: Ganti `files` + `links` jadi `attachments: IAttachment[]`
+- **Update `INewMaterial`**: Ganti `files` + `links` jadi `attachments: IAttachment[]`
+- **Update `IUpdateMaterial`**: Ganti `files` + `links` jadi `attachments: IAttachment[]`
+- **Update `IAssignment`**: Tambah field `attachments: IAttachment[]`
+- **Update `IUpdateAssignment`**: Tambah field `attachments: IAttachment[]`
+- **Update `IRubrics`**: Ganti `score: string` jadi `score: number`
+- **Update `IAnnouncement`**: Tambah field `created_at: string`
+- **Update exports**: Hapus `IFileMaterial`, `ILinkMaterial`. Tambah `IAttachment`.
 
-2. Tambahkan table ke `cleanupDatabase()`:
-   - `announcements` (sebelum `classrooms` karena FK dependency)
-
----
-
-### Tahap 2 — Setup Router untuk Announcement Test
-
-Buat `setupAnnouncementTestRouter(db)` di `main_announcement_test.go` yang include:
-- Auth routes (login, register)
-- Classroom routes dengan middleware (auth + ACL)
-- Announcement routes (`/:id/announcements`, `/:id/announcements/:announcementId`)
-
-**Kenapa tidak perlu media routes:** Announcement tidak punya file attachment.
-
----
-
-### Tahap 3 — Test Announcement: Create
-
-**Sub-test:**
-
-| Sub-test | Input | Expected |
-|----------|-------|----------|
-| Create berhasil | title + content valid | 200 |
-| Title kosong | title="" | 400 |
-| Content kosong | content="" | 400 |
-| Tanpa token | - | 401 |
-| Token MAHASISWA | role=MAHASISWA | 403 |
-| Classroom tidak ada | classroom ID random | 404 |
-
-**Perhatian binding:** Announcement pakai JSON binding (`ShouldBindJSON`). `DosenId` diambil dari JWT context (bukan dari request body).
-
-**Flow test Create:**
-1. Seed user DOSEN
-2. Login untuk dapat token
-3. Seed classroom
-4. Kirim POST request dengan JSON body `{"title":"...", "content":"..."}`
-5. Pastikan response 200 dan announcement tersimpan
+**Checkpoint:** `npx tsc --noEmit`
 
 ---
 
-### Tahap 4 — Test Announcement: FindAll
+### Tahap 2 — Fix types di `Response.d.ts`
 
-**Sub-test FindAll:**
+**Apa:** `meta.status` harus `number` (backend kirim integer, bukan string).
 
-| Sub-test | Input | Expected |
-|----------|-------|----------|
-| Ada announcements | seed announcement di classroom | 200 + array |
-| Kosong | classroom tanpa announcement | 200 + array kosong |
-| Classroom tidak ada | ID random | 404 |
+**Cara:**
+- Ganti `status: string` jadi `status: number` di `ErrorResponse` dan `APIResponse`
 
-**Flow test FindAll:**
-1. Seed user DOSEN + classroom
-2. Create announcement via POST
-3. Kirim GET request ke `/classroom/:id/announcements`
-4. Pastikan response 200 dan ada data
+**Checkpoint:** `npx tsc --noEmit`
 
 ---
 
-### Tahap 5 — Test Announcement: Delete
+### Tahap 3 — Update `material.service.ts`
 
-**Sub-test Delete:**
+**Apa:** Service harus transform `IFileMaterial[]` + `ILinkMaterial[]` ke format `attachments` sebelum kirim ke backend.
 
-| Sub-test | Input | Expected |
-|----------|-------|----------|
-| Hapus berhasil | announcement ID valid | 200 |
-| Announcement tidak ada | ID random | 404 |
-| Tanpa token | - | 401 |
-| Token MAHASISWA | role=MAHASISWA | 403 |
+**Cara:**
+- Import `IAttachment` dari types
+- **`create` method**: Terima payload dengan format baru (`attachments: IAttachment[]`). Tidak perlu transform lagi karena sudah match.
+- **`update` method**: Sama — terima payload dengan format baru.
+- **Jika ada code lama yang masih transform files/links** di server actions, hapus dan ganti dengan langsung pakai `attachments`.
 
-**Flow test Delete:**
-1. Seed user DOSEN + classroom
-2. Create announcement via POST
-3. Ambil announcement ID dari response
-4. Kirim DELETE request ke `/classroom/:id/announcements/:announcementId`
-5. Pastikan response 200
+**Checkpoint:** `npx tsc --noEmit`
+
+---
+
+### Tahap 4 — Update `assignment.service.ts`
+
+**Apa:** Assignment create/update harus sertakan `attachments` di payload.
+
+**Cara:**
+- **`create` method**: Pastikan `IAssignment` sudah punya field `attachments`. Kirim ke backend.
+- **`update` method**: Pastikan `IUpdateAssignment` sudah punya field `attachments`. Kirim ke backend.
+- Tidak perlu perubahan logic, cukup pastikan types match.
+
+**Checkpoint:** `npx tsc --noEmit`
+
+---
+
+### Tahap 5 — Tambah `deleteBatch` untuk assignments di `media.service.ts`
+
+**Apa:** `media.service.ts` belum punya batch delete untuk assignment files.
+
+**Cara:**
+- Tambah method `deleteAssignmentBatch` yang POST ke `/media/assignments/delete-batch`
+- Payload format sama dengan `deleteBatch` materials: `{ files: IFileMaterial[] }`
+
+**Checkpoint:** `npx tsc --noEmit`
 
 ---
 
 ## File yang Terlibat
 
-| File | Aksi |
-|------|------|
-| `main_auth_test.go` | Edit — tambah model di `setupTestDB()` + `cleanupDatabase()` |
-| `main_announcement_test.go` | Baru — semua test announcement |
+| File | Tahap | Aksi |
+|------|-------|------|
+| `src/types/Classroom.d.ts` | 1 | Hapus IFileMaterial/ILinkMaterial, tambah IAttachment, update IMaterial/INewMaterial/IUpdateMaterial/IAssignment/IUpdateAssignment/IRubrics/IAnnouncement |
+| `src/types/Response.d.ts` | 2 | Ganti status: string → number |
+| `src/services/material.service.ts` | 3 | Update create/update payload types |
+| `src/services/assignment.service.ts` | 4 | Update create/update payload types |
+| `src/services/media.service.ts` | 5 | Tambah deleteAssignmentBatch |
 
 ---
 
-## Referensi
+## Verifikasi
 
-- Panduan testing Gin: https://gin-gonic.com/id/docs/testing/
-- Setup test existing: `main_auth_test.go`
-- Helper functions: `seedUser()`, `seedClassroom()`, `loginAndGetToken()`, `makeRequest()`, `parseResponse()`
-- `handleError()` / `bindJSONError()`: `controllers/auth_controller.go`
-- Announcement routes: `router/api.go:76-78`
-- Announcement controller: `controllers/announcement_controller.go`
-- Announcement service: `services/announcement_service.go`
-- Announcement model: `model/announcement.go`
-- Auth middleware: `middleware/auth.go`
-- ACL middleware: `middleware/acl.go`
-- JWT: `lib/jwt.go` — `lib.CreateToken(fullname, email, role, userId)`
-
----
-
-## Catatan Penting
-
-1. **Announcement binding:** `ShouldBindJSON` (application/json). Field `title` dan `content` wajib.
-2. **`DosenId` diambil dari JWT context**, bukan dari request body. Controller extract user dari `ctx.Get("user")`.
-3. **Announcement tidak punya attachment** — tidak perlu test file upload.
-4. **Gunakan `t.Parallel()` atau tidak** — karena pakai SQLite in-memory, jangan pakai `t.Parallel()` di sub-test yang share DB yang sama.
-5. **`seedClassroom`** sudah ada di `main_classroom_test.go` — bisa langsung dipakai.
+Setelah semua tahap selesai:
+1. Run `npx tsc --noEmit` — pasti compile tanpa type error
+2. Run `npm run build` — pasti build sukses
+3. Test manual:
+   - Create material dengan attachment FILE → pasti tersimpan
+   - Create material dengan attachment LINK → pasti tersimpan
+   - Create assignment dengan rubric + attachment → pasti tersimpan
+   - Delete material → pasti berhasil
+   - Delete assignment → pasti berhasil
