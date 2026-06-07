@@ -1,11 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { ILinkMaterial } from "@/types/Classroom";
+import { IAttachment } from "@/types/Classroom";
 import { LinkIcon } from "lucide-react";
 import Link from "next/link";
 
-export default function LinkMaterialItem({ linkMateri }: { linkMateri: ILinkMaterial }) {
+export default function LinkMaterialItem({ linkMateri }: { linkMateri: IAttachment }) {
   return (
-    <Link target="_blank" className="group" href={linkMateri.link_url}>
+    <Link target="_blank" className="group" href={linkMateri.url}>
       <Card>
         <CardContent className="flex items-center gap-4">
           <div className="p-4  bg-accent rounded-full">
@@ -15,7 +15,7 @@ export default function LinkMaterialItem({ linkMateri }: { linkMateri: ILinkMate
             <div>
               <div className="font-bold text-gray-500 text-xs md:text-sm ">NAMA LINK</div>
               <div className="text-base md:text-lg max-w-[350px] truncate group-hover:underline group-hover:text-blue-700">
-                {linkMateri.link_name}
+                {linkMateri.name}
               </div>
             </div>
             <div>

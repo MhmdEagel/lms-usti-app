@@ -239,12 +239,12 @@ export default function CreateAssignmentDialog({
                         {arrayOfFiles.map((item) => {
                           return (
                             <FileItem
-                              key={item.unique_file_name}
+                              key={item.unique_name}
                               arrayOfFiles={arrayOfFiles}
                               setValue={assignmentForm.setValue}
                               setArrayOfFiles={setArrayOfFiles}
-                              fileName={item.file_name}
-                              uniqueFileName={item.unique_file_name}
+                              fileName={item.name}
+                              uniqueFileName={item.unique_name}
                               setIsPending={setIsPending}
                               setIsPendingUploadFile={setIsPendingUploadFile}
                             />
@@ -267,7 +267,7 @@ export default function CreateAssignmentDialog({
                             index={index}
                             arrayOfLinks={arrayOfLinks}
                             setArrayOfLinks={setArrayOfLinks}
-                            linkName={item.link_name}
+                            linkName={item.name}
                             setValue={assignmentForm.setValue}
                           />
                         ))}

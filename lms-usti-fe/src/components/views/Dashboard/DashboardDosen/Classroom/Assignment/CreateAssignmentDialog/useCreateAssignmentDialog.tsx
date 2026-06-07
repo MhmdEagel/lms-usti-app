@@ -8,15 +8,15 @@ import { createAssignmentSchema } from "@/schemas/assignment";
 import { newAssignment } from "@/actions/new-assignment";
 import { z } from "zod";
 import { uploadMaterial } from "@/actions/upload-material";
-import { IFileMaterial, ILinkMaterial } from "@/types/Classroom";
+import { IAttachment } from "@/types/Classroom";
 import { AxiosError } from "axios";
 import { ErrorResponse } from "@/types/Response";
 import { uploadAssignment } from "@/actions/upload-assignment";
 
 const useCreateAssignmentDialog = () => {
   const [open, setOpen] = useState("closed");
-  const [arrayOfFiles, setArrayOfFiles] = useState<IFileMaterial[]>([]);
-  const [arrayOfLinks, setArrayOfLinks] = useState<ILinkMaterial[]>([]);
+  const [arrayOfFiles, setArrayOfFiles] = useState<IAttachment[]>([]);
+  const [arrayOfLinks, setArrayOfLinks] = useState<IAttachment[]>([]);
 
   const [hasDeadline, setHasDeadline] = useState(false);
   const [arrayOfRubrics, setArrayOfRubrics] = useState<
@@ -68,10 +68,11 @@ const useCreateAssignmentDialog = () => {
       setIsPendingUploadFile(true);
       const res = await uploadAssignment(formData);
       console.log(res)
-      const newFile: IFileMaterial = {
-        file_name: res.data?.file_name,
-        file_url: res.data?.file_url,
-        unique_file_name: res.data?.unique_file_name,
+      const newFile: IAttachment = {
+        name: res.data?.file_name,
+        url: res.data?.file_url,
+        unique_name: res.data?.unique_file_name,
+        type: "FILE",
       };
       setArrayOfFiles((prevValue) => [...prevValue, newFile]);
       toast.success("File berhasil diupload");

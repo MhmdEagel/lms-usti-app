@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import type { IFileMaterial, ILinkMaterial } from "@/types/Classroom";
+import type { IAttachment } from "@/types/Classroom";
 import { createMaterialSchema } from "@/schemas/material";
 import { uploadMaterial } from "@/actions/upload-material";
 import { z } from "zod";
@@ -13,17 +13,17 @@ import { deleteFileMaterial } from "@/actions/delete-file-material";
 
 type TrackStatus = "original" | "new" | "deleted";
 
-interface TrackedFile extends IFileMaterial {
+interface TrackedFile extends IAttachment {
   status: TrackStatus;
 }
-interface TrackedLink extends ILinkMaterial {
+interface TrackedLink extends IAttachment {
   status: TrackStatus;
 }
 
 const useEditMaterialDialog = () => {
   const [trackedFiles, setTrackedFiles] = useState<TrackedFile[]>([]);
   const [trackedLinks, setTrackedLinks] = useState<TrackedLink[]>([])
-  const [arrayOfLinks, setArrayOfLinks] = useState<ILinkMaterial[]>([]);
+  const [arrayOfLinks, setArrayOfLinks] = useState<IAttachment[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
   const materialForm = useForm({
@@ -34,17 +34,19 @@ const useEditMaterialDialog = () => {
     resolver: zodResolver(createMaterialSchema),
   });
 
-  const initializeFiles = (files: IFileMaterial[]) => {
+  const initializeFiles = (files: IAttachment[]) => {
     const tracked: TrackedFile[] = files.map((file) => ({
       ...file,
+      type: "FILE",
       status: "original" as TrackStatus,
     }));
     setTrackedFiles(tracked);
   };
 
-  const initializeLinks = (links: ILinkMaterial[]) => {
+  const initializeLinks = (links: IAttachment[]) => {
     const tracked: TrackedLink[] = links.map((link) => ({
       ...link,
+      type: "LINK",
       status: "original" as TrackStatus,
     }));
     setTrackedLinks(tracked);
@@ -94,7 +96,7 @@ const useEditMaterialDialog = () => {
     if (newFiles.length > 0) {
       try {
         for (const file of newFiles) {
-          await deleteFileMaterial(file.unique_file_name);
+          await deleteFileMaterial(file.unique_name);
         }
       } catch {
         console.error("Failed to delete new files");
@@ -114,9 +116,10 @@ const useEditMaterialDialog = () => {
       setIsPendingUploadFile(true);
       const res = await uploadMaterial(formData);
       const newFile: TrackedFile = {
-        file_name: res.data?.file_name || file.name,
-        file_url: res.data?.file_url || "",
-        unique_file_name: res.data?.unique_file_name || "",
+        name: res.data?.file_name || file.name,
+        url: res.data?.file_url || "",
+        unique_name: res.data?.unique_file_name || "",
+        type: "FILE",
         status: "new",
       };
       setTrackedFiles((prevValue) => [...prevValue, newFile]);
@@ -130,7 +133,7 @@ const useEditMaterialDialog = () => {
 
   const handleDeleteFile = async (uniqueFileName: string) => {
     const file = trackedFiles.find(
-      (f) => f.unique_file_name === uniqueFileName,
+      (f) => f.unique_name === uniqueFileName,
     );
     if (!file) return;
     if (file.status === "new") {
@@ -140,12 +143,12 @@ const useEditMaterialDialog = () => {
         toast.error("Gagal menghapus file")
       }
       setTrackedFiles((prevValue) =>
-        prevValue.filter((f) => f.unique_file_name !== uniqueFileName),
+        prevValue.filter((f) => f.unique_name !== uniqueFileName),
       );
     } else {
       setTrackedFiles((prevValue) =>
         prevValue.map((f) =>
-          f.unique_file_name === uniqueFileName
+          f.unique_name === uniqueFileName
             ? { ...f, status: "deleted" }
             : f,
         ),
