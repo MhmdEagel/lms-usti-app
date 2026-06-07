@@ -17,8 +17,8 @@ export default function LinkItem({
   setValue: UseFormSetValue<INewMaterial>;
   index: number;
 }) {
-  const handleDelete = (index: number) => {
-    const newArray = arrayOfLinks.splice(0, index);
+  const handleDelete = (idx: number) => {
+    const newArray = arrayOfLinks.filter((_, i) => i !== idx);
     setArrayOfLinks(newArray);
     setValue("attachments", newArray);
   };

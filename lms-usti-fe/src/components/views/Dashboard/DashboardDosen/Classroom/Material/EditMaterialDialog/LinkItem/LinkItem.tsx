@@ -6,20 +6,20 @@ import type { IAttachment, INewMaterial } from "@/types/Classroom";
 
 export default function LinkItem({
   linkName,
-  arrayOfLinks,
-  setArrayOfLinks,
+  trackedAttachments,
+  setTrackedAttachments,
   setValue,
   id,
 }: {
   linkName: string;
-  arrayOfLinks: IAttachment[];
-  setArrayOfLinks: Dispatch<React.SetStateAction<IAttachment[]>>;
+  trackedAttachments: IAttachment[];
+  setTrackedAttachments: Dispatch<React.SetStateAction<IAttachment[]>>;
   setValue: UseFormSetValue<INewMaterial>;
   id: string | null | undefined;
 }) {
   const handleDelete = (id: string | null | undefined) => {
-    const newArray = arrayOfLinks.filter((item) => item.id !== id);
-    setArrayOfLinks(newArray);
+    const newArray = trackedAttachments.filter((item) => item.id !== id);
+    setTrackedAttachments(newArray);
     setValue("attachments", newArray);
   };
   return (

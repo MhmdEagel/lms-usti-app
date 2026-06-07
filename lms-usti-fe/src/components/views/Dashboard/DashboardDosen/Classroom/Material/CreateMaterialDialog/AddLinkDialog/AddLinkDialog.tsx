@@ -12,12 +12,12 @@ import type { IAttachment, INewMaterial } from "@/types/Classroom";
 
 export default function AddLinkDialog({
   setValue,
-  arrayOfLinks,
-  setArrayOfLinks,
+  arrayOfAttachments,
+  setArrayOfAttachments,
 }: {
   setValue: UseFormSetValue<INewMaterial>;
-  arrayOfLinks: IAttachment[];
-  setArrayOfLinks: Dispatch<SetStateAction<IAttachment[]>>;
+  arrayOfAttachments: IAttachment[];
+  setArrayOfAttachments: Dispatch<SetStateAction<IAttachment[]>>;
 }) {
   const [linkName, setLinkName] = useState("");
   const [linkString, setLinkString] = useState("https://www.");
@@ -33,8 +33,8 @@ export default function AddLinkDialog({
       type: "LINK",
       unique_name: "",
     };
-    const newArrayOfLinks = [...arrayOfLinks, newLinkMateri];
-    setArrayOfLinks(newArrayOfLinks);
+    const newArrayOfLinks = [...arrayOfAttachments, newLinkMateri];
+    setArrayOfAttachments(newArrayOfLinks);
     setValue("attachments", newArrayOfLinks);
     setLinkString("https://www.");
     setOpen(false);

@@ -5,7 +5,6 @@ const AttachmentSchema = z.object({
   type: z.enum(["FILE", "VIDEO", "LINK"]),
   url: z.string(),
   unique_name: z.string(),
-  status: z.string().optional(),
 });
 
 export const createMaterialSchema = z.object({
@@ -20,6 +19,5 @@ export const createMaterialSchema = z.object({
     })
     .nullable()
     .optional(),
-  files: z.array(AttachmentSchema).optional(),
-  links: z.array(AttachmentSchema).optional(),
+  attachments: z.array(AttachmentSchema).optional(),
 });

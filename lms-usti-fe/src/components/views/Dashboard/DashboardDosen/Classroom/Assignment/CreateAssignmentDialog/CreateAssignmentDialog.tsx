@@ -165,7 +165,7 @@ export default function CreateAssignmentDialog({
                 />
                 <FormField
                   control={assignmentForm.control}
-                  name="files"
+                  name="attachments"
                   render={({ field: { value, onChange, ...fieldProps } }) => (
                     <FormItem className="hidden">
                       <FormControl>

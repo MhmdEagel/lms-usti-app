@@ -42,7 +42,7 @@ export default function FileItem({
       console.log(res);
       toast.success("File berhasil dihapus");
       setArrayOfFiles(newArray);
-      setValue("files", newArray);
+      setValue("attachments", newArray);
     } catch (e) {
       const err = e as AxiosError<ErrorResponse>;
       console.log(err.response?.data);

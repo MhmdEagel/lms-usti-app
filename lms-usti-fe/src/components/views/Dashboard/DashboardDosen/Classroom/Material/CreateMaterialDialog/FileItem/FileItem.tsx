@@ -13,25 +13,25 @@ import { newMaterialSchema } from "@/schemas/schemas";
 export default function FileItem({
   fileName,
   uniqueFileName,
-  arrayOfFiles,
-  setArrayOfFiles,
+  arrayOfAttachments,
+  setArrayOfAttachments,
   setValue,
   setIsPending,
   setIsPendingUploadFile,
 }: {
   fileName: string;
   uniqueFileName: string;
-  arrayOfFiles: IAttachment[];
-  setArrayOfFiles: Dispatch<React.SetStateAction<IAttachment[]>>;
+  arrayOfAttachments: IAttachment[];
+  setArrayOfAttachments: Dispatch<React.SetStateAction<IAttachment[]>>;
   setValue: UseFormSetValue<z.infer<typeof newMaterialSchema>>;
   setIsPending: Dispatch<SetStateAction<boolean>>;
   setIsPendingUploadFile: Dispatch<SetStateAction<boolean>>;
 }) {
   const handleDelete = async (unique_file_name: string) => {
-    const newArray = arrayOfFiles.filter(
+    const newArray = arrayOfAttachments.filter(
       (item) => item.unique_name != unique_file_name,
     );
-    const file = arrayOfFiles.find(
+    const file = arrayOfAttachments.find(
       (item) => item.unique_name === unique_file_name,
     );
     try {
@@ -39,8 +39,8 @@ export default function FileItem({
       setIsPendingUploadFile(true);
       await deleteFileMaterial(file?.unique_name!);
       toast.success("File berhasil dihapus");
-      setArrayOfFiles(newArray);
-      setValue("files", newArray);
+      setArrayOfAttachments(newArray);
+      setValue("attachments", newArray);
     } catch (e) {
       const err = e as AxiosError<ErrorResponse>;
       console.log(err.response?.data);

@@ -32,10 +32,10 @@ export default function CreateMaterialDialog({
   const {
     open,
     setOpen,
-    arrayOfFiles,
-    setArrayOfFiles,
-    arrayOfLinks,
-    setArrayOfLinks,
+    arrayOfFiles: arrayOfAttachments,
+    setArrayOfFiles: setArrayOfAttachments,
+    arrayOfLinks: linkAttachments,
+    setArrayOfLinks: setLinkAttachments,
     isPending,
     isPendingUploadFile,
     pdfMateriRef,
@@ -151,7 +151,7 @@ export default function CreateMaterialDialog({
                 />
                 <FormField
                   control={materialForm.control}
-                  name="files"
+                  name="attachments"
                   render={({ field: { value, onChange, ...fieldProps } }) => (
                     <FormItem className="hidden">
                       <FormControl>
@@ -191,20 +191,20 @@ export default function CreateMaterialDialog({
                 <div className="font-bold">Lampiran</div>
               </CardHeader>
               <CardContent>
-                {arrayOfFiles.length > 0 ? (
+                {arrayOfAttachments.filter(a => a.type === "FILE" || a.type === "VIDEO").length > 0 ? (
                   <Card className="mb-4">
                     <CardHeader>
                       <div>File</div>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-col gap-2">
-                        {arrayOfFiles.map((item) => {
+                        {arrayOfAttachments.filter(a => a.type === "FILE" || a.type === "VIDEO").map((item) => {
                           return (
                             <FileItem
                               key={item.unique_name}
-                              arrayOfFiles={arrayOfFiles}
+                              arrayOfAttachments={arrayOfAttachments}
                               setValue={materialForm.setValue}
-                              setArrayOfFiles={setArrayOfFiles}
+                              setArrayOfAttachments={setArrayOfAttachments}
                               fileName={item.name}
                               uniqueFileName={item.unique_name}
                               setIsPending={setIsPending}
@@ -216,19 +216,19 @@ export default function CreateMaterialDialog({
                     </CardContent>
                   </Card>
                 ) : null}
-                {arrayOfLinks.length > 0 ? (
+                {linkAttachments.filter(a => a.type === "LINK").length > 0 ? (
                   <Card className="mb-4">
                     <CardHeader>
                       <div>Link</div>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-col gap-2 ">
-                        {arrayOfLinks.map((item, index) => (
+                        {linkAttachments.filter(a => a.type === "LINK").map((item, index) => (
                           <LinkItem
                             key={index}
                             index={index}
-                            arrayOfLinks={arrayOfLinks}
-                            setArrayOfLinks={setArrayOfLinks}
+                            arrayOfAttachments={linkAttachments}
+                            setArrayOfAttachments={setLinkAttachments}
                             linkName={item.name}
                             setValue={materialForm.setValue}
                           />
@@ -249,8 +249,8 @@ export default function CreateMaterialDialog({
                     Upload
                   </div>
                   <AddLinkDialog
-                    arrayOfLinks={arrayOfLinks}
-                    setArrayOfLinks={setArrayOfLinks}
+                    arrayOfAttachments={linkAttachments}
+                    setArrayOfAttachments={setLinkAttachments}
                     setValue={materialForm.setValue}
                   />
                 </div>

@@ -21,14 +21,13 @@ const useCreateMaterialDialog = () => {
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
   const materialForm = useForm({
     defaultValues: {
-      files: [],
-      links: [],
+      attachments: [],
     },
     resolver: zodResolver(createMaterialSchema),
   });
 
   useEffect(() => {
-    materialForm.setValue("files", arrayOfFiles);
+    materialForm.setValue("attachments", arrayOfFiles);
   }, [arrayOfFiles]);
 
   const pdfMateriRef = useRef<HTMLInputElement>(null);

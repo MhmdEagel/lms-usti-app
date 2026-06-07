@@ -139,7 +139,6 @@ const AttachmentSchema = z.object({
   type: z.enum(["FILE", "VIDEO", "LINK"]),
   url: z.string(),
   unique_name: z.string(),
-  status: z.string().optional(),
 });
 
 const newMaterialSchema = z.object({
@@ -154,8 +153,7 @@ const newMaterialSchema = z.object({
     })
     .nullable()
     .optional(),
-  files: z.array(AttachmentSchema).optional(),
-  links: z.array(AttachmentSchema).optional(),
+  attachments: z.array(AttachmentSchema).optional(),
 });
 
 export {
