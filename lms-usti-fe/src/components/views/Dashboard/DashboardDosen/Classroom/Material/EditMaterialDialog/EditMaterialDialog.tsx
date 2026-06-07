@@ -50,8 +50,8 @@ export default function EditMaterialDialog(props: PropTypes) {
     initializeFiles,
   } = useEditMaterialDialog();
   const { open, setOpen, material, classroomId } = props;
-  const defaultMaterialFiles = material.files;
-  const defaultMaterialLinks = material.links;
+  const defaultMaterialFiles = (material.attachments || []).filter((a) => a.type === "FILE" || a.type === "VIDEO");
+  const defaultMaterialLinks = (material.attachments || []).filter((a) => a.type === "LINK");
   useEffect(() => {
     if (defaultMaterialFiles && defaultMaterialFiles.length > 0) {
       initializeFiles(defaultMaterialFiles);
@@ -206,9 +206,9 @@ export default function EditMaterialDialog(props: PropTypes) {
                         {currentFiles.map((item) => {
                           return (
                             <FileItem
-                              key={item.unique_file_name}
-                              fileName={item.file_name}
-                              uniqueFileName={item.unique_file_name}
+                              key={item.unique_name}
+                              fileName={item.name}
+                              uniqueFileName={item.unique_name}
                               fileStatus={item.status}
                               onDelete={handleDeleteFile}
                               isPending={isPending || isPendingUploadFile}
@@ -228,13 +228,13 @@ export default function EditMaterialDialog(props: PropTypes) {
                       <div className="flex flex-col gap-2 ">
                         {arrayOfLinks.map((item) => (
                           <LinkItem
-                            key={item.id}
-                            id={item.id}
-                            arrayOfLinks={arrayOfLinks}
-                            setArrayOfLinks={setArrayOfLinks}
-                            linkName={item.link_name}
-                            setValue={materialForm.setValue}
-                          />
+                              key={item.id}
+                              id={item.id}
+                              arrayOfLinks={arrayOfLinks}
+                              setArrayOfLinks={setArrayOfLinks}
+                              linkName={item.name}
+                              setValue={materialForm.setValue}
+                            />
                         ))}
                       </div>
                     </CardContent>

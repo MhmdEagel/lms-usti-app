@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import type { IFileMaterial, ILinkMaterial } from "@/types/Classroom";
+import type { IAttachment } from "@/types/Classroom";
 import { createMaterialSchema } from "@/schemas/material";
 import { uploadMaterial } from "@/actions/upload-material";
 import { AxiosError } from "axios";
@@ -15,8 +15,8 @@ import { deleteMaterialBatch } from "@/actions/delete-material-batch";
 const useCreateMaterialDialog = () => {
   const [open, setOpen] = useState("closed");
   const [isVisible, setIsVisible] = useState(false);
-  const [arrayOfFiles, setArrayOfFiles] = useState<IFileMaterial[]>([]);
-  const [arrayOfLinks, setArrayOfLinks] = useState<ILinkMaterial[]>([]);
+  const [arrayOfFiles, setArrayOfFiles] = useState<IAttachment[]>([]);
+  const [arrayOfLinks, setArrayOfLinks] = useState<IAttachment[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
   const materialForm = useForm({
@@ -37,7 +37,11 @@ const useCreateMaterialDialog = () => {
     classroomId: string,
   ) => {
     setIsPending(true);
-    const res = await newMaterial(data, classroomId);
+    const payload = {
+      ...data,
+      attachments: [...arrayOfFiles, ...arrayOfLinks],
+    };
+    const res = await newMaterial(payload, classroomId);
     if (!res.success && res.error) {
       toast.error(res.error);
       setIsPending(false);
@@ -73,10 +77,11 @@ const useCreateMaterialDialog = () => {
     try {
       setIsPendingUploadFile(true);
       const res = await uploadMaterial(formData);
-      const newFile: IFileMaterial = {
-        file_name: res.data?.file_name,
-        file_url: res.data?.file_url,
-        unique_file_name: res.data?.unique_file_name,
+      const newFile: IAttachment = {
+        name: res.data?.file_name,
+        url: res.data?.file_url,
+        unique_name: res.data?.unique_file_name,
+        type: "FILE",
       };
       setArrayOfFiles((prevValue) => [...prevValue, newFile]);
       toast.success("File berhasil diupload");
