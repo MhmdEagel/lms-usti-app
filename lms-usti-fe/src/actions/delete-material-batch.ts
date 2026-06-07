@@ -1,9 +1,9 @@
 "use server";
 
 import { mediaServices } from "@/services/media.service";
-import { IFileMaterial } from "@/types/Classroom";
+import { IAttachment } from "@/types/Classroom";
 
-export const deleteMaterialBatch = async (files: IFileMaterial[]) => {
+export const deleteMaterialBatch = async (files: IAttachment[]) => {
   try {
     const res = await mediaServices.deleteBatch({ files });
     return res.data;

@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import type { IFileMaterial, ILinkMaterial } from "@/types/Classroom";
+import type { IAttachment } from "@/types/Classroom";
 import { createMaterialSchema } from "@/schemas/material";
 import { uploadMaterial } from "@/actions/upload-material";
 import { z } from "zod";
@@ -13,56 +13,35 @@ import { deleteFileMaterial } from "@/actions/delete-file-material";
 
 type TrackStatus = "original" | "new" | "deleted";
 
-interface TrackedFile extends IFileMaterial {
-  status: TrackStatus;
-}
-interface TrackedLink extends ILinkMaterial {
+export interface TrackedAttachment extends IAttachment {
   status: TrackStatus;
 }
 
 const useEditMaterialDialog = () => {
-  const [trackedFiles, setTrackedFiles] = useState<TrackedFile[]>([]);
-  const [trackedLinks, setTrackedLinks] = useState<TrackedLink[]>([])
-  const [arrayOfLinks, setArrayOfLinks] = useState<ILinkMaterial[]>([]);
+  const [trackedAttachments, setTrackedAttachments] = useState<TrackedAttachment[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
   const materialForm = useForm({
     defaultValues: {
-      files: [],
-      links: [],
+      attachments: [],
     },
     resolver: zodResolver(createMaterialSchema),
   });
 
-  const initializeFiles = (files: IFileMaterial[]) => {
-    const tracked: TrackedFile[] = files.map((file) => ({
-      ...file,
+  const initializeAttachments = (attachments: IAttachment[]) => {
+    const tracked: TrackedAttachment[] = attachments.map((att) => ({
+      ...att,
       status: "original" as TrackStatus,
     }));
-    setTrackedFiles(tracked);
+    setTrackedAttachments(tracked);
   };
-
-  const initializeLinks = (links: ILinkMaterial[]) => {
-    const tracked: TrackedLink[] = links.map((link) => ({
-      ...link,
-      status: "original" as TrackStatus,
-    }));
-    setTrackedLinks(tracked);
-  };
-
 
   useEffect(() => {
-    const nonDeletedFiles = trackedFiles.filter((f) => f.status !== "deleted");
-    materialForm.setValue("files", nonDeletedFiles);
-  }, [trackedFiles]);
+    const nonDeleted = trackedAttachments.filter((f) => f.status !== "deleted");
+    materialForm.setValue("attachments", nonDeleted as IAttachment[]);
+  }, [trackedAttachments]);
 
   const pdfMateriRef = useRef<HTMLInputElement>(null);
-
-
-
-  const getCurrentFiles = () => {
-    return trackedFiles.filter((f) => f.status !== "deleted");
-  };
 
   const handleMaterialForm = async (
     data: z.infer<typeof newMaterialSchema>,
@@ -72,9 +51,14 @@ const useEditMaterialDialog = () => {
   ) => {
     try {
       setIsPending(true);
-      console.log(data)
-      await editMaterial(data, classroomId, materialId);
-      const deletedFiles = trackedFiles.filter((f) => f.status === "deleted");
+      const payload = {
+        ...data,
+        attachments: trackedAttachments.filter((f) => f.status !== "deleted"),
+      };
+      await editMaterial(payload, classroomId, materialId);
+      const deletedFiles = trackedAttachments.filter(
+        (f) => f.status === "deleted" && f.unique_name,
+      );
       if (deletedFiles.length > 0) {
         await deleteMaterialBatch(deletedFiles);
       }
@@ -87,21 +71,20 @@ const useEditMaterialDialog = () => {
     }
   };
 
-
-
   const handleClose = async (setOpen: Dispatch<SetStateAction<string>>) => {
-    const newFiles = trackedFiles.filter((f) => f.status === "new");
+    const newFiles = trackedAttachments.filter(
+      (f) => f.status === "new" && f.type !== "LINK",
+    );
     if (newFiles.length > 0) {
       try {
         for (const file of newFiles) {
-          await deleteFileMaterial(file.unique_file_name);
+          await deleteFileMaterial(file.unique_name);
         }
       } catch {
         console.error("Failed to delete new files");
       }
     }
-    setTrackedFiles([]);
-    setArrayOfLinks([]);
+    setTrackedAttachments([]);
     setIsPending(false);
     setOpen("closed");
   };
@@ -113,13 +96,14 @@ const useEditMaterialDialog = () => {
     try {
       setIsPendingUploadFile(true);
       const res = await uploadMaterial(formData);
-      const newFile: TrackedFile = {
-        file_name: res.data?.file_name || file.name,
-        file_url: res.data?.file_url || "",
-        unique_file_name: res.data?.unique_file_name || "",
+      const newFile: TrackedAttachment = {
+        name: res.data?.file_name || file.name,
+        url: res.data?.file_url || "",
+        unique_name: res.data?.unique_file_name || "",
+        type: "FILE",
         status: "new",
       };
-      setTrackedFiles((prevValue) => [...prevValue, newFile]);
+      setTrackedAttachments((prevValue) => [...prevValue, newFile]);
       toast.success("File berhasil diupload");
     } catch {
       toast.error("File gagal diupload");
@@ -129,8 +113,8 @@ const useEditMaterialDialog = () => {
   };
 
   const handleDeleteFile = async (uniqueFileName: string) => {
-    const file = trackedFiles.find(
-      (f) => f.unique_file_name === uniqueFileName,
+    const file = trackedAttachments.find(
+      (f) => f.unique_name === uniqueFileName,
     );
     if (!file) return;
     if (file.status === "new") {
@@ -139,13 +123,13 @@ const useEditMaterialDialog = () => {
       } catch {
         toast.error("Gagal menghapus file")
       }
-      setTrackedFiles((prevValue) =>
-        prevValue.filter((f) => f.unique_file_name !== uniqueFileName),
+      setTrackedAttachments((prevValue) =>
+        prevValue.filter((f) => f.unique_name !== uniqueFileName),
       );
     } else {
-      setTrackedFiles((prevValue) =>
+      setTrackedAttachments((prevValue) =>
         prevValue.map((f) =>
-          f.unique_file_name === uniqueFileName
+          f.unique_name === uniqueFileName
             ? { ...f, status: "deleted" }
             : f,
         ),
@@ -153,13 +137,9 @@ const useEditMaterialDialog = () => {
     }
   };
 
-  
-
   return {
-    trackedFiles,
-    trackedLinks,
-    arrayOfLinks,
-    setArrayOfLinks,
+    trackedAttachments,
+    setTrackedAttachments,
     isPending,
     pdfMateriRef,
     handleMaterialForm,
@@ -168,9 +148,9 @@ const useEditMaterialDialog = () => {
     handleDeleteFile,
     isPendingUploadFile,
     handleClose,
-    initializeFiles,
-    initializeLinks,
-    getCurrentFiles,
+    initializeAttachments,
+    getCurrentFiles: () =>
+      trackedAttachments.filter((f) => f.status !== "deleted"),
   };
 };
 

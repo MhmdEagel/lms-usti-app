@@ -5,15 +5,11 @@ const RubricSchema = z.object({
   score: z.string({ required_error: "Nilai harus diisi" }),
 });
 
-const FileSchema = z.object({
-  file_name: z.string(),
-  unique_file_name: z.string(),
-  file_url: z.string(),
-});
-
-const LinkSchema = z.object({
-  link_name: z.string(),
-  link_url: z.string(),
+const AttachmentSchema = z.object({
+  name: z.string(),
+  type: z.enum(["FILE", "VIDEO", "LINK"]),
+  url: z.string(),
+  unique_name: z.string(),
 });
 
 export const createAssignmentSchema = z.object({
@@ -30,6 +26,5 @@ export const createAssignmentSchema = z.object({
     .nullable()
     .optional(),
   rubrics: z.array(RubricSchema).optional(),
-  files: z.array(FileSchema).optional(),
-  links: z.array(LinkSchema).optional()
+  attachments: z.array(AttachmentSchema).optional(),
 });

@@ -8,16 +8,16 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { isValidUrl } from "@/lib/utils";
-import type { ILinkMaterial, INewMaterial } from "@/types/Classroom";
+import type { IAttachment, INewMaterial } from "@/types/Classroom";
 
 export default function AddLinkDialog({
   setValue,
-  arrayOfLinks,
-  setArrayOfLinks,
+  arrayOfAttachments,
+  setArrayOfAttachments,
 }: {
   setValue: UseFormSetValue<INewMaterial>;
-  arrayOfLinks: ILinkMaterial[];
-  setArrayOfLinks: Dispatch<SetStateAction<ILinkMaterial[]>>;
+  arrayOfAttachments: IAttachment[];
+  setArrayOfAttachments: Dispatch<SetStateAction<IAttachment[]>>;
 }) {
   const [linkName, setLinkName] = useState("");
   const [linkString, setLinkString] = useState("https://www.");
@@ -27,13 +27,15 @@ export default function AddLinkDialog({
       toast.error("Link tidak valid");
       return;
     }
-    const newLinkMateri: ILinkMaterial = {
-      link_name: linkName,
-      link_url: linkString,
+    const newLinkMateri: IAttachment = {
+      name: linkName,
+      url: linkString,
+      type: "LINK",
+      unique_name: "",
     };
-    const newArrayOfLinks = [...arrayOfLinks, newLinkMateri];
-    setArrayOfLinks(newArrayOfLinks);
-    setValue("links", newArrayOfLinks);
+    const newArrayOfLinks = [...arrayOfAttachments, newLinkMateri];
+    setArrayOfAttachments(newArrayOfLinks);
+    setValue("attachments", newArrayOfLinks);
     setLinkString("https://www.");
     setOpen(false);
   };

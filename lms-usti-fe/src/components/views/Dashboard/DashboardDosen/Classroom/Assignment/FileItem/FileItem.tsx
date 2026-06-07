@@ -2,7 +2,7 @@ import { FileText, X } from "lucide-react";
 import { type Dispatch, type SetStateAction } from "react";
 import type { UseFormSetValue } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import type { IFileMaterial } from "@/types/Classroom";
+import type { IAttachment } from "@/types/Classroom";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { ErrorResponse } from "@/types/Response";
@@ -22,27 +22,27 @@ export default function FileItem({
 }: {
   fileName: string;
   uniqueFileName: string;
-  arrayOfFiles: IFileMaterial[];
-  setArrayOfFiles: Dispatch<React.SetStateAction<IFileMaterial[]>>;
+  arrayOfFiles: IAttachment[];
+  setArrayOfFiles: Dispatch<React.SetStateAction<IAttachment[]>>;
   setValue: UseFormSetValue<z.infer<typeof newMaterialSchema>>;
   setIsPending: Dispatch<SetStateAction<boolean>>;
   setIsPendingUploadFile: Dispatch<SetStateAction<boolean>>;
 }) {
   const handleDelete = async (unique_file_name: string) => {
     const newArray = arrayOfFiles.filter(
-      (item) => item.unique_file_name != unique_file_name,
+      (item) => item.unique_name != unique_file_name,
     );
     const file = arrayOfFiles.find(
-      (item) => item.unique_file_name === unique_file_name,
+      (item) => item.unique_name === unique_file_name,
     );
     try {
       setIsPending(true);
       setIsPendingUploadFile(true);
-      const res = await deleteFileAssignment(file?.unique_file_name!);
+      const res = await deleteFileAssignment(file?.unique_name!);
       console.log(res);
       toast.success("File berhasil dihapus");
       setArrayOfFiles(newArray);
-      setValue("files", newArray);
+      setValue("attachments", newArray);
     } catch (e) {
       const err = e as AxiosError<ErrorResponse>;
       console.log(err.response?.data);

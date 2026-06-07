@@ -1,14 +1,10 @@
 import z from "zod";
 
-const LinkSchema = z.object({
-  link_name: z.string(),
-  link_url: z.string(),
-});
-
-const FileSchema = z.object({
-  file_name: z.string(),
-  file_url: z.string(),
-  unique_file_name: z.string(),
+const AttachmentSchema = z.object({
+  name: z.string(),
+  type: z.enum(["FILE", "VIDEO", "LINK"]),
+  url: z.string(),
+  unique_name: z.string(),
 });
 
 export const createMaterialSchema = z.object({
@@ -23,6 +19,5 @@ export const createMaterialSchema = z.object({
     })
     .nullable()
     .optional(),
-  files: z.array(FileSchema).optional(),
-  links: z.array(LinkSchema).optional(),
+  attachments: z.array(AttachmentSchema).optional(),
 });

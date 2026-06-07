@@ -2,25 +2,25 @@ import { FileText, X } from "lucide-react";
 import type { Dispatch } from "react";
 import type { UseFormSetValue } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import type { ILinkMaterial, INewMaterial } from "@/types/Classroom";
+import type { IAttachment, INewMaterial } from "@/types/Classroom";
 
 export default function LinkItem({
   linkName,
-  arrayOfLinks,
-  setArrayOfLinks,
+  arrayOfAttachments,
+  setArrayOfAttachments,
   setValue,
   index,
 }: {
   linkName: string;
-  arrayOfLinks: ILinkMaterial[];
-  setArrayOfLinks: Dispatch<React.SetStateAction<ILinkMaterial[]>>;
+  arrayOfAttachments: IAttachment[];
+  setArrayOfAttachments: Dispatch<React.SetStateAction<IAttachment[]>>;
   setValue: UseFormSetValue<INewMaterial>;
   index: number;
 }) {
-  const handleDelete = (index: number) => {
-    const newArray = arrayOfLinks.splice(0, index);
-    setArrayOfLinks(newArray);
-    setValue("links", newArray);
+  const handleDelete = (idx: number) => {
+    const newArray = arrayOfAttachments.filter((_, i) => i !== idx);
+    setArrayOfAttachments(newArray);
+    setValue("attachments", newArray);
   };
   return (
     <div className="p-4 border rounded-lg flex">

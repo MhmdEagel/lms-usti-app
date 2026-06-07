@@ -15,10 +15,10 @@ import { Input } from "@/components/ui/input";
 import AddLinkDialog from "./AddLinkDialog/AddLinkDialog";
 import LinkItem from "./LinkItem/LinkItem";
 import FileItem from "./FileItem/FileItem";
-import useEditMaterialDialog from "./useEditMaterialDialog";
+import useEditMaterialDialog, { type TrackedAttachment } from "./useEditMaterialDialog";
 import { Spinner } from "@/components/ui/spinner";
-import { IMaterial } from "@/types/Classroom";
-import { Dispatch, SetStateAction, useEffect } from "react";
+import type { IAttachment, IMaterial } from "@/types/Classroom";
+import { Dispatch, SetStateAction, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 
@@ -35,10 +35,8 @@ const ContentEditor = dynamic(() => import("@/components/ui/content-editor"), {
 
 export default function EditMaterialDialog(props: PropTypes) {
   const {
-    trackedFiles,
-    trackedLinks,
-    arrayOfLinks,
-    setArrayOfLinks,
+    trackedAttachments,
+    setTrackedAttachments,
     isPending,
     isPendingUploadFile,
     pdfMateriRef,
@@ -47,20 +45,28 @@ export default function EditMaterialDialog(props: PropTypes) {
     handleUploadFile,
     handleDeleteFile,
     handleClose,
-    initializeFiles,
+    initializeAttachments,
   } = useEditMaterialDialog();
   const { open, setOpen, material, classroomId } = props;
-  const defaultMaterialFiles = material.files;
-  const defaultMaterialLinks = material.links;
+
+  const setAttachments: Dispatch<SetStateAction<IAttachment[]>> = useCallback(
+    (value) => {
+      setTrackedAttachments((prev) => {
+        if (typeof value === "function") {
+          return value(prev) as TrackedAttachment[];
+        }
+        return value as TrackedAttachment[];
+      });
+    },
+    [setTrackedAttachments],
+  );
+
   useEffect(() => {
-    if (defaultMaterialFiles && defaultMaterialFiles.length > 0) {
-      initializeFiles(defaultMaterialFiles);
-    }
-    if (defaultMaterialLinks && defaultMaterialLinks.length > 0) {
-      setArrayOfLinks(defaultMaterialLinks);
+    if (material.attachments && material.attachments.length > 0) {
+      initializeAttachments(material.attachments);
     }
   }, [material]);
-  const currentFiles = trackedFiles.filter((f) => f.status !== "deleted");
+  const currentFiles = trackedAttachments.filter((f) => f.status !== "deleted" && f.type !== "LINK");
   return (
     <>
       <div
@@ -156,7 +162,7 @@ export default function EditMaterialDialog(props: PropTypes) {
                 />
                 <FormField
                   control={materialForm.control}
-                  name="files"
+                  name="attachments"
                   render={({ field: { value, onChange, ...fieldProps } }) => (
                     <FormItem className="hidden">
                       <FormControl>
@@ -206,9 +212,9 @@ export default function EditMaterialDialog(props: PropTypes) {
                         {currentFiles.map((item) => {
                           return (
                             <FileItem
-                              key={item.unique_file_name}
-                              fileName={item.file_name}
-                              uniqueFileName={item.unique_file_name}
+                              key={item.unique_name}
+                              fileName={item.name}
+                              uniqueFileName={item.unique_name}
                               fileStatus={item.status}
                               onDelete={handleDeleteFile}
                               isPending={isPending || isPendingUploadFile}
@@ -219,20 +225,20 @@ export default function EditMaterialDialog(props: PropTypes) {
                     </CardContent>
                   </Card>
                 ) : null}
-                {arrayOfLinks.length > 0 ? (
+                {trackedAttachments.filter((a) => a.type === "LINK").length > 0 ? (
                   <Card className="mb-4">
                     <CardHeader>
                       <div>Link</div>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-col gap-2 ">
-                        {arrayOfLinks.map((item) => (
+                        {trackedAttachments.filter((a) => a.type === "LINK").map((item, index) => (
                           <LinkItem
-                            key={item.id}
+                            key={item.id || index}
                             id={item.id}
-                            arrayOfLinks={arrayOfLinks}
-                            setArrayOfLinks={setArrayOfLinks}
-                            linkName={item.link_name}
+                            trackedAttachments={trackedAttachments}
+                            setTrackedAttachments={setAttachments}
+                            linkName={item.name}
                             setValue={materialForm.setValue}
                           />
                         ))}
@@ -252,8 +258,8 @@ export default function EditMaterialDialog(props: PropTypes) {
                     Upload
                   </div>
                   <AddLinkDialog
-                    arrayOfLinks={arrayOfLinks}
-                    setArrayOfLinks={setArrayOfLinks}
+                    trackedAttachments={trackedAttachments}
+                    setTrackedAttachments={setAttachments}
                     setValue={materialForm.setValue}
                   />
                 </div>
