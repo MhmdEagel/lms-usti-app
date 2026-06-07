@@ -111,10 +111,12 @@ export default async function MaterialDetail(props: PropTypes) {
             <div className="text-base md:text-xl font-bold">LAMPIRAN</div>
           </CardHeader>
           <CardContent>
-            {data.files && data.files.length > 0 ? (
+            {data.attachments && data.attachments.length > 0 ? (
               <div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  {data.files.map((item) => (
+                  {data.attachments
+                    .filter((a) => a.type === "FILE" || a.type === "VIDEO")
+                    .map((item) => (
                     <FileMaterialItem key={item.id} fileMateri={item} />
                   ))}
                 </div>
@@ -133,10 +135,12 @@ export default async function MaterialDetail(props: PropTypes) {
             <div className="text-base md:text-xl font-bold">LINK</div>
           </CardHeader>
           <CardContent>
-            {data.links && data.links.length > 0 ? (
+            {data.attachments && data.attachments.filter((a) => a.type === "LINK").length > 0 ? (
               <div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  {data.links.map((item) => (
+                  {data.attachments
+                    .filter((a) => a.type === "LINK")
+                    .map((item) => (
                     <LinkMaterialItem key={item.id} linkMateri={item} />
                   ))}
                 </div>

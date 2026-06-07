@@ -1,75 +1,64 @@
-# Issue: Perbaikan Frontend Types & Service Handlers
+# Issue: Refactor Material Components — Sync dengan Backend Attachment Model
 
 ## Goal
 
-Perbaiki TypeScript types dan service handlers agar sync dengan backend API setelah refactor attachment model dan announcement fixes.
+Refactor komponen material (create, edit, display) pada dashboard dosen agar sync dengan backend attachment model yang sudah di-refactor dari `files` + `links` terpisah menjadi unified `attachments` array.
 
-**Fokus:** Frontend only — types, services, dan server actions. Tidak ada perubahan di backend.
+**Fokus:** Frontend only — components, hooks, schemas, actions. Backend diabaikan.
 
 **File yang diubah:**
-- `lms-usti-fe/src/types/Classroom.d.ts`
-- `lms-usti-fe/src/types/Response.d.ts`
-- `lms-usti-fe/src/services/material.service.ts`
-- `lms-usti-fe/src/services/assignment.service.ts`
-- `lms-usti-fe/src/services/media.service.ts`
+- `src/schemas/material.ts` — schema validasi
+- `src/schemas/schemas.ts` — `newMaterialSchema`
+- `src/actions/new-material.ts` — create action
+- `src/actions/edit-material.ts` — update action
+- `src/actions/delete-material-batch.ts` — batch delete action
+- `src/actions/delete-file-material.ts` — single delete action
+- `src/components/views/.../CreateMaterialDialog/useCreateMaterialDialog.tsx` — hook create
+- `src/components/views/.../CreateMaterialDialog/CreateMaterialDialog.tsx` — form create
+- `src/components/views/.../CreateMaterialDialog/FileItem/FileItem.tsx` — file item create
+- `src/components/views/.../CreateMaterialDialog/LinkItem/LinkItem.tsx` — link item create
+- `src/components/views/.../CreateMaterialDialog/AddLinkDialog/AddLinkDialog.tsx` — add link create
+- `src/components/views/.../EditMaterialDialog/useEditMaterialDialog.tsx` — hook edit
+- `src/components/views/.../EditMaterialDialog/EditMaterialDialog.tsx` — form edit
+- `src/components/views/.../EditMaterialDialog/FileItem/FileItem.tsx` — file item edit
+- `src/components/views/.../EditMaterialDialog/LinkItem/LinkItem.tsx` — link item edit
+- `src/components/views/.../EditMaterialDialog/AddLinkDialog/AddLinkDialog.tsx` — add link edit
+- `src/components/common/MaterialDetail/MaterialDetail.tsx` — detail display
+- `src/components/common/MaterialDetail/FileMaterialItem/FileMaterialItem.tsx` — file card
+- `src/components/common/MaterialDetail/LinkMaterialItem/LinkMaterialItem.tsx` — link card
+- `src/components/views/.../Material/Material.tsx` — material list
+
+**Types yang sudah diupdate (dari issue sebelumnya):**
+- `src/types/Classroom.d.ts` — `IMaterial`, `INewMaterial`, `IUpdateMaterial` sudah pakai `attachments: IAttachment[]`
+- `src/types/Classroom.d.ts` — `IFileMaterial` dan `ILinkMaterial` sudah dihapus, `IAttachment` sudah ditambah
 
 ---
 
-## Bug List
+## Perubahan Backend (Referensi)
 
-| # | Severity | Lokasi | Deskripsi |
-|---|----------|--------|-----------|
-| 1 | HIGH | `Classroom.d.ts` | Material types masih pakai model lama `files` + `links`, backend sudah pakai unified `attachments` |
-| 2 | HIGH | `Classroom.d.ts` | Assignment types tidak ada field `attachments` |
-| 3 | HIGH | `material.service.ts` | Create/update tidak transform ke format `attachments` backend |
-| 4 | HIGH | `assignment.service.ts` | Create/update tidak kirim `attachments` |
-| 5 | MEDIUM | `Classroom.d.ts` | `IRubrics.score` adalah `string`, backend expect `int` |
-| 6 | LOW | `Response.d.ts` | `meta.status` adalah `string`, backend kirim `number` |
-| 7 | LOW | `Classroom.d.ts` | `IAnnouncement` tidak ada field `created_at` |
-| 8 | LOW | `media.service.ts` | Missing `deleteBatch` untuk assignments |
-
----
-
-## Backend Reference (untuk sinkronisasi)
-
-### AttachmentRequest (untuk kirim ke backend)
-```json
-{
-  "name": "string (required)",
-  "type": "FILE | VIDEO | LINK (required)",
-  "url": "string (required)",
-  "unique_name": "string (required untuk FILE/VIDEO)"
-}
+### Lama (frontend saat ini)
+```
+IMaterial.files: IFileMaterial[]
+IMaterial.links: ILinkMaterial[]
+INewMaterial.files: IFileMaterial[]
+INewMaterial.links: ILinkMaterial[]
 ```
 
-### AttachmentResponse (dari backend)
+### Baru (backend setelah refactor)
+```
+IMaterial.attachments: IAttachment[]
+INewMaterial.attachments: IAttachment[]
+IUpdateMaterial.attachments: IAttachment[]
+```
+
+### Format IAttachment
 ```json
 {
-  "id": "string",
+  "id": "string (optional)",
   "name": "string",
   "type": "FILE | VIDEO | LINK",
   "url": "string",
-  "unique_name": "string"
-}
-```
-
-### MaterialRequest
-```json
-{
-  "title": "string (required)",
-  "description": "string",
-  "attachments": ["AttachmentRequest"]
-}
-```
-
-### AssignmentRequest
-```json
-{
-  "title": "string (required)",
-  "deadline": "time (required)",
-  "instruction": "string",
-  "rubrics": [{"name": "string", "score": 0}],
-  "attachments": ["AttachmentRequest"]
+  "unique_name": "string (wajib untuk FILE/VIDEO)"
 }
 ```
 
@@ -77,80 +66,124 @@ Perbaiki TypeScript types dan service handlers agar sync dengan backend API sete
 
 ## Tahapan
 
-### Tahap 1 — Fix types di `Classroom.d.ts`
+### Tahap 1 — Update Schemas
 
-**Apa:** Update semua TypeScript interface agar sync dengan backend response/request.
+**Apa:** Update Zod schemas agar pakai field `attachments` bukan `files` + `links`.
 
 **Cara:**
-- **Hapus** interface `ILinkMaterial` dan `IFileMaterial`
-- **Tambah** interface baru `IAttachment`:
-  ```
-  id?: string
-  name: string
-  type: "FILE" | "VIDEO" | "LINK"
-  url: string
-  unique_name: string
-  ```
-- **Update `IMaterial`**: Ganti `files` + `links` jadi `attachments: IAttachment[]`
-- **Update `INewMaterial`**: Ganti `files` + `links` jadi `attachments: IAttachment[]`
-- **Update `IUpdateMaterial`**: Ganti `files` + `links` jadi `attachments: IAttachment[]`
-- **Update `IAssignment`**: Tambah field `attachments: IAttachment[]`
-- **Update `IUpdateAssignment`**: Tambah field `attachments: IAttachment[]`
-- **Update `IRubrics`**: Ganti `score: string` jadi `score: number`
-- **Update `IAnnouncement`**: Tambah field `created_at: string`
-- **Update exports**: Hapus `IFileMaterial`, `ILinkMaterial`. Tambah `IAttachment`.
+- **`schemas/material.ts`**: Hapus `FileSchema` dan `LinkSchema`. Ganti `files` dan `links` jadi `attachments: z.array(AttachmentSchema).optional()` di `createMaterialSchema`
+- **`schemas/schemas.ts`**: Hapus `FileSchema` dan `LinkSchema`. Ganti field `files` dan `links` di `newMaterialSchema` jadi `attachments`
+- Tambah `AttachmentSchema` baru: `{ name: z.string(), type: z.enum(["FILE", "VIDEO", "LINK"]), url: z.string(), unique_name: z.string() }`
 
 **Checkpoint:** `npx tsc --noEmit`
 
 ---
 
-### Tahap 2 — Fix types di `Response.d.ts`
+### Tahap 2 — Update Server Actions
 
-**Apa:** `meta.status` harus `number` (backend kirim integer, bukan string).
+**Apa:** Update actions agar pakai type `IAttachment` bukan `IFileMaterial`.
 
 **Cara:**
-- Ganti `status: string` jadi `status: number` di `ErrorResponse` dan `APIResponse`
+- **`delete-material-batch.ts`**: Ganti parameter `files: IFileMaterial[]` jadi `attachments: IAttachment[]`. Update import.
+- **`delete-file-material.ts`**: Tidak perlu perubahan (sudah pakai string parameter).
+- **`new-material.ts`**: Cek type `INewMaterial` sudah match (sudah diupdate di issue sebelumnya).
+- **`edit-material.ts`**: Cek type `IUpdateMaterial` sudah match.
 
 **Checkpoint:** `npx tsc --noEmit`
 
 ---
 
-### Tahap 3 — Update `material.service.ts`
+### Tahap 3 — Refactor Create Material Hook
 
-**Apa:** Service harus transform `IFileMaterial[]` + `ILinkMaterial[]` ke format `attachments` sebelum kirim ke backend.
+**Apa:** `useCreateMaterialDialog` harus manage satu array `attachments` bukan dua array `files` + `links`.
 
 **Cara:**
-- Import `IAttachment` dari types
-- **`create` method**: Terima payload dengan format baru (`attachments: IAttachment[]`). Tidak perlu transform lagi karena sudah match.
-- **`update` method**: Sama — terima payload dengan format baru.
-- **Jika ada code lama yang masih transform files/links** di server actions, hapus dan ganti dengan langsung pakai `attachments`.
+- Ganti `arrayOfFiles: IFileMaterial[]` dan `arrayOfLinks: ILinkMaterial[]` jadi satu `arrayOfAttachments: IAttachment[]`
+- **`handleUploadFile`**: Setelah upload, buat `IAttachment` object dengan `type: "FILE"` dan tambah ke `arrayOfAttachments`
+- **`handleClose`**: Filter `arrayOfAttachments` yang `type === "FILE"` untuk batch delete (file yang perlu dihapus dari storage)
+- **`handleMaterialForm`**: Kirim `arrayOfAttachments` ke action
+- **Default form values**: Ganti `files: [], links: []` jadi `attachments: []`
+- **`useEffect`**: Sync `arrayOfAttachments` ke form value `attachments`
 
 **Checkpoint:** `npx tsc --noEmit`
 
 ---
 
-### Tahap 4 — Update `assignment.service.ts`
+### Tahap 4 — Refactor Create Material Dialog
 
-**Apa:** Assignment create/update harus sertakan `attachments` di payload.
+**Apa:** Update `CreateMaterialDialog.tsx` dan sub-components untuk pakai `attachments`.
 
 **Cara:**
-- **`create` method**: Pastikan `IAssignment` sudah punya field `attachments`. Kirim ke backend.
-- **`update` method**: Pastikan `IUpdateAssignment` sudah punya field `attachments`. Kirim ke backend.
-- Tidak perlu perubahan logic, cukup pastikan types match.
+- **`CreateMaterialDialog.tsx`**:
+  - Ganti `arrayOfFiles` / `arrayOfLinks` jadi `arrayOfAttachments`
+  - Render file items: filter `arrayOfAttachments` where `type === "FILE"`
+  - Render link items: filter `arrayOfAttachments` where `type === "LINK"`
+- **`FileItem.tsx`**: Ganti type `IFileMaterial` jadi `IAttachment`. Update props (field names: `file_name` → `name`, `unique_file_name` → `unique_name`, `file_url` → `url`). Update `handleDelete` untuk filter berdasarkan `unique_name`.
+- **`LinkItem.tsx`**: Ganti type `ILinkMaterial` jadi `IAttachment`. Update props (field names: `link_name` → `name`, `link_url` → `url`). Update `handleDelete` untuk filter berdasarkan index/name.
+- **`AddLinkDialog.tsx`**: Ganti type `ILinkMaterial` jadi `IAttachment`. Buat `IAttachment` object dengan `type: "LINK"` saat add link. Update `setValue("links", ...)` jadi `setValue("attachments", ...)`.
 
 **Checkpoint:** `npx tsc --noEmit`
 
 ---
 
-### Tahap 5 — Tambah `deleteBatch` untuk assignments di `media.service.ts`
+### Tahap 5 — Refactor Edit Material Hook
 
-**Apa:** `media.service.ts` belum punya batch delete untuk assignment files.
+**Apa:** `useEditMaterialDialog` harus manage satu array `attachments` dengan tracking status.
 
 **Cara:**
-- Tambah method `deleteAssignmentBatch` yang POST ke `/media/assignments/delete-batch`
-- Payload format sama dengan `deleteBatch` materials: `{ files: IFileMaterial[] }`
+- Ganti `TrackedFile` (extends `IFileMaterial`) jadi `TrackedAttachment` (extends `IAttachment`)
+- Hapus `TrackedLink` — sudah tidak perlu (gabung ke `TrackedAttachment`)
+- Ganti `trackedFiles` dan `trackedLinks` jadi satu `trackedAttachments: TrackedAttachment[]`
+- **`initializeFiles`**: Ganti jadi `initializeAttachments(attachments: IAttachment[])` — set semua status ke `"original"`
+- **`handleUploadFile`**: Buat `TrackedAttachment` dengan `type: "FILE"` dan `status: "new"`
+- **`handleDeleteFile`**: Update untuk cari berdasarkan `unique_name` di `trackedAttachments`
+- **`handleClose`**: Filter file yang `status === "new"` untuk cleanup
+- **`handleMaterialForm`**: Kirim attachments yang `status !== "deleted"` ke action, lalu batch delete yang `status === "deleted"`
 
 **Checkpoint:** `npx tsc --noEmit`
+
+---
+
+### Tahap 6 — Refactor Edit Material Dialog
+
+**Apa:** Update `EditMaterialDialog.tsx` dan sub-components untuk pakai `attachments`.
+
+**Cara:**
+- **`EditMaterialDialog.tsx`**:
+  - Ganti `material.files` dan `material.links` jadi filter `material.attachments` by type
+  - Panggil `initializeAttachments(filteredAttachments)` saat mount
+- **`FileItem.tsx` (edit)**: Update props dari `IFileMaterial` ke `IAttachment`. Field names: `file_name` → `name`, `unique_file_name` → `unique_name`.
+- **`LinkItem.tsx` (edit)**: Update props dari `ILinkMaterial` ke `IAttachment`. Field names: `link_name` → `name`, `link_url` → `url`.
+- **`AddLinkDialog.tsx` (edit)**: Buat `IAttachment` dengan `type: "LINK"` saat add. Update `setValue` ke field `attachments`.
+
+**Checkpoint:** `npx tsc --noEmit`
+
+---
+
+### Tahap 7 — Refactor Material Detail Display
+
+**Apa:** `MaterialDetail.tsx` dan sub-components harus display attachments berdasarkan type.
+
+**Cara:**
+- **`MaterialDetail.tsx`**:
+  - Ganti `data.files` jadi `data.attachments?.filter(a => a.type === "FILE")`
+  - Ganti `data.links` jadi `data.attachments?.filter(a => a.type === "LINK")`
+- **`FileMaterialItem.tsx`**: Ganti type `IFileMaterial` ke `IAttachment`. Update field names: `file_name` → `name`, `file_url` → `url`.
+- **`LinkMaterialItem.tsx`**: Ganti type `ILinkMaterial` ke `IAttachment`. Update field names: `link_name` → `name`, `link_url` → `url`.
+
+**Checkpoint:** `npx tsc --noEmit`
+
+---
+
+### Tahap 8 — Refactor Material List
+
+**Apa:** `Material.tsx` (material list server component) sudah benar — hanya display `title` dan `created_at`. Tidak perlu perubahan signifikan.
+
+**Cara:**
+- Cek type `IMaterial` sudah match (sudah diupdate di issue sebelumnya)
+- Tidak ada field `files`/`links` yang diakses di list view
+
+**Checkpoint:** `npm run build`
 
 ---
 
@@ -158,11 +191,22 @@ Perbaiki TypeScript types dan service handlers agar sync dengan backend API sete
 
 | File | Tahap | Aksi |
 |------|-------|------|
-| `src/types/Classroom.d.ts` | 1 | Hapus IFileMaterial/ILinkMaterial, tambah IAttachment, update IMaterial/INewMaterial/IUpdateMaterial/IAssignment/IUpdateAssignment/IRubrics/IAnnouncement |
-| `src/types/Response.d.ts` | 2 | Ganti status: string → number |
-| `src/services/material.service.ts` | 3 | Update create/update payload types |
-| `src/services/assignment.service.ts` | 4 | Update create/update payload types |
-| `src/services/media.service.ts` | 5 | Tambah deleteAssignmentBatch |
+| `src/schemas/material.ts` | 1 | Ganti files/links jadi attachments |
+| `src/schemas/schemas.ts` | 1 | Ganti files/links jadi attachments |
+| `src/actions/delete-material-batch.ts` | 2 | Ganti IFileMaterial ke IAttachment |
+| `src/components/.../CreateMaterialDialog/useCreateMaterialDialog.tsx` | 3 | Refactor ke single attachments array |
+| `src/components/.../CreateMaterialDialog/CreateMaterialDialog.tsx` | 4 | Update render logic |
+| `src/components/.../CreateMaterialDialog/FileItem/FileItem.tsx` | 4 | Ganti IFileMaterial ke IAttachment |
+| `src/components/.../CreateMaterialDialog/LinkItem/LinkItem.tsx` | 4 | Ganti ILinkMaterial ke IAttachment |
+| `src/components/.../CreateMaterialDialog/AddLinkDialog/AddLinkDialog.tsx` | 4 | Buat IAttachment dengan type LINK |
+| `src/components/.../EditMaterialDialog/useEditMaterialDialog.tsx` | 5 | Refactor ke single attachments array |
+| `src/components/.../EditMaterialDialog/EditMaterialDialog.tsx` | 6 | Update render logic |
+| `src/components/.../EditMaterialDialog/FileItem/FileItem.tsx` | 6 | Ganti IFileMaterial ke IAttachment |
+| `src/components/.../EditMaterialDialog/LinkItem/LinkItem.tsx` | 6 | Ganti ILinkMaterial ke IAttachment |
+| `src/components/.../EditMaterialDialog/AddLinkDialog/AddLinkDialog.tsx` | 6 | Buat IAttachment dengan type LINK |
+| `src/components/common/MaterialDetail/MaterialDetail.tsx` | 7 | Filter attachments by type |
+| `src/components/common/MaterialDetail/FileMaterialItem/FileMaterialItem.tsx` | 7 | Ganti IFileMaterial ke IAttachment |
+| `src/components/common/MaterialDetail/LinkMaterialItem/LinkMaterialItem.tsx` | 7 | Ganti ILinkMaterial ke IAttachment |
 
 ---
 
@@ -172,8 +216,12 @@ Setelah semua tahap selesai:
 1. Run `npx tsc --noEmit` — pasti compile tanpa type error
 2. Run `npm run build` — pasti build sukses
 3. Test manual:
-   - Create material dengan attachment FILE → pasti tersimpan
-   - Create material dengan attachment LINK → pasti tersimpan
-   - Create assignment dengan rubric + attachment → pasti tersimpan
-   - Delete material → pasti berhasil
-   - Delete assignment → pasti berhasil
+   - Create material tanpa attachment → berhasil
+   - Create material dengan upload file PDF → file tersimpan, muncul di detail
+   - Create material dengan tambah link → link tersimpan, muncul di detail
+   - Create material dengan file + link campuran → keduanya muncul
+   - Edit material → bisa ganti title/description
+   - Edit material → bisa tambah/hapus file
+   - Edit material → bisa tambah/hapus link
+   - Delete material → berhasil dan redirect ke list
+   - Lihat material detail → file dan link muncul dengan benar
