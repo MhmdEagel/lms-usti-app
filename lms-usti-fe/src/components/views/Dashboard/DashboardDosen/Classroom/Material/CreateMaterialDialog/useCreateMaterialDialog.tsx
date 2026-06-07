@@ -36,7 +36,11 @@ const useCreateMaterialDialog = () => {
     classroomId: string,
   ) => {
     setIsPending(true);
-    const res = await newMaterial(data, classroomId);
+    const payload = {
+      ...data,
+      attachments: [...arrayOfFiles, ...arrayOfLinks],
+    };
+    const res = await newMaterial(payload, classroomId);
     if (!res.success && res.error) {
       toast.error(res.error);
       setIsPending(false);
