@@ -19,11 +19,12 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import ContentEditor from "@/components/ui/content-editor";
-import AddLinkDialog from "./AddLinkDialog/AddLinkDialog";
-import LinkItem from "./LinkItem/LinkItem";
-import FileItem from "./FileItem/FileItem";
+import AddLinkDialog from "@/components/common/AddLinkDialog/AddLinkDialog";
+import FileItem from "@/components/common/FileItem/FileItem";
+import LinkItem from "@/components/common/LinkItem/LinkItem";
 import useCreateMaterialDialog from "./useCreateMaterialDialog";
 import { Spinner } from "@/components/ui/spinner";
+import { deleteFileMaterial } from "@/actions/delete-file-material";
 export default function CreateMaterialDialog({
   classroomId,
 }: {
@@ -199,16 +200,27 @@ export default function CreateMaterialDialog({
                     <CardContent>
                       <div className="flex flex-col gap-2">
                         {arrayOfAttachments.filter(a => a.type === "FILE" || a.type === "VIDEO").map((item) => {
+                          const handleDeleteFile = async () => {
+                            const newArray = arrayOfAttachments.filter(
+                              (a) => a.unique_name !== item.unique_name,
+                            );
+                            setIsPending(true);
+                            setIsPendingUploadFile(true);
+                            try {
+                              await deleteFileMaterial(item.unique_name);
+                              setArrayOfAttachments(newArray);
+                              materialForm.setValue("attachments", newArray);
+                            } finally {
+                              setIsPendingUploadFile(false);
+                              setIsPending(false);
+                            }
+                          };
                           return (
                             <FileItem
                               key={item.unique_name}
-                              arrayOfAttachments={arrayOfAttachments}
-                              setValue={materialForm.setValue}
-                              setArrayOfAttachments={setArrayOfAttachments}
                               fileName={item.name}
-                              uniqueFileName={item.unique_name}
-                              setIsPending={setIsPending}
-                              setIsPendingUploadFile={setIsPendingUploadFile}
+                              onDelete={handleDeleteFile}
+                              isPending={isPending || isPendingUploadFile}
                             />
                           );
                         })}
@@ -223,16 +235,20 @@ export default function CreateMaterialDialog({
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-col gap-2 ">
-                        {linkAttachments.filter(a => a.type === "LINK").map((item, index) => (
-                          <LinkItem
-                            key={index}
-                            index={index}
-                            arrayOfAttachments={linkAttachments}
-                            setArrayOfAttachments={setLinkAttachments}
-                            linkName={item.name}
-                            setValue={materialForm.setValue}
-                          />
-                        ))}
+                        {linkAttachments.filter(a => a.type === "LINK").map((item, index) => {
+                          const handleDeleteLink = () => {
+                            const newArray = linkAttachments.filter((_, i) => i !== index);
+                            setLinkAttachments(newArray);
+                            materialForm.setValue("attachments", newArray);
+                          };
+                          return (
+                            <LinkItem
+                              key={index}
+                              linkName={item.name}
+                              onDelete={handleDeleteLink}
+                            />
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
@@ -249,8 +265,8 @@ export default function CreateMaterialDialog({
                     Upload
                   </div>
                   <AddLinkDialog
-                    arrayOfAttachments={linkAttachments}
-                    setArrayOfAttachments={setLinkAttachments}
+                    attachments={linkAttachments}
+                    setAttachments={setLinkAttachments}
                     setValue={materialForm.setValue}
                   />
                 </div>

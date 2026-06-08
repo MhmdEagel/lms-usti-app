@@ -12,15 +12,16 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import AddLinkDialog from "./AddLinkDialog/AddLinkDialog";
-import LinkItem from "./LinkItem/LinkItem";
-import FileItem from "./FileItem/FileItem";
+import AddLinkDialog from "@/components/common/AddLinkDialog/AddLinkDialog";
+import FileItem from "@/components/common/FileItem/FileItem";
+import LinkItem from "@/components/common/LinkItem/LinkItem";
 import useEditMaterialDialog, { type TrackedAttachment } from "./useEditMaterialDialog";
 import { Spinner } from "@/components/ui/spinner";
 import type { IAttachment, IMaterial } from "@/types/Classroom";
 import { Dispatch, SetStateAction, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
+import { deleteFileMaterial } from "@/actions/delete-file-material";
 
 interface PropTypes {
   open: string;
@@ -43,7 +44,6 @@ export default function EditMaterialDialog(props: PropTypes) {
     handleMaterialForm,
     materialForm,
     handleUploadFile,
-    handleDeleteFile,
     handleClose,
     initializeAttachments,
   } = useEditMaterialDialog();
@@ -210,13 +210,31 @@ export default function EditMaterialDialog(props: PropTypes) {
                     <CardContent>
                       <div className="flex flex-col gap-2">
                         {currentFiles.map((item) => {
+                          const handleDeleteFileItem = async () => {
+                            if (item.status === "new") {
+                              try {
+                                await deleteFileMaterial(item.unique_name);
+                              } catch {
+                                throw new Error("Gagal menghapus file");
+                              }
+                              setTrackedAttachments((prev) =>
+                                prev.filter((f) => f.unique_name !== item.unique_name),
+                              );
+                            } else {
+                              setTrackedAttachments((prev) =>
+                                prev.map((f) =>
+                                  f.unique_name === item.unique_name
+                                    ? { ...f, status: "deleted" as const }
+                                    : f,
+                                ),
+                              );
+                            }
+                          };
                           return (
                             <FileItem
                               key={item.unique_name}
                               fileName={item.name}
-                              uniqueFileName={item.unique_name}
-                              fileStatus={item.status}
-                              onDelete={handleDeleteFile}
+                              onDelete={handleDeleteFileItem}
                               isPending={isPending || isPendingUploadFile}
                             />
                           );
@@ -232,16 +250,22 @@ export default function EditMaterialDialog(props: PropTypes) {
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-col gap-2 ">
-                        {trackedAttachments.filter((a) => a.type === "LINK").map((item, index) => (
-                          <LinkItem
-                            key={item.id || index}
-                            id={item.id}
-                            trackedAttachments={trackedAttachments}
-                            setTrackedAttachments={setAttachments}
-                            linkName={item.name}
-                            setValue={materialForm.setValue}
-                          />
-                        ))}
+                        {trackedAttachments.filter((a) => a.type === "LINK").map((item, index) => {
+                          const handleDeleteLink = () => {
+                            const newArray = trackedAttachments.filter(
+                              (a) => a.id !== item.id,
+                            );
+                            setTrackedAttachments(newArray);
+                            materialForm.setValue("attachments", newArray);
+                          };
+                          return (
+                            <LinkItem
+                              key={item.id || index}
+                              linkName={item.name}
+                              onDelete={handleDeleteLink}
+                            />
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
@@ -258,8 +282,8 @@ export default function EditMaterialDialog(props: PropTypes) {
                     Upload
                   </div>
                   <AddLinkDialog
-                    trackedAttachments={trackedAttachments}
-                    setTrackedAttachments={setAttachments}
+                    attachments={trackedAttachments}
+                    setAttachments={setAttachments}
                     setValue={materialForm.setValue}
                   />
                 </div>

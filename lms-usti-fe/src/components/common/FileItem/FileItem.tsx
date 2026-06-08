@@ -1,28 +1,23 @@
+"use client";
+
 import { FileText, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-type FileStatus = "original" | "new" | "deleted";
-
 interface FileItemProps {
   fileName: string;
-  uniqueFileName: string;
-  fileUrl?: string;
-  fileStatus?: FileStatus;
-  onDelete: (uniqueFileName: string) => Promise<void>;
+  onDelete: () => Promise<void>;
   isPending?: boolean;
 }
 
 export default function FileItem({
   fileName,
-  uniqueFileName,
-  fileStatus = "original",
   onDelete,
   isPending = false,
 }: FileItemProps) {
   const handleDelete = async () => {
     try {
-      await onDelete(uniqueFileName);
+      await onDelete();
       toast.success("File berhasil dihapus");
     } catch {
       toast.error("File gagal dihapus");
