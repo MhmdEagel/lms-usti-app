@@ -24,9 +24,10 @@ import useCreateAssignmentDialog from "./useCreateAssignmentDialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
-import FileItem from "../FileItem";
-import LinkItem from "../LinkItem";
-import AddLinkDialog from "../AddLinkDialog";
+import FileItem from "@/components/common/FileItem/FileItem";
+import LinkItem from "@/components/common/LinkItem/LinkItem";
+import AddLinkDialog from "@/components/common/AddLinkDialog/AddLinkDialog";
+import { deleteFileAssignment } from "@/actions/delete-file-assignment";
 import { DatePickerTime } from "@/components/ui/calendar-time-picker";
 
 export default function CreateAssignmentDialog({
@@ -237,16 +238,27 @@ export default function CreateAssignmentDialog({
                     <CardContent>
                       <div className="flex flex-col gap-2">
                         {arrayOfFiles.map((item) => {
+                          const handleDeleteFile = async () => {
+                            setIsPending(true);
+                            setIsPendingUploadFile(true);
+                            try {
+                              await deleteFileAssignment(item.unique_name);
+                              const newArray = arrayOfFiles.filter(
+                                (a) => a.unique_name !== item.unique_name,
+                              );
+                              setArrayOfFiles(newArray);
+                              assignmentForm.setValue("attachments", newArray);
+                            } finally {
+                              setIsPendingUploadFile(false);
+                              setIsPending(false);
+                            }
+                          };
                           return (
                             <FileItem
                               key={item.unique_name}
-                              arrayOfFiles={arrayOfFiles}
-                              setValue={assignmentForm.setValue}
-                              setArrayOfFiles={setArrayOfFiles}
                               fileName={item.name}
-                              uniqueFileName={item.unique_name}
-                              setIsPending={setIsPending}
-                              setIsPendingUploadFile={setIsPendingUploadFile}
+                              onDelete={handleDeleteFile}
+                              isPending={isPending || isPendingUploadFile}
                             />
                           );
                         })}
@@ -261,16 +273,20 @@ export default function CreateAssignmentDialog({
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-col gap-2 ">
-                        {arrayOfLinks.map((item, index) => (
-                          <LinkItem
-                            key={index}
-                            index={index}
-                            arrayOfLinks={arrayOfLinks}
-                            setArrayOfLinks={setArrayOfLinks}
-                            linkName={item.name}
-                            setValue={assignmentForm.setValue}
-                          />
-                        ))}
+                        {arrayOfLinks.map((item, index) => {
+                          const handleDeleteLink = () => {
+                            const newArray = arrayOfLinks.filter((_, i) => i !== index);
+                            setArrayOfLinks(newArray);
+                            assignmentForm.setValue("attachments", newArray);
+                          };
+                          return (
+                            <LinkItem
+                              key={index}
+                              linkName={item.name}
+                              onDelete={handleDeleteLink}
+                            />
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
@@ -287,8 +303,8 @@ export default function CreateAssignmentDialog({
                     Upload
                   </div>
                   <AddLinkDialog
-                    arrayOfLinks={arrayOfLinks}
-                    setArrayOfLinks={setArrayOfLinks}
+                    attachments={arrayOfLinks}
+                    setAttachments={setArrayOfLinks}
                     setValue={assignmentForm.setValue}
                   />
                 </div>
