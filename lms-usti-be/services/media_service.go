@@ -61,8 +61,8 @@ func (m *MediaService) Remove(fileName string, kind MediaKind) error {
 func (m *MediaService) RemoveBatch(req data.DeleteFilesRequest, kind MediaKind) error {
 	root := filepath.Clean(filepath.Join(env.BASE_STORAGE_PATH, string(kind)))
 
-	for _, file := range req.Files {
-		fileName := filepath.Base(file.UniqueFileName)
+	for _, fileUrl := range req.Files {
+		fileName := filepath.Base(fileUrl)
 		fullPath := filepath.Clean(filepath.Join(root, fileName))
 		if !strings.HasPrefix(fullPath, root+string(filepath.Separator)) {
 			return errors.New("Invalid file path")

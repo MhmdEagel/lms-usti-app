@@ -1,6 +1,7 @@
 "use client";
 
 import { Book, Upload, X } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import AddLinkDialog from "@/components/common/AddLinkDialog/AddLinkDialog";
 import FileItem from "@/components/common/FileItem/FileItem";
 import LinkItem from "@/components/common/LinkItem/LinkItem";
+import ViewPdf from "@/components/common/ViewPdf/ViewPdf";
 import useEditMaterialDialog, { type TrackedAttachment } from "./useEditMaterialDialog";
 import { Spinner } from "@/components/ui/spinner";
 import type { IAttachment, IMaterial } from "@/types/Classroom";
@@ -48,6 +50,7 @@ export default function EditMaterialDialog(props: PropTypes) {
     initializeAttachments,
   } = useEditMaterialDialog();
   const { open, setOpen, material, classroomId } = props;
+  const [previewFile, setPreviewFile] = useState<IAttachment | null>(null);
 
   const setAttachments: Dispatch<SetStateAction<IAttachment[]>> = useCallback(
     (value) => {
@@ -236,6 +239,8 @@ export default function EditMaterialDialog(props: PropTypes) {
                               fileName={item.name}
                               onDelete={handleDeleteFileItem}
                               isPending={isPending || isPendingUploadFile}
+                              fileUrl={item.url}
+                              onClick={() => setPreviewFile(item)}
                             />
                           );
                         })}
@@ -292,6 +297,13 @@ export default function EditMaterialDialog(props: PropTypes) {
           </form>
         </Form>
       </div>
+      {previewFile && (
+        <ViewPdf
+          fileUrl={previewFile.url}
+          fileName={previewFile.name}
+          onClose={() => setPreviewFile(null)}
+        />
+      )}
     </>
   );
 }

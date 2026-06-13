@@ -1,6 +1,7 @@
 "use client";
 
 import { Book, Plus, Upload, X } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
   Tooltip,
@@ -25,6 +26,14 @@ import LinkItem from "@/components/common/LinkItem/LinkItem";
 import useCreateMaterialDialog from "./useCreateMaterialDialog";
 import { Spinner } from "@/components/ui/spinner";
 import { deleteFileMaterial } from "@/actions/delete-file-material";
+import type { IAttachment } from "@/types/Classroom";
+import dynamic from "next/dynamic";
+
+const ViewPdf = dynamic(() => import("@/components/common/ViewPdf/ViewPdf"), {
+  ssr: false
+});
+
+
 export default function CreateMaterialDialog({
   classroomId,
 }: {
@@ -47,6 +56,7 @@ export default function CreateMaterialDialog({
     setIsPendingUploadFile,
     handleClose,
   } = useCreateMaterialDialog();
+  const [previewFile, setPreviewFile] = useState<IAttachment | null>(null);
   return (
     <>
       <Tooltip>
@@ -221,6 +231,8 @@ export default function CreateMaterialDialog({
                               fileName={item.name}
                               onDelete={handleDeleteFile}
                               isPending={isPending || isPendingUploadFile}
+                              fileUrl={item.url}
+                              onClick={() => setPreviewFile(item)}
                             />
                           );
                         })}
@@ -275,6 +287,14 @@ export default function CreateMaterialDialog({
           </form>
         </Form>
       </div>
+      {previewFile && (
+        <ViewPdf
+          fileUrl={previewFile.url}
+          fileName={previewFile.name}
+          onClose={() => setPreviewFile(null)}
+        />
+      )}
     </>
   );
 }
+

@@ -542,7 +542,8 @@ func TestRemoveMaterialBatch(t *testing.T) {
 			t.Fatalf("upload 2 failed: %v", err)
 		}
 
-		reqBody := `{"files":[{"file_name":"test_material.pdf","unique_file_name":"` + name1 + `","file_url":""},{"file_name":"test_material.pdf","unique_file_name":"` + name2 + `","file_url":""}]}`
+		baseUrl := env.BASE_URL + "/media/materials/"
+		reqBody := `{"files":["` + baseUrl + name1 + `","` + baseUrl + name2 + `"]}`
 		w := makeRequest(r, "POST", "/lms-usti-api/media/materials/delete-batch", reqBody, dosenToken)
 		res := parseResponse(w)
 
@@ -567,7 +568,8 @@ func TestRemoveMaterialBatch(t *testing.T) {
 			t.Fatalf("upload failed: %v", err)
 		}
 
-		reqBody := `{"files":[{"file_name":"test_material.pdf","unique_file_name":"` + name + `","file_url":""},{"file_name":"test_material.pdf","unique_file_name":"nonexistent-file.pdf","file_url":""}]}`
+		baseUrl := env.BASE_URL + "/media/materials/"
+		reqBody := `{"files":["` + baseUrl + name + `","` + baseUrl + `nonexistent-file.pdf"]}`
 		w := makeRequest(r, "POST", "/lms-usti-api/media/materials/delete-batch", reqBody, dosenToken)
 		if w.Code != http.StatusInternalServerError {
 			t.Errorf("expected 500, got %d: %s", w.Code, string(w.Body.Bytes()))
@@ -598,7 +600,8 @@ func TestRemoveAssignmentBatch(t *testing.T) {
 			t.Fatalf("upload 2 failed: %v", err)
 		}
 
-		reqBody := `{"files":[{"file_name":"test_video.mp4","unique_file_name":"` + name1 + `","file_url":""},{"file_name":"test_video.mp4","unique_file_name":"` + name2 + `","file_url":""}]}`
+		baseUrl := env.BASE_URL + "/media/assignments/"
+		reqBody := `{"files":["` + baseUrl + name1 + `","` + baseUrl + name2 + `"]}`
 		w := makeRequest(r, "POST", "/lms-usti-api/media/assignments/delete-batch", reqBody, dosenToken)
 		res := parseResponse(w)
 

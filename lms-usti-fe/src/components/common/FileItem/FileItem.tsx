@@ -8,12 +8,15 @@ interface FileItemProps {
   fileName: string;
   onDelete: () => Promise<void>;
   isPending?: boolean;
+  fileUrl?: string;
+  onClick?: () => void;
 }
 
 export default function FileItem({
   fileName,
   onDelete,
   isPending = false,
+  onClick,
 }: FileItemProps) {
   const handleDelete = async () => {
     try {
@@ -25,7 +28,10 @@ export default function FileItem({
   };
 
   return (
-    <div className="p-4 border rounded-lg flex">
+    <div
+      className={`p-4 border rounded-lg flex ${onClick ? "cursor-pointer hover:bg-gray-50" : ""}`}
+      onClick={onClick}
+    >
       <div className="flex gap-2 items-center">
         <div className="rounded-full bg-gray-600 p-2">
           <FileText size={"24"} color="white" />
@@ -33,7 +39,10 @@ export default function FileItem({
         <span className="text-sm truncate max-w-[200px]">{fileName}</span>
       </div>
       <Button
-        onClick={handleDelete}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleDelete();
+        }}
         type="button"
         variant={"ghost"}
         className="rounded-full cursor-pointer ml-auto"
