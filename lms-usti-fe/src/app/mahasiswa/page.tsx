@@ -1,8 +1,8 @@
-import DashboardMahasiswa from "@/components/views/Dashboard/DashboardMahasiswa/DashboardMahasiswa";
+import DashboardStudent from "@/components/views/Dashboard/DashboardStudent/DashboardStudent";
 import { createMetadata } from "@/lib/metadata";
 
 export const generateMetadata = () => createMetadata({ title: "Mahasiswa" });
 
 export default function DosenDashboardPage() {
-  return <DashboardMahasiswa />;
+  return <DashboardStudent />;
 }

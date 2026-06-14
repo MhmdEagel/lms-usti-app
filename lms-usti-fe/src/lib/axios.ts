@@ -21,7 +21,11 @@ instance.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== "undefined" && !window.location.pathname.startsWith("/auth")) {
-        window.location.href = "/auth/login";
+        const currentPath = window.location.pathname;
+        const loginUrl = currentPath && currentPath !== "/"
+          ? `/auth/login?callbackUrl=${encodeURIComponent(currentPath)}`
+          : "/auth/login";
+        window.location.href = loginUrl;
       }
     }
     return Promise.reject(error);

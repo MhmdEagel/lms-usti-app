@@ -9,16 +9,16 @@ interface PropTypes {
   classroom: IClassroom;
 }
 
-export default function ItemKelas(props: PropTypes) {
+export default function StudentClassroomItem(props: PropTypes) {
   const { classroom } = props;
   return (
-    <Link href={`/dosen/kelas/${classroom.id}`}>
+    <Link href={`/mahasiswa/kelas/${classroom.id}`}>
       <Card className="pt-3 space-y-8">
         <CardHeader className="px-3">
           <div className="bg-blue-200 h-[150px] rounded-lg">
             <Image
               className="mx-auto block"
-              src={"/images/ilustration/classroom/basic.svg"}
+              src={`/images/ilustration/classroom/${classroom.class_cover}.svg`}
               width={190}
               height={190}
               alt="Classroom Cover"

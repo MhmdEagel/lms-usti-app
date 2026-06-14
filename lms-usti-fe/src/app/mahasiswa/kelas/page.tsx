@@ -1,9 +1,8 @@
-
-import Kelas from "@/components/views/Dashboard/DashboardMahasiswa/Kelas/Kelas";
+import Classroom from "@/components/views/Dashboard/DashboardStudent/Classroom/Classroom";
 import { createMetadata } from "@/lib/metadata";
 
 export const generateMetadata = () => createMetadata({ title: "Kelas" });
 
 export default function KelasPage() {
-  return <Kelas />;
+  return <Classroom />;
 }
