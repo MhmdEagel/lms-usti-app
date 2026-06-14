@@ -20,5 +20,5 @@ type MediaUpload struct {
 }
 
 type DeleteFilesRequest struct {
-	Files []MediaSingleResponse `json:"files" binding:"required"`
+	Files []string `json:"files" binding:"required"`
 }
