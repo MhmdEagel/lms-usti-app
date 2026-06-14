@@ -15,18 +15,6 @@ const useLogin = () => {
   const [isPending, setIsPending] = useState(false);
   const searchParams = useSearchParams();
 
-  useEffect(() => {
-    const registerSuccess = searchParams.get("success");
-    if (registerSuccess) {
-      setRegisterSuccess(true);
-      const timeout = setTimeout(() => {
-        setRegisterSuccess(false);
-      }, 2000);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [searchParams]);
-
   const handleVisibility = () => setIsVisible(!isVisible);
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -39,7 +27,8 @@ const useLogin = () => {
   const handleLogin = async (data: ILogin) => {
     try {
       setIsPending(true);
-      await loginUser(data);
+      const callbackUrl = searchParams.get("callbackUrl") || undefined;
+      await loginUser(data, callbackUrl);
     } catch (error) {
       const err = error as AxiosError<ErrorResponse>;
       setError("root", { message: err.response?.data.meta.message || "Terjadi kesalahan, coba lagi" });
@@ -54,7 +43,6 @@ const useLogin = () => {
     form,
     handleVisibility,
     isPending,
-    registerSuccess,
   };
 };
 export default useLogin;

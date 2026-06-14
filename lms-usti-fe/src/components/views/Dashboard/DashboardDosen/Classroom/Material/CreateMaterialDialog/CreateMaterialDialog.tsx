@@ -274,7 +274,7 @@ export default function CreateMaterialDialog({
                     >
                       <Upload />
                     </Button>
-                    Upload
+                    Upload (PDF/DOCS/PPT/VIDEO)
                   </div>
                   <AddLinkDialog
                     attachments={linkAttachments}

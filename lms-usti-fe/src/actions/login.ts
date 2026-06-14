@@ -5,7 +5,7 @@ import { ILogin } from "@/types/Auth";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-const loginUser = async (data: ILogin) => {
+const loginUser = async (data: ILogin, callbackUrl?: string) => {
   const { email, password } = data;
   try {
     const res = await authServices.login({ email, password });
@@ -19,6 +19,11 @@ const loginUser = async (data: ILogin) => {
     });
     const meRes = await authServices.me();
     const role = meRes.data.data.role;
+
+    if (callbackUrl && callbackUrl.startsWith("/")) {
+      redirect(callbackUrl);
+    }
+
     if (role === "MAHASISWA") {
       redirect("/mahasiswa");
     } else {
