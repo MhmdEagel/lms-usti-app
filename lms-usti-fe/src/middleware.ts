@@ -22,7 +22,7 @@ export async function middleware(request: NextRequest) {
     if (isAuthRoute || isPublicRoute) {
       return NextResponse.next();
     }
-    return NextResponse.redirect(loginUrl(nextUrl.pathname));
+    return NextResponse.redirect(loginUrl(encodeURI(request.url)));
   }
   try {
     const me = await authServices.me();

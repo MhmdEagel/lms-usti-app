@@ -34,11 +34,19 @@ func InitRouter() *gin.Engine {
 		submissionRepository := repositories.NewSubmissionRepository(Db)
 
 		authService := services.NewAuthService(userRepository, verificationRepository)
+
+		adminService := services.NewAdminService(userRepository, verificationRepository)
+
 		submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository)
+
 		assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService)
+
 		classroomService := services.NewClassroomService(classroomRepository, submissionService, assignmentService)
+
 		announcementService := services.NewAnnouncementService(announcementRepository, classroomRepository)
+
 		materialService := services.NewMaterialService(materialRepository, classroomRepository)
+
 		mediaService := services.NewMediaService()
 
 		api.GET("", controllers.Test)
@@ -47,13 +55,21 @@ func InitRouter() *gin.Engine {
 			authController := controllers.NewAuthController(authService)
 
 			auth.POST("/login", authController.Login)
-			auth.POST("/register", authController.Register)
-			auth.POST("/activation", authController.ActivateUser)
-			auth.POST("/activation/resend", authController.ResendActivation)
 			auth.POST("/reset-password", authController.SendResetPasswordEmail)
 			auth.POST("/new-password", authController.ResetPassword)
 			auth.Use(authMiddleware.Handle()).GET("/me", authController.Me)
 		}
+		admin := api.Group("/admin/users")
+		admin.Use(authMiddleware.Handle(), aclMiddleware.Handle([]string{"ADMIN"}))
+		{
+			adminController := controllers.NewAdminController(adminService)
+			admin.GET("", adminController.FindAllUsers)
+			admin.POST("/create", adminController.CreateUser)
+			admin.GET("/:id")
+			admin.PUT("/:id/update", adminController.UpdateUser)
+		}
+
+
 		classroom := api.Group("/classroom")
 		classroom.Use(authMiddleware.Handle())
 		{
@@ -66,7 +82,7 @@ func InitRouter() *gin.Engine {
 
 			classroom.GET("/dosen/classrooms", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.FindAllByDosenId)
 			classroom.GET("/mahasiswa/classrooms", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.FindAllByMahasiswaId)
-			classroom.POST("/create", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Create)
+			classroom.POST("/create", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), classroomController.Create)
 			classroom.POST("/join", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.Enroll)
 			classroom.GET("/:id", classroomController.FindById)
 			classroom.GET("/:id/members", classroomController.FindAllClassroomMember)

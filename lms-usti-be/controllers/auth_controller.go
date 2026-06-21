@@ -1,14 +1,11 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
-	"github.com/MhmdEagel/lms-usti-be/lib"
 	"github.com/MhmdEagel/lms-usti-be/services"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 type AuthController struct {
@@ -17,31 +14,6 @@ type AuthController struct {
 
 func NewAuthController(authService services.AuthServiceInterface) *AuthController {
 	return &AuthController{authService: authService}
-}
-
-func handleError(c *gin.Context, err error) {
-	appErr, ok := err.(*data.AppError)
-	if ok {
-		res := data.NewResponseFromError(appErr)
-		c.JSON(appErr.Code, res)
-		return
-	}
-	log.Printf("unexpected error: %v", err)
-	appErr = data.NewAppError(http.StatusInternalServerError, "terjadi kesalahan server", err)
-	res := data.NewResponseFromError(appErr)
-	c.JSON(http.StatusInternalServerError, res)
-}
-
-func bindJSONError(c *gin.Context, err error) {
-	validationErrs, ok := err.(validator.ValidationErrors)
-	if ok {
-		msg := lib.GetValidationMessage(validationErrs)
-		res := data.NewResponse(http.StatusBadRequest, msg, nil)
-		c.JSON(http.StatusBadRequest, res)
-		return
-	}
-	res := data.NewResponse(http.StatusBadRequest, "invalid request body", nil)
-	c.JSON(http.StatusBadRequest, res)
 }
 
 func (a *AuthController) Login(c *gin.Context) {
@@ -59,34 +31,6 @@ func (a *AuthController) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (a *AuthController) Register(c *gin.Context) {
-	var req data.RegisterRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		bindJSONError(c, err)
-		return
-	}
-	if err := a.authService.Register(req); err != nil {
-		handleError(c, err)
-		return
-	}
-	res := data.NewResponse(http.StatusOK, "register success", nil)
-	c.JSON(http.StatusOK, res)
-}
-
-func (a *AuthController) ActivateUser(c *gin.Context) {
-	var req data.VerificationRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		bindJSONError(c, err)
-		return
-	}
-	err := a.authService.Activate(req)
-	if err != nil {
-		handleError(c, err)
-		return
-	}
-	res := data.NewResponse(http.StatusOK, "account successfully activated", nil)
-	c.JSON(http.StatusOK, res)
-}
 
 func (a *AuthController) ResendActivation(c *gin.Context) {
 	var req data.SendVerificationRequest
@@ -124,7 +68,6 @@ func (a *AuthController) ResetPassword(c *gin.Context) {
 		bindJSONError(c, err)
 		return
 	}
-
 	err := a.authService.ResetPassword(req)
 	if err != nil {
 		handleError(c, err)

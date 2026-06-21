@@ -49,7 +49,6 @@ func setupAssignmentTestRouter(db *gorm.DB) *gin.Engine {
 		auth := api.Group("/auth")
 		{
 			auth.POST("/login", authController.Login)
-			auth.POST("/register", authController.Register)
 		}
 		classroom := api.Group("/classroom")
 		classroom.Use(authMiddleware.Handle())

@@ -22,6 +22,7 @@ type Classroom struct {
 	ClassEnd              time.Time `gorm:"not null"`
 	DosenId               string
 	Dosen                 User           `gorm:"foreignKey:DosenId"`
+	Prodi                 string         `gorm:"not null"`
 	ClassroomMahasiswa    []User         `gorm:"many2many:classroom_mahasiswas;constraint:OnDelete:CASCADE;"`
 	ClassroomAnnouncement []Announcement `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE;"`
 	Materials             []Material     `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE;"`

@@ -30,8 +30,10 @@ const useLogin = () => {
       const callbackUrl = searchParams.get("callbackUrl") || undefined;
       await loginUser(data, callbackUrl);
     } catch (error) {
-      const err = error as AxiosError<ErrorResponse>;
-      setError("root", { message: err.response?.data.meta.message || "Terjadi kesalahan, coba lagi" });
+      const err = error as Error;
+      setError("root", {
+        message: err.message,
+      });
     } finally {
       setIsPending(false);
     }

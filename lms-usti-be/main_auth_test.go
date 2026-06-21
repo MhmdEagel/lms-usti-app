@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -73,8 +72,6 @@ func setupTestRouter(db *gorm.DB) *gin.Engine {
 		auth := api.Group("/auth")
 		{
 			auth.POST("/login", authController.Login)
-			auth.POST("/register", authController.Register)
-			auth.POST("/activation", authController.ActivateUser)
 			auth.POST("/activation/resend", authController.ResendActivation)
 			auth.POST("/reset-password", authController.SendResetPasswordEmail)
 			auth.POST("/new-password", authController.ResetPassword)
@@ -106,7 +103,6 @@ func seedUser(db *gorm.DB, fullname, email, password, role string) model.User {
 		Email:          email,
 		Password:       hashedPassword,
 		Role:           role,
-		EmailVerified:  sql.NullTime{Valid: true, Time: time.Now()},
 	}
 	result := db.Create(&user)
 	if result.Error != nil {

@@ -2,6 +2,8 @@
 
 import authServices from "@/services/auth.service";
 import { ILogin } from "@/types/Auth";
+import { APIResponse } from "@/types/Response";
+import { AxiosError } from "axios";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -19,18 +21,20 @@ const loginUser = async (data: ILogin, callbackUrl?: string) => {
     });
     const meRes = await authServices.me();
     const role = meRes.data.data.role;
-
     if (callbackUrl && callbackUrl.startsWith("/")) {
       redirect(callbackUrl);
     }
-
     if (role === "MAHASISWA") {
       redirect("/mahasiswa");
     } else {
       redirect("/dosen");
     }
   } catch (error) {
-    throw error;
+    if (error instanceof AxiosError) {
+      const err = error as AxiosError<APIResponse>;
+      throw new Error(err.response?.data.meta.message);
+    }
+    throw error
   }
 };
 

@@ -64,10 +64,9 @@ func (c *ClassroomController) FindAllByDosenId(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
-
+	
 	pagination := data.Pagination{Limit: limit, Current: page}
 	paginationResult, err := c.classroomService.FindAllByDosenId(user.UserId, pagination)
 	if err != nil {
@@ -96,7 +95,6 @@ func (c *ClassroomController) FindById(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-
 	res := data.NewResponse(http.StatusOK, "success find classroom by id", classroom)
 	ctx.JSON(http.StatusOK, res)
 }

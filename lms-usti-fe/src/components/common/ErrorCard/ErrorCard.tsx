@@ -11,6 +11,7 @@ export default function ErrorCard(props: PropTypes) {
       <CardContent className="flex items-center gap-3  text-red-600 font-semibold">
         <div className="w-7 h-7 bg-red-600 text-xl rounded-full flex text-white justify-center items-center">
           &#33;
+          
         </div>
         <span className="text-sm">{children}</span>
       </CardContent>

@@ -15,20 +15,7 @@ instance.interceptors.request.use(async (config) => {
   return config;
 });
 instance.interceptors.response.use(
-  async (response) => {
-    return response;
-  },
-  async (error) => {
-    if (error.response?.status === 401) {
-      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/auth")) {
-        const currentPath = window.location.pathname;
-        const loginUrl = currentPath && currentPath !== "/"
-          ? `/auth/login?callbackUrl=${encodeURIComponent(currentPath)}`
-          : "/auth/login";
-        window.location.href = loginUrl;
-      }
-    }
-    return Promise.reject(error);
-  },
+  (response) => response,
+  (error) => Promise.reject(error),
 );
 export default instance;
