@@ -5,6 +5,11 @@ import { APIResponse } from "@/types/Response";
 import { AxiosError } from "axios";
 import { revalidatePath } from "next/cache";
 
+const revalidateAdmin = () => {
+  revalidatePath("/admin/users")
+  revalidatePath("/admin/audit")
+}
+
 export async function getAllUsers(params?: { page?: number; limit?: number }) {
   try {
     const res = await adminServices.getAllUsers(params);
@@ -34,7 +39,7 @@ export async function getUserById(userId: string) {
 export async function createUser(data: ICreateUserRequest) {
   try {
     const res = await adminServices.createUser(data);
-    revalidatePath("/admin/users")
+    revalidateAdmin()
     return res.data;
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -48,7 +53,7 @@ export async function createUser(data: ICreateUserRequest) {
 export async function updateUser(userId: string, data: IUpdateUserRequest) {
   try {
     const res = await adminServices.updateUser(userId, data);
-    revalidatePath("/admin/users")
+    revalidateAdmin()
     return res.data;
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -62,7 +67,20 @@ export async function updateUser(userId: string, data: IUpdateUserRequest) {
 export async function deleteUser(userId: string) {
   try {
     const res = await adminServices.deleteUser(userId);
-    revalidatePath("/admin/users")
+    revalidateAdmin()
+    return res.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      const err = error as AxiosError<APIResponse>;
+      throw new Error(err.response?.data.meta.message);
+    }
+    throw error;
+  }
+}
+
+export async function getAuditLogs(params?: { page?: number; limit?: number }) {
+  try {
+    const res = await adminServices.getAuditLogs(params);
     return res.data;
   } catch (error) {
     if (error instanceof AxiosError) {
