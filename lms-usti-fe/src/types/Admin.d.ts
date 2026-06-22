@@ -29,6 +29,8 @@ interface IAuditLog {
   ID: number;
   Title: string;
   Description: string;
+  CreatedBy: string;
+  User: IUser;
   CreatedAt: string;
   UpdatedAt: string;
 }

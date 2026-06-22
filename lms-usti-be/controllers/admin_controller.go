@@ -26,7 +26,8 @@ func (a *AdminController) CreateUser(ctx *gin.Context) {
 		bindJSONError(ctx, err)
 		return
 	}
-	if err := a.adminService.CreateUser(req); err != nil {
+	adminId := getUserId(ctx)
+	if err := a.adminService.CreateUser(req, adminId); err != nil {
 		handleError(ctx, err)
 		return
 	}
@@ -59,7 +60,8 @@ func (a *AdminController) UpdateUser(ctx *gin.Context) {
 	}
 	userId := ctx.Param("id")
 	req.UserId = userId
-	err := a.adminService.UpdateUser(req)
+	adminId := getUserId(ctx)
+	err := a.adminService.UpdateUser(req, adminId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			res := data.NewResponse(http.StatusNotFound, "user not found", nil)
@@ -96,7 +98,8 @@ func (a *AdminController) FindUserById(ctx *gin.Context) {
 
 func (a *AdminController) DeleteUser(ctx *gin.Context) {
 	userId := ctx.Param("id")
-	err := a.adminService.DeleteUser(userId)
+	adminId := getUserId(ctx)
+	err := a.adminService.DeleteUser(userId, adminId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			res := data.NewResponse(http.StatusNotFound, "user not found", nil)
@@ -110,6 +113,18 @@ func (a *AdminController) DeleteUser(ctx *gin.Context) {
 	}
 	res := data.NewResponse(http.StatusOK, "user successfully deleted", nil)
 	ctx.JSON(http.StatusOK, res)
+}
+
+func getUserId(ctx *gin.Context) string {
+	val, exist := ctx.Get("user")
+	if !exist {
+		return ""
+	}
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		return ""
+	}
+	return user.UserId
 }
 
 func (a *AdminController) SendResetUserPassword(ctx *gin.Context) {

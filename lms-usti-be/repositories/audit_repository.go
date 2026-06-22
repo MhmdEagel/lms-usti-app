@@ -30,7 +30,7 @@ func (a *AuditLogRepository) Create(log model.AuditLogs) error {
 
 func (a *AuditLogRepository) FindAll(pagination data.Pagination) (paginationResult *data.PaginationWithData, err error) {
 	var logs []model.AuditLogs
-	result := a.Db.Scopes(lib.Paginate(logs, &pagination, a.Db)).Order("created_at DESC").Find(&logs)
+	result := a.Db.Preload("User").Scopes(lib.Paginate(logs, &pagination, a.Db)).Order("created_at DESC").Find(&logs)
 	if result.Error != nil {
 		return paginationResult, result.Error
 	}

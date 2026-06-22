@@ -31,6 +31,9 @@ export default function AuditLogsSkeleton() {
                     <Skeleton className="h-4 w-32" />
                   </TableHead>
                   <TableHead>
+                    <Skeleton className="h-4 w-24" />
+                  </TableHead>
+                  <TableHead>
                     <Skeleton className="h-4 w-20" />
                   </TableHead>
                 </TableRow>
@@ -46,6 +49,9 @@ export default function AuditLogsSkeleton() {
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-4 w-72" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-28" />
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-4 w-32" />

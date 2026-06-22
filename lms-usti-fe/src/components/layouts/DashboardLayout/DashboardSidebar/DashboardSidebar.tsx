@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { SidebarItem } from "@/types/Dashboard";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { logoutUser } from "@/actions/logout";
 import { DashboardUserNav } from "./DashboardUserNav/DashboardUserNav";
 
 interface PropTypes {
@@ -29,6 +30,10 @@ export default function DashboardSidebar(props: PropTypes) {
   const { sidebarItems, user } = props;
   const pathname = usePathname();
   const url = `/${pathname.split("/").filter(Boolean).slice(0, 2).join("/")}`;
+
+  const handleLogout = async () => {
+    await logoutUser();
+  };
 
   return (
     <Sidebar>
@@ -74,6 +79,7 @@ export default function DashboardSidebar(props: PropTypes) {
       <SidebarFooter>
         <DashboardUserNav
           user={{ avatar: "", name: user?.fullname, email: user?.email }}
+          onLogout={handleLogout}
         />
       </SidebarFooter>
     </Sidebar>
