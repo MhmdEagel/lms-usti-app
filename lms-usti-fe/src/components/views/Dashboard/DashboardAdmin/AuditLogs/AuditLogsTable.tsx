@@ -61,16 +61,17 @@ export default function AuditLogsTable({ logs, pagination }: AuditLogsTableProps
                   <TableHead className="w-[60px]">No</TableHead>
                   <TableHead>Aktivitas</TableHead>
                   <TableHead>Deskripsi</TableHead>
+                  <TableHead>Dibuat Oleh</TableHead>
                   <TableHead>Tanggal</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {logs.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                      Belum ada log audit
-                    </TableCell>
-                  </TableRow>
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        Belum ada log audit
+                      </TableCell>
+                    </TableRow>
                 ) : (
                   logs.map((log, index) => (
                     <TableRow key={log.ID}>
@@ -79,6 +80,7 @@ export default function AuditLogsTable({ logs, pagination }: AuditLogsTableProps
                       </TableCell>
                       <TableCell className="font-medium">{log.Title}</TableCell>
                       <TableCell>{log.Description}</TableCell>
+                      <TableCell>{log.User?.fullname || "-"}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {formatDate(log.CreatedAt)}
                       </TableCell>

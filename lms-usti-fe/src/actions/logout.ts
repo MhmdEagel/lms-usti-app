@@ -1,5 +1,10 @@
-"use server"
-const logout = async () => {
-}
+"use server";
 
-export default logout;
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+export async function logoutUser() {
+  const cookieStore = await cookies();
+  cookieStore.delete("access_token");
+  redirect("/auth/login");
+}

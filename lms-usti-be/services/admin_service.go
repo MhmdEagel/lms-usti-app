@@ -20,11 +20,11 @@ type AdminService struct {
 }
 
 type AdminServiceInterface interface {
-	CreateUser(req data.RegisterRequest) error
+	CreateUser(req data.RegisterRequest, adminId string) error
 	FindAllUsers(pagination data.Pagination) (paginationResult data.PaginationWithData, err error)
 	FindUserById(userId string) (*data.MeResponse, error)
-	UpdateUser(req data.UpdateUserReq) error
-	DeleteUser(userId string) error
+	UpdateUser(req data.UpdateUserReq, adminId string) error
+	DeleteUser(userId string, adminId string) error
 	SendVerificationEmail(req data.SendVerificationRequest) error
 }
 
@@ -32,7 +32,7 @@ func NewAdminService(userRepository repositories.UserRepositoryInterface, verifi
 	return &AdminService{userRepository: userRepository, verificationRepository: verificationRepository, auditService: auditService}
 }
 
-func (a *AdminService) CreateUser(req data.RegisterRequest) error {
+func (a *AdminService) CreateUser(req data.RegisterRequest, adminId string) error {
 	hashedPassword, err := lib.HashPassword(req.Password)
 	if err != nil {
 		log.Printf("Register: failed to hash password: %v", err)
@@ -55,6 +55,7 @@ func (a *AdminService) CreateUser(req data.RegisterRequest) error {
 	a.auditService.LogAction(
 		"Penambahan User",
 		fmt.Sprintf("Menambahkan user baru: %s, %s", req.Fullname, req.Email),
+		adminId,
 	)
 	return nil
 }
@@ -80,7 +81,7 @@ func (a *AdminService) FindAllUsers(pagination data.Pagination) (paginationResul
 }
 
 
-func (a *AdminService) UpdateUser(req data.UpdateUserReq) error {
+func (a *AdminService) UpdateUser(req data.UpdateUserReq, adminId string) error {
 	user, err := a.userRepository.FindById(req.UserId)
 	if err != nil {
 		return err
@@ -101,6 +102,7 @@ func (a *AdminService) UpdateUser(req data.UpdateUserReq) error {
 	a.auditService.LogAction(
 		"Pengubahan User",
 		fmt.Sprintf("Mengubah data user: %s (%s)", user.Fullname, user.Email),
+		adminId,
 	)
 	return nil
 }
@@ -118,7 +120,7 @@ func (a *AdminService) FindUserById(userId string) (*data.MeResponse, error) {
 	return res, nil
 }
 
-func (a *AdminService) DeleteUser(userId string) error {
+func (a *AdminService) DeleteUser(userId string, adminId string) error {
 	user, err := a.userRepository.FindById(userId)
 	if err != nil {
 		return err
@@ -126,6 +128,7 @@ func (a *AdminService) DeleteUser(userId string) error {
 	a.auditService.LogAction(
 		"Penghapusan User",
 		fmt.Sprintf("Menghapus user: %s (%s)", user.Fullname, user.Email),
+		adminId,
 	)
 	return a.userRepository.Delete(userId)
 }

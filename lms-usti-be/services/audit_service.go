@@ -11,7 +11,7 @@ type AuditService struct {
 }
 
 type AuditServiceInterface interface {
-	LogAction(title string, description string) error
+	LogAction(title string, description string, createdBy string) error
 	GetAllLogs(pagination data.Pagination) (*data.PaginationWithData, error)
 }
 
@@ -19,10 +19,11 @@ func NewAuditService(auditLogRepository repositories.AuditLogRepositoryInterface
 	return &AuditService{auditLogRepository: auditLogRepository}
 }
 
-func (a *AuditService) LogAction(title string, description string) error {
+func (a *AuditService) LogAction(title string, description string, createdBy string) error {
 	log := model.AuditLogs{
 		Title:       title,
 		Description: description,
+		CreatedBy:   createdBy,
 	}
 	return a.auditLogRepository.Create(log)
 }
