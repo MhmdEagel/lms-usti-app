@@ -36,7 +36,10 @@ func InitRouter() *gin.Engine {
 
 		authService := services.NewAuthService(userRepository, verificationRepository)
 
-		adminService := services.NewAdminService(userRepository, verificationRepository)
+		auditLogRepository := repositories.NewAuditLogRepository(Db)
+		auditService := services.NewAuditService(auditLogRepository)
+
+		adminService := services.NewAdminService(userRepository, verificationRepository, auditService)
 
 		submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository)
 
@@ -69,6 +72,13 @@ func InitRouter() *gin.Engine {
 			admin.GET("/:id", adminController.FindUserById)
 			admin.PUT("/:id/update", adminController.UpdateUser)
 			admin.DELETE("/:id", adminController.DeleteUser)
+		}
+
+		adminAudit := api.Group("/admin/audit-logs")
+		adminAudit.Use(authMiddleware.Handle(), aclMiddleware.Handle([]string{"ADMIN"}))
+		{
+			auditController := controllers.NewAuditController(auditService)
+			adminAudit.GET("", auditController.FindAllLogs)
 		}
 
 

@@ -12,6 +12,8 @@ const adminServices = {
     instance.put(`${endpoint.ADMIN}/users/${userId}/update`, data),
   deleteUser: (userId: string) =>
     instance.delete(`${endpoint.ADMIN}/users/${userId}`),
+  getAuditLogs: (params?: { page?: number; limit?: number }) =>
+    instance.get(`${endpoint.ADMIN}/audit-logs`, { params }),
 };
 
 export default adminServices;

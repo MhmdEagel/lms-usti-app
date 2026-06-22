@@ -24,3 +24,11 @@ interface IUpdateUserRequest {
   email?: string;
   role?: "MAHASISWA" | "DOSEN" | "PRODI" | "ADMIN";
 }
+
+interface IAuditLog {
+  ID: number;
+  Title: string;
+  Description: string;
+  CreatedAt: string;
+  UpdatedAt: string;
+}

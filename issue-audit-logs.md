@@ -15,19 +15,19 @@ Buat sistem audit log yang mencatat setiap aksi admin di dashboard (tambah/edit/
 Saat ini:
 ```go
 type AuditLogs struct {
-	gorm.Model
-	Title   string `gorm:"not null"`
-	Content string `gorm:"not null"`
+    gorm.Model
+    Title   string `gorm:"not null"`
+    Content string `gorm:"not null"`
 }
 ```
 
-Yang diinginkan: field `Content` → `Description`. `gorm.Model` sudah mencakup `ID`, `CreatedAt`, `UpdatedAt`, `DeletedAt`.
+Yang diinginkan: rename `Content` → `Description`. `gorm.Model` sudah menyediakan `ID`, `CreatedAt`, `UpdatedAt`, `DeletedAt`.
 
 ### Yang Belum Ada
 
 | Komponen | Status |
 |----------|--------|
-| Model `AuditLogs` | ✅ Ada, perlu rename field `Content` → `Description` |
+| Model `AuditLogs` | ✅ Ada, perlu rename `Content` → `Description` |
 | Repository | ❌ Belum ada |
 | Service | ❌ Belum ada |
 | Controller | ❌ Belum ada |
@@ -45,18 +45,13 @@ type UserRepository struct {
 func NewUserRepository(Db *gorm.DB) UserRepositoryInterface { ... }
 ```
 
-Service pattern (`admin_service.go`):
-- Panggil repository method
-- Return data atau error
-- Tidak ada logging saat ini
-
 ---
 
 ## Tahap 1 — Backend: Update Model & Migration
 
 **File:** `lms-usti-be/model/audit.go`
 
-Ubah model:
+Ubah field `Content` menjadi `Description`:
 ```go
 type AuditLogs struct {
     gorm.Model
@@ -64,15 +59,13 @@ type AuditLogs struct {
     Description string `gorm:"not null"`
 }
 ```
-- `gorm.Model` already provides `ID`, `CreatedAt`, `UpdatedAt`, `DeletedAt`
-- Rename `Content` → `Description`
 
 **File:** `lms-usti-be/config/database.go`
 
-Tambah `&model.AuditLogs{}` ke daftar `AutoMigrate`:
+Tambah `&model.AuditLogs{}` ke daftar AutoMigrate:
 ```go
 database.AutoMigrate(
-    ..., // existing models
+    ..., // model yang sudah ada
     &model.AuditLogs{},
 )
 ```
@@ -89,14 +82,13 @@ Tambah `&model.AuditLogs{}` ke AutoMigrate test.
 
 **File:** `lms-usti-be/repositories/audit_repository.go` (baru)
 
-Buat repository dengan pattern yang sama seperti `user_repository.go`:
+Buat repository mengikuti pattern `user_repository.go`:
 - Struct: `AuditLogRepository` dengan field `Db *gorm.DB`
 - Interface: `AuditLogRepositoryInterface`
 - Constructor: `NewAuditLogRepository(Db *gorm.DB) AuditLogRepositoryInterface`
 - Method:
   - `Create(log model.AuditLogs) error` — insert log baru
-  - `FindAll(pagination data.Pagination) (data.PaginationWithData, error)` — paginated list
-  - `FindById(id string) (*model.AuditLogs, error)` — get single log
+  - `FindAll(pagination data.Pagination) (*data.PaginationWithData, error)` — paginated list
 
 **Checkpoint:** `go build ./...`
 
@@ -111,8 +103,8 @@ Buat service:
 - Interface: `AuditServiceInterface`
 - Constructor: `NewAuditService(auditLogRepository) AuditServiceInterface`
 - Method:
-  - `LogAction(title string, description string) error` — create log entry
-  - `GetAllLogs(pagination data.Pagination) (data.PaginationWithData, error)` — get all logs
+  - `LogAction(title string, description string) error` — buat log entry baru
+  - `GetAllLogs(pagination data.Pagination) (*data.PaginationWithData, error)` — get all logs
 
 **Checkpoint:** `go build ./...`
 
@@ -122,36 +114,36 @@ Buat service:
 
 **File:** `lms-usti-be/services/admin_service.go`
 
-Update `AdminService` struct: tambah field `auditService AuditServiceInterface`
+Update `AdminService`: tambah field `auditService AuditServiceInterface`
 
-Update constructor `NewAdminService`: terima parameter `auditService` tambahan
+Update constructor `NewAdminService`: terima `auditService` sebagai parameter tambahan
 
-Tambah log di method yang relevan:
-- `CreateUser` — setelah user berhasil dibuat:
+Tambah logging di method yang sudah ada:
+- **`CreateUser`** — setelah user berhasil dibuat:
   ```go
   a.auditService.LogAction(
       "Penambahan User",
       fmt.Sprintf("Menambahkan user baru: %s, %s", req.Fullname, req.Email),
   )
   ```
-- `UpdateUser` — setelah update sukses:
+- **`UpdateUser`** — setelah update sukses:
   ```go
   a.auditService.LogAction(
       "Pengubahan User",
-      fmt.Sprintf("Mengubah data user: %s (%s)", user.Fullname, user.Email),
+      fmt.Sprintf("Mengubah data user: %s", req.UserId),
   )
   ```
-- `DeleteUser` — sebelum delete (karena setelah delete data user hilang):
+- **`DeleteUser`** — sebelum hapus (ambil data user dulu untuk log):
   ```go
   a.auditService.LogAction(
       "Penghapusan User",
-      fmt.Sprintf("Menghapus user: %s (%s)", user.Fullname, user.Email),
+      fmt.Sprintf("Menghapus user dengan ID: %s", userId),
   )
   ```
 
 **File:** `lms-usti-be/router/api.go`
 
-Update inisialisasi `AdminService` untuk pass `AuditService`:
+Update inisialisasi `AdminService`:
 ```go
 auditLogRepository := repositories.NewAuditLogRepository(Db)
 auditService := services.NewAuditService(auditLogRepository)
@@ -173,7 +165,7 @@ Buat controller:
 
 **File:** `lms-usti-be/router/api.go`
 
-Tambah route group baru:
+Tambah route baru:
 ```go
 adminAudit := api.Group("/admin/audit-logs")
 adminAudit.Use(authMiddleware.Handle(), aclMiddleware.Handle([]string{"ADMIN"}))
@@ -227,38 +219,22 @@ export async function getAuditLogs(params?: { page?: number; limit?: number }) {
 
 **File:** `src/app/admin/audit/page.tsx`
 
-Update jadi server component dengan pagination sama seperti `users/page.tsx`:
-```tsx
-export default async function AuditPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string; limit?: string }>;
-}) {
-  // parse params, render AuditLogs dengan Suspense + skeleton
-}
-```
+Update jadi server component async dengan pagination (seperti `users/page.tsx`):
+- Parse `searchParams` untuk `page` dan `limit`
+- Wrap `AuditLogs` dengan `<Suspense fallback={<AuditLogsSkeleton />}>`
 
 **File:** `src/components/views/Dashboard/DashboardAdmin/AuditLogs/AuditLogs.tsx`
 
-Ganti dari placeholder menjadi:
-- **Server component** async (atau split jadi server + client component)
+Ganti dari placeholder menjadi server component:
 - Fetch data dari `getAuditLogs()`
 - Tabel dengan kolom: No, Title, Description, Tanggal (CreatedAt)
-- Pakai shadcn `Table` component (seperti UserTable)
+- Pakai shadcn `Table` component
 - Pagination controls (limit selector + prev/next)
 
 **File:** `src/components/views/Dashboard/DashboardAdmin/AuditLogs/AuditLogsSkeleton.tsx` (baru)
 
-Buat skeleton loading dengan pattern yang sama seperti `UserTableSkeleton`:
-- 5 baris placeholder
-- 4 kolom (No, Title, Description, Tanggal)
-
-**File:** `src/components/layout/DashboardLayout/DashboardHeader/DashboardTitle/DashboardTitle.constant.ts`
-
-Tambah title untuk halaman audit (sudah ada, pastikan path cocok):
-```typescript
-{ path: "/admin/audit", title: "Audit Logs" },
-```
+Buat skeleton loading dengan pattern `UserTableSkeleton`:
+- 5 baris placeholder, 4 kolom
 
 **Checkpoint:** `npx tsc --noEmit`
 
@@ -273,15 +249,36 @@ Tambah title untuk halaman audit (sudah ada, pastikan path cocok):
 | `lms-usti-be/main_auth_test.go` | Update (tambah AutoMigrate test) |
 | `lms-usti-be/repositories/audit_repository.go` | Buat baru |
 | `lms-usti-be/services/audit_service.go` | Buat baru |
-| `lms-usti-be/services/admin_service.go` | Update (inject audit service + log calls) |
+| `lms-usti-be/services/admin_service.go` | Update (inject + log calls) |
 | `lms-usti-be/controllers/audit_controller.go` | Buat baru |
-| `lms-usti-be/router/api.go` | Update (inisialisasi + route audit) |
+| `lms-usti-be/router/api.go` | Update (inisialisasi + route) |
 | `src/types/Admin.d.ts` | Update (tambah IAuditLog) |
 | `src/services/admin.service.ts` | Update (tambah getAuditLogs) |
-| `src/actions/admin.ts` | Update (tambah getAuditLogs server action) |
+| `src/actions/admin.ts` | Update (tambah getAuditLogs) |
 | `src/app/admin/audit/page.tsx` | Update (pagination + Suspense) |
-| `src/components/views/Dashboard/DashboardAdmin/AuditLogs/AuditLogs.tsx` | Update (tabel + data fetching) |
+| `src/components/views/Dashboard/DashboardAdmin/AuditLogs/AuditLogs.tsx` | Update (tabel + data) |
 | `src/components/views/Dashboard/DashboardAdmin/AuditLogs/AuditLogsSkeleton.tsx` | Buat baru |
+
+---
+
+## Backend Response Format
+
+```json
+// GET /admin/audit-logs?page=1&limit=10
+{
+  "meta": { "status": 200, "message": "successfully find all audit logs" },
+  "pagination": { "limit": 10, "total_pages": 1, "total": 3, "current": 1 },
+  "data": [
+    {
+      "ID": 1,
+      "Title": "Penambahan User",
+      "Description": "Menambahkan user baru: John Doe, john@email.com",
+      "CreatedAt": "2026-06-22T10:00:00Z",
+      "UpdatedAt": "2026-06-22T10:00:00Z"
+    }
+  ]
+}
+```
 
 ---
 
@@ -292,9 +289,9 @@ Tambah title untuk halaman audit (sudah ada, pastikan path cocok):
 3. `npm run build` — build sukses
 4. Test manual:
    - Login sebagai ADMIN
-   - Buat user baru → buka halaman Audit Logs → lihat log "Penambahan User" muncul
-   - Edit user → lihat log "Pengubahan User" muncul
-   - Hapus user → lihat log "Penghapusan User" muncul
-   - Halaman Audit Logs menampilkan tabel dengan data yang benar
+   - Buat user baru → buka Audit Logs → log "Penambahan User" muncul
+   - Edit user → log "Pengubahan User" muncul
+   - Hapus user → log "Penghapusan User" muncul
+   - Tabel Audit Logs menampilkan data dengan benar
    - Pagination berfungsi
-   - Loading state: skeleton muncul saat fetching
+   - Skeleton muncul saat loading
