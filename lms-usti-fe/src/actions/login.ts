@@ -21,11 +21,13 @@ const loginUser = async (data: ILogin, callbackUrl?: string) => {
     });
     const meRes = await authServices.me();
     const role = meRes.data.data.role;
-    if (callbackUrl && callbackUrl.startsWith("/")) {
+    if (callbackUrl) {
       redirect(callbackUrl);
     }
     if (role === "MAHASISWA") {
       redirect("/mahasiswa");
+    } else if (role === "ADMIN") {
+      redirect("/admin");
     } else {
       redirect("/dosen");
     }
@@ -34,7 +36,7 @@ const loginUser = async (data: ILogin, callbackUrl?: string) => {
       const err = error as AxiosError<APIResponse>;
       throw new Error(err.response?.data.meta.message);
     }
-    throw error
+    throw error;
   }
 };
 

@@ -4,6 +4,8 @@ import endpoint from "./endpoint.constant";
 const adminServices = {
   getAllUsers: (params?: { page?: number; limit?: number }) =>
     instance.get(`${endpoint.ADMIN}/users`, { params }),
+  createUser: (data: ICreateUserRequest) =>
+    instance.post(`${endpoint.ADMIN}/users/create`, data),
 };
 
 export default adminServices;

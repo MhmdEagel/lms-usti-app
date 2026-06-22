@@ -1,227 +1,114 @@
-# Issue: Refactor Material Components — Sync dengan Backend Attachment Model
+# Issue: Fitur Tambah User — Admin User Management
 
 ## Goal
 
-Refactor komponen material (create, edit, display) pada dashboard dosen agar sync dengan backend attachment model yang sudah di-refactor dari `files` + `links` terpisah menjadi unified `attachments` array.
-
-**Fokus:** Frontend only — components, hooks, schemas, actions. Backend diabaikan.
-
-**File yang diubah:**
-- `src/schemas/material.ts` — schema validasi
-- `src/schemas/schemas.ts` — `newMaterialSchema`
-- `src/actions/new-material.ts` — create action
-- `src/actions/edit-material.ts` — update action
-- `src/actions/delete-material-batch.ts` — batch delete action
-- `src/actions/delete-file-material.ts` — single delete action
-- `src/components/views/.../CreateMaterialDialog/useCreateMaterialDialog.tsx` — hook create
-- `src/components/views/.../CreateMaterialDialog/CreateMaterialDialog.tsx` — form create
-- `src/components/views/.../CreateMaterialDialog/FileItem/FileItem.tsx` — file item create
-- `src/components/views/.../CreateMaterialDialog/LinkItem/LinkItem.tsx` — link item create
-- `src/components/views/.../CreateMaterialDialog/AddLinkDialog/AddLinkDialog.tsx` — add link create
-- `src/components/views/.../EditMaterialDialog/useEditMaterialDialog.tsx` — hook edit
-- `src/components/views/.../EditMaterialDialog/EditMaterialDialog.tsx` — form edit
-- `src/components/views/.../EditMaterialDialog/FileItem/FileItem.tsx` — file item edit
-- `src/components/views/.../EditMaterialDialog/LinkItem/LinkItem.tsx` — link item edit
-- `src/components/views/.../EditMaterialDialog/AddLinkDialog/AddLinkDialog.tsx` — add link edit
-- `src/components/common/MaterialDetail/MaterialDetail.tsx` — detail display
-- `src/components/common/MaterialDetail/FileMaterialItem/FileMaterialItem.tsx` — file card
-- `src/components/common/MaterialDetail/LinkMaterialItem/LinkMaterialItem.tsx` — link card
-- `src/components/views/.../Material/Material.tsx` — material list
-
-**Types yang sudah diupdate (dari issue sebelumnya):**
-- `src/types/Classroom.d.ts` — `IMaterial`, `INewMaterial`, `IUpdateMaterial` sudah pakai `attachments: IAttachment[]`
-- `src/types/Classroom.d.ts` — `IFileMaterial` dan `ILinkMaterial` sudah dihapus, `IAttachment` sudah ditambah
+Tambahkan tombol "Tambah User" di halaman Manajemen User yang membuka dialog form untuk membuat user baru. Form submit akan hit API `POST /admin/users/create`.
 
 ---
 
-## Perubahan Backend (Referensi)
+## Referensi Pola
 
-### Lama (frontend saat ini)
-```
-IMaterial.files: IFileMaterial[]
-IMaterial.links: ILinkMaterial[]
-INewMaterial.files: IFileMaterial[]
-INewMaterial.links: ILinkMaterial[]
-```
+- **Dialog pattern:** Lihat `CreateClassroom.tsx` dan `useCreateClassroom.ts` sebagai template. Pola yang sama akan digunakan.
+- **Server action pattern:** Lihat `src/actions/admin.ts` — sudah ada `getAllUsers`. Tambahkan `createUser` di file yang sama.
+- **Service pattern:** Lihat `src/services/admin.service.ts` — tambahkan method `createUser`.
+- **Schema pattern:** Lihat `src/schemas/schemas.ts` sebagai referensi Zod schema.
 
-### Baru (backend setelah refactor)
-```
-IMaterial.attachments: IAttachment[]
-INewMaterial.attachments: IAttachment[]
-IUpdateMaterial.attachments: IAttachment[]
-```
+---
 
-### Format IAttachment
-```json
-{
-  "id": "string (optional)",
-  "name": "string",
-  "type": "FILE | VIDEO | LINK",
-  "url": "string",
-  "unique_name": "string (wajib untuk FILE/VIDEO)"
+## Tahap 1 — Backend Service & Server Action
+
+**File:** `src/services/admin.service.ts`
+
+Tambahkan method `createUser` yang POST ke `/admin/users/create` dengan body `{ fullname, email, password, role }`.
+
+**File:** `src/actions/admin.ts`
+
+Tambahkan server action `createUser` yang memanggil `adminServices.createUser(data)`.
+
+**File:** `src/types/Admin.d.ts`
+
+Tambahkan interface `ICreateUserRequest`:
+```typescript
+interface ICreateUserRequest {
+  fullname: string;
+  email: string;
+  password: string;
+  role: "MAHASISWA" | "DOSEN" | "PRODI" | "ADMIN";
 }
 ```
 
 ---
 
-## Tahapan
+## Tahap 2 — Zod Schema
 
-### Tahap 1 — Update Schemas
+**File:** `src/schemas/admin.ts` (baru)
 
-**Apa:** Update Zod schemas agar pakai field `attachments` bukan `files` + `links`.
-
-**Cara:**
-- **`schemas/material.ts`**: Hapus `FileSchema` dan `LinkSchema`. Ganti `files` dan `links` jadi `attachments: z.array(AttachmentSchema).optional()` di `createMaterialSchema`
-- **`schemas/schemas.ts`**: Hapus `FileSchema` dan `LinkSchema`. Ganti field `files` dan `links` di `newMaterialSchema` jadi `attachments`
-- Tambah `AttachmentSchema` baru: `{ name: z.string(), type: z.enum(["FILE", "VIDEO", "LINK"]), url: z.string(), unique_name: z.string() }`
-
-**Checkpoint:** `npx tsc --noEmit`
+Buat Zod schema untuk validasi form:
+- `fullname`: string, required
+- `email`: string, required, email format
+- `password`: string, required, min 8 karakter
+- `role`: enum `MAHASISWA | DOSEN | PRODI | ADMIN`, required
 
 ---
 
-### Tahap 2 — Update Server Actions
+## Tahap 3 — Hook `useCreateUserDialog`
 
-**Apa:** Update actions agar pakai type `IAttachment` bukan `IFileMaterial`.
+**File:** `src/components/views/Dashboard/DashboardAdmin/UserManagement/CreateUserDialog/useCreateUserDialog.ts` (baru)
 
-**Cara:**
-- **`delete-material-batch.ts`**: Ganti parameter `files: IFileMaterial[]` jadi `attachments: IAttachment[]`. Update import.
-- **`delete-file-material.ts`**: Tidak perlu perubahan (sudah pakai string parameter).
-- **`new-material.ts`**: Cek type `INewMaterial` sudah match (sudah diupdate di issue sebelumnya).
-- **`edit-material.ts`**: Cek type `IUpdateMaterial` sudah match.
+Hook yang handle:
+- State `isOpen` (kontrol dialog) dan `isPending` (loading)
+- `createUserForm` — `useForm` + `zodResolver` dari schema di Tahap 2
+- `handleCreateUser` — panggil server action `createUser`, tutup dialog + refresh data jika sukses, tampilkan error di form jika gagal
+- `handleCloseForm` — tutup dialog + reset form
 
-**Checkpoint:** `npx tsc --noEmit`
-
----
-
-### Tahap 3 — Refactor Create Material Hook
-
-**Apa:** `useCreateMaterialDialog` harus manage satu array `attachments` bukan dua array `files` + `links`.
-
-**Cara:**
-- Ganti `arrayOfFiles: IFileMaterial[]` dan `arrayOfLinks: ILinkMaterial[]` jadi satu `arrayOfAttachments: IAttachment[]`
-- **`handleUploadFile`**: Setelah upload, buat `IAttachment` object dengan `type: "FILE"` dan tambah ke `arrayOfAttachments`
-- **`handleClose`**: Filter `arrayOfAttachments` yang `type === "FILE"` untuk batch delete (file yang perlu dihapus dari storage)
-- **`handleMaterialForm`**: Kirim `arrayOfAttachments` ke action
-- **Default form values**: Ganti `files: [], links: []` jadi `attachments: []`
-- **`useEffect`**: Sync `arrayOfAttachments` ke form value `attachments`
-
-**Checkpoint:** `npx tsc --noEmit`
+Pattern: copy dari `useCreateClassroom.ts`, ganti logic-nya.
 
 ---
 
-### Tahap 4 — Refactor Create Material Dialog
+## Tahap 4 — Component `CreateUserDialog`
 
-**Apa:** Update `CreateMaterialDialog.tsx` dan sub-components untuk pakai `attachments`.
+**File:** `src/components/views/Dashboard/DashboardAdmin/UserManagement/CreateUserDialog/CreateUserDialog.tsx` (baru)
 
-**Cara:**
-- **`CreateMaterialDialog.tsx`**:
-  - Ganti `arrayOfFiles` / `arrayOfLinks` jadi `arrayOfAttachments`
-  - Render file items: filter `arrayOfAttachments` where `type === "FILE"`
-  - Render link items: filter `arrayOfAttachments` where `type === "LINK"`
-- **`FileItem.tsx`**: Ganti type `IFileMaterial` jadi `IAttachment`. Update props (field names: `file_name` → `name`, `unique_file_name` → `unique_name`, `file_url` → `url`). Update `handleDelete` untuk filter berdasarkan `unique_name`.
-- **`LinkItem.tsx`**: Ganti type `ILinkMaterial` jadi `IAttachment`. Update props (field names: `link_name` → `name`, `link_url` → `url`). Update `handleDelete` untuk filter berdasarkan index/name.
-- **`AddLinkDialog.tsx`**: Ganti type `ILinkMaterial` jadi `IAttachment`. Buat `IAttachment` object dengan `type: "LINK"` saat add link. Update `setValue("links", ...)` jadi `setValue("attachments", ...)`.
+Dialog form dengan:
+- Trigger: tombol icon `+` (pakai `<Plus />` dari lucide-react), label tooltip "Tambah User"
+- Form fields:
+  - **Nama Lengkap** — `<Input>`
+  - **Email** — `<Input type="email">`
+  - **Password** — `<Input type="password">`
+  - **Role** — `<Select>` dengan 4 options (MAHASISWA, DOSEN, PRODI, ADMIN)
+- Footer: tombol "Batal" (DialogClose) + tombol "Simpan" (submit, tampilkan `<Spinner>` saat loading)
 
-**Checkpoint:** `npx tsc --noEmit`
-
----
-
-### Tahap 5 — Refactor Edit Material Hook
-
-**Apa:** `useEditMaterialDialog` harus manage satu array `attachments` dengan tracking status.
-
-**Cara:**
-- Ganti `TrackedFile` (extends `IFileMaterial`) jadi `TrackedAttachment` (extends `IAttachment`)
-- Hapus `TrackedLink` — sudah tidak perlu (gabung ke `TrackedAttachment`)
-- Ganti `trackedFiles` dan `trackedLinks` jadi satu `trackedAttachments: TrackedAttachment[]`
-- **`initializeFiles`**: Ganti jadi `initializeAttachments(attachments: IAttachment[])` — set semua status ke `"original"`
-- **`handleUploadFile`**: Buat `TrackedAttachment` dengan `type: "FILE"` dan `status: "new"`
-- **`handleDeleteFile`**: Update untuk cari berdasarkan `unique_name` di `trackedAttachments`
-- **`handleClose`**: Filter file yang `status === "new"` untuk cleanup
-- **`handleMaterialForm`**: Kirim attachments yang `status !== "deleted"` ke action, lalu batch delete yang `status === "deleted"`
-
-**Checkpoint:** `npx tsc --noEmit`
+Pattern: copy dari `CreateClassroom.tsx`, sesuaikan fields-nya.
 
 ---
 
-### Tahap 6 — Refactor Edit Material Dialog
+## Tahap 5 — Integrasi ke Halaman
 
-**Apa:** Update `EditMaterialDialog.tsx` dan sub-components untuk pakai `attachments`.
+**File:** `src/components/views/Dashboard/DashboardAdmin/UserManagement/UserManagement.tsx`
 
-**Cara:**
-- **`EditMaterialDialog.tsx`**:
-  - Ganti `material.files` dan `material.links` jadi filter `material.attachments` by type
-  - Panggil `initializeAttachments(filteredAttachments)` saat mount
-- **`FileItem.tsx` (edit)**: Update props dari `IFileMaterial` ke `IAttachment`. Field names: `file_name` → `name`, `unique_file_name` → `unique_name`.
-- **`LinkItem.tsx` (edit)**: Update props dari `ILinkMaterial` ke `IAttachment`. Field names: `link_name` → `name`, `link_url` → `url`.
-- **`AddLinkDialog.tsx` (edit)**: Buat `IAttachment` dengan `type: "LINK"` saat add. Update `setValue` ke field `attachments`.
-
-**Checkpoint:** `npx tsc --noEmit`
+Update agar:
+- Menampilkan `CreateUserDialog` di area header tabel (ujung kanan)
+- Setelah user berhasil dibuat, tabel harus refresh menampilkan data terbaru
 
 ---
 
-### Tahap 7 — Refactor Material Detail Display
+## Checkpoint
 
-**Apa:** `MaterialDetail.tsx` dan sub-components harus display attachments berdasarkan type.
-
-**Cara:**
-- **`MaterialDetail.tsx`**:
-  - Ganti `data.files` jadi `data.attachments?.filter(a => a.type === "FILE")`
-  - Ganti `data.links` jadi `data.attachments?.filter(a => a.type === "LINK")`
-- **`FileMaterialItem.tsx`**: Ganti type `IFileMaterial` ke `IAttachment`. Update field names: `file_name` → `name`, `file_url` → `url`.
-- **`LinkMaterialItem.tsx`**: Ganti type `ILinkMaterial` ke `IAttachment`. Update field names: `link_name` → `name`, `link_url` → `url`.
-
-**Checkpoint:** `npx tsc --noEmit`
-
----
-
-### Tahap 8 — Refactor Material List
-
-**Apa:** `Material.tsx` (material list server component) sudah benar — hanya display `title` dan `created_at`. Tidak perlu perubahan signifikan.
-
-**Cara:**
-- Cek type `IMaterial` sudah match (sudah diupdate di issue sebelumnya)
-- Tidak ada field `files`/`links` yang diakses di list view
-
-**Checkpoint:** `npm run build`
+1. `npx tsc —noEmit` — tidak ada type error
+2. Test manual: klik tombol + → dialog muncul → isi form → submit → dialog tutup + tabel refresh
+3. Test validasi: submit form kosong → error muncul di masing-masing field
+4. Test error backend: submit email yang sudah ada → error message muncul
 
 ---
 
 ## File yang Terlibat
 
-| File | Tahap | Aksi |
-|------|-------|------|
-| `src/schemas/material.ts` | 1 | Ganti files/links jadi attachments |
-| `src/schemas/schemas.ts` | 1 | Ganti files/links jadi attachments |
-| `src/actions/delete-material-batch.ts` | 2 | Ganti IFileMaterial ke IAttachment |
-| `src/components/.../CreateMaterialDialog/useCreateMaterialDialog.tsx` | 3 | Refactor ke single attachments array |
-| `src/components/.../CreateMaterialDialog/CreateMaterialDialog.tsx` | 4 | Update render logic |
-| `src/components/.../CreateMaterialDialog/FileItem/FileItem.tsx` | 4 | Ganti IFileMaterial ke IAttachment |
-| `src/components/.../CreateMaterialDialog/LinkItem/LinkItem.tsx` | 4 | Ganti ILinkMaterial ke IAttachment |
-| `src/components/.../CreateMaterialDialog/AddLinkDialog/AddLinkDialog.tsx` | 4 | Buat IAttachment dengan type LINK |
-| `src/components/.../EditMaterialDialog/useEditMaterialDialog.tsx` | 5 | Refactor ke single attachments array |
-| `src/components/.../EditMaterialDialog/EditMaterialDialog.tsx` | 6 | Update render logic |
-| `src/components/.../EditMaterialDialog/FileItem/FileItem.tsx` | 6 | Ganti IFileMaterial ke IAttachment |
-| `src/components/.../EditMaterialDialog/LinkItem/LinkItem.tsx` | 6 | Ganti ILinkMaterial ke IAttachment |
-| `src/components/.../EditMaterialDialog/AddLinkDialog/AddLinkDialog.tsx` | 6 | Buat IAttachment dengan type LINK |
-| `src/components/common/MaterialDetail/MaterialDetail.tsx` | 7 | Filter attachments by type |
-| `src/components/common/MaterialDetail/FileMaterialItem/FileMaterialItem.tsx` | 7 | Ganti IFileMaterial ke IAttachment |
-| `src/components/common/MaterialDetail/LinkMaterialItem/LinkMaterialItem.tsx` | 7 | Ganti ILinkMaterial ke IAttachment |
-
----
-
-## Verifikasi
-
-Setelah semua tahap selesai:
-1. Run `npx tsc --noEmit` — pasti compile tanpa type error
-2. Run `npm run build` — pasti build sukses
-3. Test manual:
-   - Create material tanpa attachment → berhasil
-   - Create material dengan upload file PDF → file tersimpan, muncul di detail
-   - Create material dengan tambah link → link tersimpan, muncul di detail
-   - Create material dengan file + link campuran → keduanya muncul
-   - Edit material → bisa ganti title/description
-   - Edit material → bisa tambah/hapus file
-   - Edit material → bisa tambah/hapus link
-   - Delete material → berhasil dan redirect ke list
-   - Lihat material detail → file dan link muncul dengan benar
+| File | Tindakan |
+|------|----------|
+| `src/types/Admin.d.ts` | Tambah `ICreateUserRequest` |
+| `src/services/admin.service.ts` | Tambah `createUser` |
+| `src/actions/admin.ts` | Tambah `createUser` server action |
+| `src/schemas/admin.ts` | Buat baru — Zod schema |
+| `src/components/.../CreateUserDialog/useCreateUserDialog.ts` | Buat baru — hook |
+| `src/components/.../CreateUserDialog/CreateUserDialog.tsx` | Buat baru — dialog component |
+| `src/components/.../UserManagement/UserManagement.tsx` | Update — integrasi dialog |

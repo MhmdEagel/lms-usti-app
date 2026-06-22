@@ -11,3 +11,10 @@ interface PaginationInfo {
   total: number;
   current: number;
 }
+
+interface ICreateUserRequest {
+  fullname: string;
+  email: string;
+  password: string;
+  role: "MAHASISWA" | "DOSEN" | "PRODI" | "ADMIN";
+}
