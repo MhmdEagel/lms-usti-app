@@ -76,6 +76,42 @@ func (a *AdminController) UpdateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+func (a *AdminController) FindUserById(ctx *gin.Context) {
+	userId := ctx.Param("id")
+	user, err := a.adminService.FindUserById(userId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			res := data.NewResponse(http.StatusNotFound, "user not found", nil)
+			ctx.JSON(http.StatusNotFound, res)
+			return
+		}
+		log.Printf("FindUserById: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "successfully find user", user)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (a *AdminController) DeleteUser(ctx *gin.Context) {
+	userId := ctx.Param("id")
+	err := a.adminService.DeleteUser(userId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			res := data.NewResponse(http.StatusNotFound, "user not found", nil)
+			ctx.JSON(http.StatusNotFound, res)
+			return
+		}
+		log.Printf("DeleteUser: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "user successfully deleted", nil)
+	ctx.JSON(http.StatusOK, res)
+}
+
 func (a *AdminController) SendResetUserPassword(ctx *gin.Context) {
 	var req data.SendVerificationRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

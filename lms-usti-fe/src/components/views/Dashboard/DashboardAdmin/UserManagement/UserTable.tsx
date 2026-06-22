@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import CreateUserDialog from "./CreateUserDialog/CreateUserDialog";
+import UserAction from "./UserAction/UserAction";
 
 const roleBadgeStyles: Record<string, string> = {
   ADMIN: "bg-red-100 text-red-700 border-red-200",
@@ -58,6 +59,11 @@ const columns: ColumnDef<IUser>[] = [
         </span>
       );
     },
+  },
+  {
+    id: "aksi",
+    header: "Aksi",
+    cell: ({ row }) => <UserAction user={row.original} />,
   },
 ];
 

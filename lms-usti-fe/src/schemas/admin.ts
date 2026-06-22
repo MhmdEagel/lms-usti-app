@@ -8,3 +8,11 @@ export const createUserSchema = z.object({
     required_error: "Role wajib dipilih",
   }),
 });
+
+export const updateUserSchema = z.object({
+  fullname: z.string().min(1, "Nama wajib diisi"),
+  email: z.string().email("Format email tidak valid"),
+  role: z.enum(["MAHASISWA", "DOSEN", "PRODI", "ADMIN"], {
+    required_error: "Role wajib dipilih",
+  }),
+});

@@ -18,3 +18,9 @@ interface ICreateUserRequest {
   password: string;
   role: "MAHASISWA" | "DOSEN" | "PRODI" | "ADMIN";
 }
+
+interface IUpdateUserRequest {
+  fullname?: string;
+  email?: string;
+  role?: "MAHASISWA" | "DOSEN" | "PRODI" | "ADMIN";
+}

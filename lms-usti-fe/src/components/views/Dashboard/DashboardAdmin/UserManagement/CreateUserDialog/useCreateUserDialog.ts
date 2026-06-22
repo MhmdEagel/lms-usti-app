@@ -5,19 +5,16 @@ import { useState } from "react";
 import { createUser } from "@/actions/admin";
 import { z } from "zod";
 
-const useCreateUserDialog = (onSuccess?: () => void) => {
+const useCreateUserDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
-
   const createUserForm = useForm({
     resolver: zodResolver(createUserSchema),
   });
-
   const handleCloseForm = () => {
     setIsOpen(false);
     createUserForm.reset();
   };
-
   const handleCreateUser = async (data: z.infer<typeof createUserSchema>) => {
     try {
       setIsPending(true);
@@ -33,7 +30,6 @@ const useCreateUserDialog = (onSuccess?: () => void) => {
       setIsPending(false);
     }
   };
-
   return {
     isOpen,
     isPending,

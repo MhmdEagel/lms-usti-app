@@ -22,6 +22,7 @@ type UserRepositoryInterface interface {
 	FindByEmail(email string) (user model.User, err error)
 	Update(user model.User) error
 	UpdatePassword(user model.User) error
+	Delete(userId string) error
 	FindAllClassrooms(userId string) (classrooms []model.Classroom, err error)
 }
 
@@ -47,7 +48,7 @@ func (u *UserRepository) FindAll(pagination data.Pagination) (paginationResult *
 }
 
 func (u *UserRepository) FindById(userId string) (user model.User, err error) {
-	result := u.Db.Find(&user, userId)
+	result := u.Db.Where("id = ?", userId).First(&user)
 	if result.Error != nil {
 		return model.User{}, result.Error
 	}
@@ -73,6 +74,17 @@ func (u *UserRepository) Update(user model.User) error {
 	res := u.Db.Where("id = ?", user.ID).Model(&model.User{}).Updates(user)
 	if res.Error != nil {
 		return res.Error
+	}
+	return nil
+}
+
+func (u *UserRepository) Delete(userId string) error {
+	result := u.Db.Where("id = ?", userId).Delete(&model.User{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
 	}
 	return nil
 }
