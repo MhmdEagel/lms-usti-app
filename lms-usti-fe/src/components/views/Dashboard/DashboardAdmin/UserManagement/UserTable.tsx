@@ -1,28 +1,21 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-
-const roleConfig: Record<string, { label: string; style: string }> = {
-  DOSEN: {
-    label: "Dosen",
-    style: "border-l-blue-500",
-  },
-  MAHASISWA: {
-    label: "Mahasiswa",
-    style: "border-l-green-500",
-  },
-  PRODI: {
-    label: "Prodi",
-    style: "border-l-purple-500",
-  },
-  ADMIN: {
-    label: "Admin",
-    style: "border-l-red-500",
-  },
-};
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import CreateUserDialog from "./CreateUserDialog/CreateUserDialog";
+import UserAction from "./UserAction/UserAction";
 
 const roleBadgeStyles: Record<string, string> = {
   ADMIN: "bg-red-100 text-red-700 border-red-200",
@@ -30,8 +23,6 @@ const roleBadgeStyles: Record<string, string> = {
   MAHASISWA: "bg-green-100 text-green-700 border-green-200",
   PRODI: "bg-purple-100 text-purple-700 border-purple-200",
 };
-
-const roleOrder = ["DOSEN", "MAHASISWA", "PRODI", "ADMIN"];
 
 const columns: ColumnDef<IUser>[] = [
   {
@@ -69,34 +60,88 @@ const columns: ColumnDef<IUser>[] = [
       );
     },
   },
+  {
+    id: "aksi",
+    header: "Aksi",
+    cell: ({ row }) => <UserAction user={row.original} />,
+  },
 ];
 
 interface UserTableProps {
   users: IUser[];
+  pagination: PaginationInfo;
 }
 
-export default function UserTable({ users }: UserTableProps) {
-  const grouped = roleOrder
-    .map((role) => ({
-      role,
-      label: roleConfig[role]?.label || role,
-      style: roleConfig[role]?.style || "",
-      data: users.filter((u) => u.role === role),
-    }))
-    .filter((g) => g.data.length > 0);
+const limitOptions = [5, 10, 20, 50];
+
+export default function UserTable({ users, pagination }: UserTableProps) {
+  const router = useRouter();
+  const { current, total_pages, total, limit } = pagination;
+
+  const navigate = (page: number, newLimit?: number) => {
+    const params = new URLSearchParams();
+    params.set("limit", String(newLimit ?? limit));
+    params.set("page", String(page));
+    router.push(`/admin/users?${params.toString()}`);
+  };
 
   return (
-    <div className="space-y-6">
-      {grouped.map((group) => (
-        <Card key={group.role} className={cn("border-l-4", group.style)}>
-          <CardHeader>
-            <CardTitle className="text-base">{group.label}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataTable columns={columns} data={group.data} />
-          </CardContent>
-        </Card>
-      ))}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          Total: {total} pengguna
+        </p>
+        <CreateUserDialog/>
+      </div>
+      <Card>
+        <CardHeader className="font-bold text-lg">Tabel User</CardHeader>
+        <CardContent className="p-0">
+          <DataTable columns={columns} data={users} />
+        </CardContent>
+      </Card>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Baris per halaman</span>
+          <Select
+            value={String(limit)}
+            onValueChange={(v) => navigate(1, Number(v))}
+          >
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {limitOptions.map((opt) => (
+                <SelectItem key={opt} value={String(opt)}>
+                  {opt}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={current <= 1}
+              onClick={() => navigate(current - 1)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Sebelumnya
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              {current} dari {total_pages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={current >= total_pages}
+              onClick={() => navigate(current + 1)}
+            >
+              Selanjutnya
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+      </div>
     </div>
   );
 }

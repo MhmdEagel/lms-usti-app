@@ -66,8 +66,9 @@ func InitRouter() *gin.Engine {
 			adminController := controllers.NewAdminController(adminService)
 			admin.GET("", adminController.FindAllUsers)
 			admin.POST("/create", adminController.CreateUser)
-			admin.GET("/:id")
+			admin.GET("/:id", adminController.FindUserById)
 			admin.PUT("/:id/update", adminController.UpdateUser)
+			admin.DELETE("/:id", adminController.DeleteUser)
 		}
 
 

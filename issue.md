@@ -1,227 +1,364 @@
-# Issue: Refactor Material Components — Sync dengan Backend Attachment Model
+# Issue: Fitur Edit & Delete User
 
 ## Goal
 
-Refactor komponen material (create, edit, display) pada dashboard dosen agar sync dengan backend attachment model yang sudah di-refactor dari `files` + `links` terpisah menjadi unified `attachments` array.
-
-**Fokus:** Frontend only — components, hooks, schemas, actions. Backend diabaikan.
-
-**File yang diubah:**
-- `src/schemas/material.ts` — schema validasi
-- `src/schemas/schemas.ts` — `newMaterialSchema`
-- `src/actions/new-material.ts` — create action
-- `src/actions/edit-material.ts` — update action
-- `src/actions/delete-material-batch.ts` — batch delete action
-- `src/actions/delete-file-material.ts` — single delete action
-- `src/components/views/.../CreateMaterialDialog/useCreateMaterialDialog.tsx` — hook create
-- `src/components/views/.../CreateMaterialDialog/CreateMaterialDialog.tsx` — form create
-- `src/components/views/.../CreateMaterialDialog/FileItem/FileItem.tsx` — file item create
-- `src/components/views/.../CreateMaterialDialog/LinkItem/LinkItem.tsx` — link item create
-- `src/components/views/.../CreateMaterialDialog/AddLinkDialog/AddLinkDialog.tsx` — add link create
-- `src/components/views/.../EditMaterialDialog/useEditMaterialDialog.tsx` — hook edit
-- `src/components/views/.../EditMaterialDialog/EditMaterialDialog.tsx` — form edit
-- `src/components/views/.../EditMaterialDialog/FileItem/FileItem.tsx` — file item edit
-- `src/components/views/.../EditMaterialDialog/LinkItem/LinkItem.tsx` — link item edit
-- `src/components/views/.../EditMaterialDialog/AddLinkDialog/AddLinkDialog.tsx` — add link edit
-- `src/components/common/MaterialDetail/MaterialDetail.tsx` — detail display
-- `src/components/common/MaterialDetail/FileMaterialItem/FileMaterialItem.tsx` — file card
-- `src/components/common/MaterialDetail/LinkMaterialItem/LinkMaterialItem.tsx` — link card
-- `src/components/views/.../Material/Material.tsx` — material list
-
-**Types yang sudah diupdate (dari issue sebelumnya):**
-- `src/types/Classroom.d.ts` — `IMaterial`, `INewMaterial`, `IUpdateMaterial` sudah pakai `attachments: IAttachment[]`
-- `src/types/Classroom.d.ts` — `IFileMaterial` dan `ILinkMaterial` sudah dihapus, `IAttachment` sudah ditambah
+Tambahkan fitur edit dan delete user di halaman Manajemen User. Setiap baris tabel punya kolom "Aksi" dengan tombol tiga titik (Popover) yang berisi tombol Edit dan Hapus.
 
 ---
 
-## Perubahan Backend (Referensi)
+## Naming Convention
 
-### Lama (frontend saat ini)
-```
-IMaterial.files: IFileMaterial[]
-IMaterial.links: ILinkMaterial[]
-INewMaterial.files: IFileMaterial[]
-INewMaterial.links: ILinkMaterial[]
+> **Semua nama component, folder, file, dan variable harus pakai Bahasa Inggris.**
+> - Folder: `EditUserDialog/`, `DeleteUserDialog/`
+> - File: `EditUserDialog.tsx`, `useEditUserDialog.ts`, `DeleteUserDialog.tsx`
+> - Component: `EditUserDialog`, `DeleteUserDialog`, `UserAction`
+> - Sidebar label boleh Indonesia untuk tampilan
+
+---
+
+## Analisis
+
+### Backend Yang Sudah Ada
+- `PUT /admin/users/:id/update` — update user (partial update, semua field optional)
+- Request body: `{ fullname?: string, email?: string, role?: string }`
+- **Catatan:** Tidak ada field `password` di update — hanya profil
+
+### Backend Yang Perlu Ditambahkan
+- `DELETE /admin/users/:id` — hapus user (perlu dibuat di backend)
+- `GET /admin/users/:id` — detail user (route sudah ada tapi **tanpa handler**)
+
+### Pola Yang Ada (Referensi)
+- **MaterialAction** (`src/components/common/MaterialDetail/MaterialAction/MaterialAction.tsx`):
+  - `Popover` + `EllipsisVertical` icon
+  - State `openEditDialog`, `openDeleteDialog`, `openPopOver`
+  - Konten popover: tombol "Edit" dan "Hapus"
+- **DeleteMaterialDialog** — `AlertDialog` controlled via `open`/`setOpen`
+- **DeleteAction (Announcement)** — `AlertDialog` + `useTransition` + `toast.success`
+- **CreateUserDialog** — form dengan `react-hook-form` + `zodResolver`, input Fullname, Email, Password, Select Role
+
+---
+
+## Tahap 1 — Backend: Tambah Endpoint Delete & Get User By ID
+
+> **Catatan:** Tahap ini di backend, tapi perlu diselesaikan dulu sebelum frontend bisa jalan.
+
+**File:** `lms-usti-be/controllers/admin_controller.go`
+
+Tambah 2 method:
+- `DeleteUser(ctx *gin.Context)` — ambil `:id` dari param, panggil service, return 200/404/500
+- `FindUserById(ctx *gin.Context)` — ambil `:id` dari param, panggil service, return 200 dengan data user
+
+**File:** `lms-usti-be/services/admin_service.go`
+
+Tambah 2 method di `AdminServiceInterface`:
+- `DeleteUser(userId string) error` — hapus user berdasarkan ID
+- `FindUserById(userId string) (*data.MeResponse, error)` — cari user by ID
+
+**File:** `lms-usti-be/router/api.go`
+
+Update route admin:
+```go
+admin.GET("/:id", adminController.FindUserById)    // tambah handler
+admin.PUT("/:id/update", adminController.UpdateUser)
+admin.DELETE("/:id", adminController.DeleteUser)     // tambah route baru
 ```
 
-### Baru (backend setelah refactor)
-```
-IMaterial.attachments: IAttachment[]
-INewMaterial.attachments: IAttachment[]
-IUpdateMaterial.attachments: IAttachment[]
+**Checkpoint:** `go build ./...`
+
+---
+
+## Tahap 2 — Frontend: Service & Server Action
+
+**File:** `src/services/admin.service.ts`
+
+Tambah 2 method:
+```typescript
+getUserById: (id: string) =>
+  instance.get(`${endpoint.ADMIN}/users/${id}`),
+
+updateUser: (id: string, data: IUpdateUserRequest) =>
+  instance.put(`${endpoint.ADMIN}/users/${id}/update`, data),
+
+deleteUser: (id: string) =>
+  instance.delete(`${endpoint.ADMIN}/users/${id}`),
 ```
 
-### Format IAttachment
-```json
-{
-  "id": "string (optional)",
-  "name": "string",
-  "type": "FILE | VIDEO | LINK",
-  "url": "string",
-  "unique_name": "string (wajib untuk FILE/VIDEO)"
+**File:** `src/actions/admin.ts`
+
+Tambah 3 server action:
+```typescript
+export async function getUserById(id: string) {
+  try {
+    const res = await adminServices.getUserById(id);
+    return res.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(err.response?.data.meta.message);
+    }
+    throw error;
+  }
+}
+
+export async function updateUser(id: string, data: IUpdateUserRequest) {
+  try {
+    const res = await adminServices.updateUser(id, data);
+    return res.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(err.response?.data.meta.message);
+    }
+    throw error;
+  }
+}
+
+export async function deleteUser(id: string) {
+  try {
+    const res = await adminServices.deleteUser(id);
+    return res.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(err.response?.data.meta.message);
+    }
+    throw error;
+  }
 }
 ```
 
----
+> **Pattern:** Error handling di dalam server action (sama seperti `login.ts`), bukan di client.
 
-## Tahapan
+**File:** `src/types/Admin.d.ts`
 
-### Tahap 1 — Update Schemas
+Tambah type:
+```typescript
+interface IUpdateUserRequest {
+  fullname?: string;
+  email?: string;
+  role?: "MAHASISWA" | "DOSEN" | "PRODI" | "ADMIN";
+}
 
-**Apa:** Update Zod schemas agar pakai field `attachments` bukan `files` + `links`.
+interface IUpdateUserRequest {
+  fullname?: string;
+  email?: string;
+  role?: "MAHASISWA" | "DOSEN" | "PRODI" | "ADMIN";
+}
+```
 
-**Cara:**
-- **`schemas/material.ts`**: Hapus `FileSchema` dan `LinkSchema`. Ganti `files` dan `links` jadi `attachments: z.array(AttachmentSchema).optional()` di `createMaterialSchema`
-- **`schemas/schemas.ts`**: Hapus `FileSchema` dan `LinkSchema`. Ganti field `files` dan `links` di `newMaterialSchema` jadi `attachments`
-- Tambah `AttachmentSchema` baru: `{ name: z.string(), type: z.enum(["FILE", "VIDEO", "LINK"]), url: z.string(), unique_name: z.string() }`
+**File:** `src/schemas/admin.ts`
 
-**Checkpoint:** `npx tsc --noEmit`
-
----
-
-### Tahap 2 — Update Server Actions
-
-**Apa:** Update actions agar pakai type `IAttachment` bukan `IFileMaterial`.
-
-**Cara:**
-- **`delete-material-batch.ts`**: Ganti parameter `files: IFileMaterial[]` jadi `attachments: IAttachment[]`. Update import.
-- **`delete-file-material.ts`**: Tidak perlu perubahan (sudah pakai string parameter).
-- **`new-material.ts`**: Cek type `INewMaterial` sudah match (sudah diupdate di issue sebelumnya).
-- **`edit-material.ts`**: Cek type `IUpdateMaterial` sudah match.
-
-**Checkpoint:** `npx tsc --noEmit`
-
----
-
-### Tahap 3 — Refactor Create Material Hook
-
-**Apa:** `useCreateMaterialDialog` harus manage satu array `attachments` bukan dua array `files` + `links`.
-
-**Cara:**
-- Ganti `arrayOfFiles: IFileMaterial[]` dan `arrayOfLinks: ILinkMaterial[]` jadi satu `arrayOfAttachments: IAttachment[]`
-- **`handleUploadFile`**: Setelah upload, buat `IAttachment` object dengan `type: "FILE"` dan tambah ke `arrayOfAttachments`
-- **`handleClose`**: Filter `arrayOfAttachments` yang `type === "FILE"` untuk batch delete (file yang perlu dihapus dari storage)
-- **`handleMaterialForm`**: Kirim `arrayOfAttachments` ke action
-- **Default form values**: Ganti `files: [], links: []` jadi `attachments: []`
-- **`useEffect`**: Sync `arrayOfAttachments` ke form value `attachments`
+Tambah schema edit (sama dengan create tapi semua field optional kecuali yang wajib):
+```typescript
+export const updateUserSchema = z.object({
+  fullname: z.string().min(1, "Nama wajib diisi").optional(),
+  email: z.string().email("Format email tidak valid").optional(),
+  role: z.enum(["MAHASISWA", "DOSEN", "PRODI", "ADMIN"]).optional(),
+});
+```
 
 **Checkpoint:** `npx tsc --noEmit`
 
 ---
 
-### Tahap 4 — Refactor Create Material Dialog
+## Tahap 3 — Buat Hook `useEditUserDialog`
 
-**Apa:** Update `CreateMaterialDialog.tsx` dan sub-components untuk pakai `attachments`.
+**File:** `src/components/views/Dashboard/DashboardAdmin/UserManagement/EditUserDialog/useEditUserDialog.ts` (baru)
 
-**Cara:**
-- **`CreateMaterialDialog.tsx`**:
-  - Ganti `arrayOfFiles` / `arrayOfLinks` jadi `arrayOfAttachments`
-  - Render file items: filter `arrayOfAttachments` where `type === "FILE"`
-  - Render link items: filter `arrayOfAttachments` where `type === "LINK"`
-- **`FileItem.tsx`**: Ganti type `IFileMaterial` jadi `IAttachment`. Update props (field names: `file_name` → `name`, `unique_file_name` → `unique_name`, `file_url` → `url`). Update `handleDelete` untuk filter berdasarkan `unique_name`.
-- **`LinkItem.tsx`**: Ganti type `ILinkMaterial` jadi `IAttachment`. Update props (field names: `link_name` → `name`, `link_url` → `url`). Update `handleDelete` untuk filter berdasarkan index/name.
-- **`AddLinkDialog.tsx`**: Ganti type `ILinkMaterial` jadi `IAttachment`. Buat `IAttachment` object dengan `type: "LINK"` saat add link. Update `setValue("links", ...)` jadi `setValue("attachments", ...)`.
-
-**Checkpoint:** `npx tsc --noEmit`
-
----
-
-### Tahap 5 — Refactor Edit Material Hook
-
-**Apa:** `useEditMaterialDialog` harus manage satu array `attachments` dengan tracking status.
-
-**Cara:**
-- Ganti `TrackedFile` (extends `IFileMaterial`) jadi `TrackedAttachment` (extends `IAttachment`)
-- Hapus `TrackedLink` — sudah tidak perlu (gabung ke `TrackedAttachment`)
-- Ganti `trackedFiles` dan `trackedLinks` jadi satu `trackedAttachments: TrackedAttachment[]`
-- **`initializeFiles`**: Ganti jadi `initializeAttachments(attachments: IAttachment[])` — set semua status ke `"original"`
-- **`handleUploadFile`**: Buat `TrackedAttachment` dengan `type: "FILE"` dan `status: "new"`
-- **`handleDeleteFile`**: Update untuk cari berdasarkan `unique_name` di `trackedAttachments`
-- **`handleClose`**: Filter file yang `status === "new"` untuk cleanup
-- **`handleMaterialForm`**: Kirim attachments yang `status !== "deleted"` ke action, lalu batch delete yang `status === "deleted"`
+Buat hook mirip `useCreateUserDialog`:
+- Props: `user: IUser`, `onSuccess?: () => void`
+- `isOpen` / `setIsOpen` — kontrol dialog
+- `isPending` — loading state
+- `editUserForm` — `useForm` dengan `zodResolver(updateUserSchema)`, **defaultValues** dari props `user`:
+  ```typescript
+  defaultValues: {
+    fullname: user.fullname,
+    email: user.email,
+    role: user.role,
+  }
+  ```
+- `handleEditUser` — panggil server action `updateUser(user.userId, data)`, handle success (tutup + refresh), handle error (set error di form)
+- `handleCloseForm` — tutup + reset form
 
 **Checkpoint:** `npx tsc --noEmit`
 
 ---
 
-### Tahap 6 — Refactor Edit Material Dialog
+## Tahap 4 — Buat Component `EditUserDialog`
 
-**Apa:** Update `EditMaterialDialog.tsx` dan sub-components untuk pakai `attachments`.
+**File:** `src/components/views/Dashboard/DashboardAdmin/UserManagement/EditUserDialog/EditUserDialog.tsx` (baru)
 
-**Cara:**
-- **`EditMaterialDialog.tsx`**:
-  - Ganti `material.files` dan `material.links` jadi filter `material.attachments` by type
-  - Panggil `initializeAttachments(filteredAttachments)` saat mount
-- **`FileItem.tsx` (edit)**: Update props dari `IFileMaterial` ke `IAttachment`. Field names: `file_name` → `name`, `unique_file_name` → `unique_name`.
-- **`LinkItem.tsx` (edit)**: Update props dari `ILinkMaterial` ke `IAttachment`. Field names: `link_name` → `name`, `link_url` → `url`.
-- **`AddLinkDialog.tsx` (edit)**: Buat `IAttachment` dengan `type: "LINK"` saat add. Update `setValue` ke field `attachments`.
-
-**Checkpoint:** `npx tsc --noEmit`
-
----
-
-### Tahap 7 — Refactor Material Detail Display
-
-**Apa:** `MaterialDetail.tsx` dan sub-components harus display attachments berdasarkan type.
-
-**Cara:**
-- **`MaterialDetail.tsx`**:
-  - Ganti `data.files` jadi `data.attachments?.filter(a => a.type === "FILE")`
-  - Ganti `data.links` jadi `data.attachments?.filter(a => a.type === "LINK")`
-- **`FileMaterialItem.tsx`**: Ganti type `IFileMaterial` ke `IAttachment`. Update field names: `file_name` → `name`, `file_url` → `url`.
-- **`LinkMaterialItem.tsx`**: Ganti type `ILinkMaterial` ke `IAttachment`. Update field names: `link_name` → `name`, `link_url` → `url`.
+Buat dialog form mirip `CreateUserDialog`:
+- `"use client"` directive
+- Props: `user: IUser`, `open: boolean`, `setOpen: Dispatch<SetStateAction<boolean>>`, `onSuccess?: () => void`
+- Controlled via `open`/`setOpen` (bukan trigger internal)
+- Import pattern sama seperti `CreateUserDialog`
+- Form fields:
+  - `fullname` — `<Input placeholder="Nama Lengkap" />`
+  - `email` — `<Input type="email" placeholder="Email" />`
+  - `role` — `<Select>` dengan options: MAHASISWA, DOSEN, PRODI, ADMIN
+  - **Tidak ada field password** — hanya edit profil
+- Buttons: "Batal" (DialogClose) + "Simpan" (submit + Spinner saat loading)
+- Root error display jika ada
 
 **Checkpoint:** `npx tsc --noEmit`
 
 ---
 
-### Tahap 8 — Refactor Material List
+## Tahap 5 — Buat Component `DeleteUserDialog`
 
-**Apa:** `Material.tsx` (material list server component) sudah benar — hanya display `title` dan `created_at`. Tidak perlu perubahan signifikan.
+**File:** `src/components/views/Dashboard/DashboardAdmin/UserManagement/DeleteUserDialog/DeleteUserDialog.tsx` (baru)
 
-**Cara:**
-- Cek type `IMaterial` sudah match (sudah diupdate di issue sebelumnya)
-- Tidak ada field `files`/`links` yang diakses di list view
+Buat alert dialog mirip `DeleteMaterialDialog`:
+- `"use client"` directive
+- Props: `user: IUser`, `open: boolean`, `setOpen: Dispatch<SetStateAction<boolean>>`, `onSuccess?: () => void`
+- Gunakan `AlertDialog` + `AlertDialogContent` + `AlertDialogHeader` + `AlertDialogFooter`
+- Konten:
+  - Title: "Hapus User"
+  - Description: "Apakah anda yakin ingin menghapus user [nama]? Akun yang dihapus tidak dapat dikembalikan."
+- Buttons: "Batal" (AlertDialogCancel) + "Hapus" (AlertDialogAction)
+- `useTransition` untuk loading state saat delete
+- Panggil server action `deleteUser(user.userId)`
+- `toast.success("User berhasil dihapus")` setelah berhasil
+- `onSuccess?.()` untuk refresh data parent
 
-**Checkpoint:** `npm run build`
+**Checkpoint:** `npx tsc --noEmit`
+
+---
+
+## Tahap 6 — Buat Component `UserAction` (Three Dots + Popover)
+
+**File:** `src/components/views/Dashboard/DashboardAdmin/UserManagement/UserAction/UserAction.tsx` (baru)
+
+Buat action column mirip `MaterialAction`:
+- `"use client"` directive
+- Props: `user: IUser`, `onSuccess?: () => void`
+- State: `openEditDialog`, `openDeleteDialog`, `openPopOver`
+- Render:
+  ```tsx
+  <Popover open={openPopOver} onOpenChange={setOpenPopOver}>
+    <PopoverTrigger asChild>
+      <Button variant="ghost" size="icon">
+        <EllipsisVertical />
+      </Button>
+    </PopoverTrigger>
+    <PopoverContent align="end" className="w-fit p-4">
+      <div className="flex flex-col gap-1">
+        <Button variant="ghost" onClick={...}>Edit</Button>
+        <Button variant="ghost" onClick={...}>Hapus</Button>
+      </div>
+    </PopoverContent>
+  </Popover>
+  ```
+- Tombol Edit: buka `EditUserDialog`
+- Tombol Hapus: buka `DeleteUserDialog`
+- Render `EditUserDialog` dan `DeleteUserDialog` di bawah Popover (controlled via state)
+
+**Checkpoint:** `npx tsc --noEmit`
+
+---
+
+## Tahap 7 — Integrasi ke UserTable
+
+**File:** `src/components/views/Dashboard/DashboardAdmin/UserManagement/UserTable.tsx`
+
+Update kolom tabel:
+- Import `UserAction`
+- Tambah kolom baru di posisi paling kanan:
+  ```typescript
+  {
+    id: "actions",
+    header: "Aksi",
+    cell: ({ row }) => (
+      <UserAction user={row.original} onSuccess={() => router.refresh()} />
+    ),
+  }
+  ```
+- Kolom "No" bisa dipertahankan atau dihapus (terserah, karena sudah ada index)
+
+**Checkpoint:** `npx tsc --noEmit`
 
 ---
 
 ## File yang Terlibat
 
-| File | Tahap | Aksi |
-|------|-------|------|
-| `src/schemas/material.ts` | 1 | Ganti files/links jadi attachments |
-| `src/schemas/schemas.ts` | 1 | Ganti files/links jadi attachments |
-| `src/actions/delete-material-batch.ts` | 2 | Ganti IFileMaterial ke IAttachment |
-| `src/components/.../CreateMaterialDialog/useCreateMaterialDialog.tsx` | 3 | Refactor ke single attachments array |
-| `src/components/.../CreateMaterialDialog/CreateMaterialDialog.tsx` | 4 | Update render logic |
-| `src/components/.../CreateMaterialDialog/FileItem/FileItem.tsx` | 4 | Ganti IFileMaterial ke IAttachment |
-| `src/components/.../CreateMaterialDialog/LinkItem/LinkItem.tsx` | 4 | Ganti ILinkMaterial ke IAttachment |
-| `src/components/.../CreateMaterialDialog/AddLinkDialog/AddLinkDialog.tsx` | 4 | Buat IAttachment dengan type LINK |
-| `src/components/.../EditMaterialDialog/useEditMaterialDialog.tsx` | 5 | Refactor ke single attachments array |
-| `src/components/.../EditMaterialDialog/EditMaterialDialog.tsx` | 6 | Update render logic |
-| `src/components/.../EditMaterialDialog/FileItem/FileItem.tsx` | 6 | Ganti IFileMaterial ke IAttachment |
-| `src/components/.../EditMaterialDialog/LinkItem/LinkItem.tsx` | 6 | Ganti ILinkMaterial ke IAttachment |
-| `src/components/.../EditMaterialDialog/AddLinkDialog/AddLinkDialog.tsx` | 6 | Buat IAttachment dengan type LINK |
-| `src/components/common/MaterialDetail/MaterialDetail.tsx` | 7 | Filter attachments by type |
-| `src/components/common/MaterialDetail/FileMaterialItem/FileMaterialItem.tsx` | 7 | Ganti IFileMaterial ke IAttachment |
-| `src/components/common/MaterialDetail/LinkMaterialItem/LinkMaterialItem.tsx` | 7 | Ganti ILinkMaterial ke IAttachment |
+| File | Tindakan |
+|------|----------|
+| `lms-usti-be/controllers/admin_controller.go` | Tambah `DeleteUser`, `FindUserById` |
+| `lms-usti-be/services/admin_service.go` | Tambah `DeleteUser`, `FindUserById` |
+| `lms-usti-be/router/api.go` | Update route admin |
+| `src/services/admin.service.ts` | Tambah `getUserById`, `updateUser`, `deleteUser` |
+| `src/actions/admin.ts` | Tambah 3 server action |
+| `src/types/Admin.d.ts` | Tambah `IUpdateUserRequest` |
+| `src/schemas/admin.ts` | Tambah `updateUserSchema` |
+| `src/components/views/Dashboard/DashboardAdmin/UserManagement/EditUserDialog/EditUserDialog.tsx` | Buat baru |
+| `src/components/views/Dashboard/DashboardAdmin/UserManagement/EditUserDialog/useEditUserDialog.ts` | Buat baru |
+| `src/components/views/Dashboard/DashboardAdmin/UserManagement/DeleteUserDialog/DeleteUserDialog.tsx` | Buat baru |
+| `src/components/views/Dashboard/DashboardAdmin/UserManagement/UserAction/UserAction.tsx` | Buat baru |
+| `src/components/views/Dashboard/DashboardAdmin/UserManagement/UserTable.tsx` | Update — tambah kolom Aksi |
+
+---
+
+## Type yang Digunakan
+
+```typescript
+// Sudah ada di src/types/Admin.d.ts
+interface IUser {
+  userId: string;
+  fullname: string;
+  email: string;
+  role: string;
+}
+
+// Tambah
+interface IUpdateUserRequest {
+  fullname?: string;
+  email?: string;
+  role?: "MAHASISWA" | "DOSEN" | "PRODI" | "ADMIN";
+}
+
+// Schema tambahan di src/schemas/admin.ts
+const updateUserSchema = z.object({
+  fullname: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  role: z.enum(["MAHASISWA", "DOSEN", "PRODI", "ADMIN"]).optional(),
+});
+```
+
+---
+
+## Backend Response Format
+
+```json
+// GET /admin/users/:id
+{
+  "meta": { "status": 200, "message": "successfully find user" },
+  "data": { "userId": "xxx", "email": "...", "role": "MAHASISWA", "fullname": "..." }
+}
+
+// PUT /admin/users/:id/update
+{
+  "meta": { "status": 200, "message": "user successfully updated" },
+  "data": null
+}
+
+// DELETE /admin/users/:id
+{
+  "meta": { "status": 200, "message": "user successfully deleted" },
+  "data": null
+}
+```
 
 ---
 
 ## Verifikasi
 
-Setelah semua tahap selesai:
-1. Run `npx tsc --noEmit` — pasti compile tanpa type error
-2. Run `npm run build` — pasti build sukses
-3. Test manual:
-   - Create material tanpa attachment → berhasil
-   - Create material dengan upload file PDF → file tersimpan, muncul di detail
-   - Create material dengan tambah link → link tersimpan, muncul di detail
-   - Create material dengan file + link campuran → keduanya muncul
-   - Edit material → bisa ganti title/description
-   - Edit material → bisa tambah/hapus file
-   - Edit material → bisa tambah/hapus link
-   - Delete material → berhasil dan redirect ke list
-   - Lihat material detail → file dan link muncul dengan benar
+1. `npx tsc --noEmit` — tanpa type error
+2. `npm run build` — build sukses
+3. `go build ./...` — backend build sukses
+4. Test manual:
+   - Login sebagai ADMIN → `/admin/users`
+   - Klik tiga titik di baris user → Popover muncul dengan tombol Edit dan Hapus
+   - Klik Edit → Dialog muncul dengan data user terisi (fullname, email, role)
+   - Ubah salah satu field → Simpan → dialog tertutup + tabel refresh + data updated
+   - Klik Hapus → AlertDialog muncul dengan konfirmasi nama user
+   - Klik "Hapus" di AlertDialog → loading spinner → toast success + tabel refresh
+   - Klik "Batal" di AlertDialog → dialog tertutup, data tetap
+5. **Pastikan semua nama component dalam Bahasa Inggris** (EditUserDialog, DeleteUserDialog, UserAction)

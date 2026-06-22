@@ -20,7 +20,9 @@ type AdminService struct {
 type AdminServiceInterface interface {
 	CreateUser(req data.RegisterRequest) error
 	FindAllUsers(pagination data.Pagination) (paginationResult data.PaginationWithData, err error)
+	FindUserById(userId string) (*data.MeResponse, error)
 	UpdateUser(req data.UpdateUserReq) error
+	DeleteUser(userId string) error
 	SendVerificationEmail(req data.SendVerificationRequest) error
 }
 
@@ -88,6 +90,24 @@ func (a *AdminService) UpdateUser(req data.UpdateUserReq) error {
 	}
 	return a.userRepository.Update(user)
 }
+func (a *AdminService) FindUserById(userId string) (*data.MeResponse, error) {
+	user, err := a.userRepository.FindById(userId)
+	if err != nil {
+		return nil, err
+	}
+	res := &data.MeResponse{
+		UserId:   user.ID,
+		Email:    user.Email,
+		Role:     user.Role,
+		Fullname: user.Fullname,
+	}
+	return res, nil
+}
+
+func (a *AdminService) DeleteUser(userId string) error {
+	return a.userRepository.Delete(userId)
+}
+
 func (a *AdminService) SendVerificationEmail(req data.SendVerificationRequest) error {
 	user, err := a.userRepository.FindByEmail(req.Email)
 	if err != nil {
