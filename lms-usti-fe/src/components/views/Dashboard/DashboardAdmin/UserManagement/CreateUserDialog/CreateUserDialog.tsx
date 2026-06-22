@@ -30,11 +30,9 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import useCreateUserDialog from "./useCreateUserDialog";
 
-interface PropTypes {
-  onSuccess?: () => void;
-}
 
-export default function CreateUserDialog({ onSuccess }: PropTypes) {
+
+export default function CreateUserDialog() {
   const {
     isOpen,
     isPending,
@@ -42,7 +40,7 @@ export default function CreateUserDialog({ onSuccess }: PropTypes) {
     createUserForm,
     handleCreateUser,
     handleCloseForm,
-  } = useCreateUserDialog(onSuccess);
+  } = useCreateUserDialog();
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

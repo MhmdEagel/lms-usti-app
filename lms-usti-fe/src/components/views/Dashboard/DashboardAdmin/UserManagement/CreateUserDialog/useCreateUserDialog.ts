@@ -24,12 +24,11 @@ const useCreateUserDialog = (onSuccess?: () => void) => {
       const res = await createUser(data);
       if (res.meta?.status === 200) {
         handleCloseForm();
-        onSuccess?.();
       }
-    } catch (e: any) {
-      const message =
-        e?.response?.data?.meta?.message || (e as Error).message;
-      createUserForm.setError("root", { message });
+    } catch (e) {
+      createUserForm.setError("root", {
+        message: (e as Error).message,
+      });
     } finally {
       setIsPending(false);
     }

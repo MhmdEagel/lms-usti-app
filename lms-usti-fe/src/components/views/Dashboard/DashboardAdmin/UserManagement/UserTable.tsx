@@ -85,7 +85,7 @@ export default function UserTable({ users, pagination }: UserTableProps) {
         <p className="text-sm text-muted-foreground">
           Total: {total} pengguna
         </p>
-        <CreateUserDialog onSuccess={() => router.refresh()} />
+        <CreateUserDialog/>
       </div>
       <Card>
         <CardHeader className="font-bold text-lg">Tabel User</CardHeader>
