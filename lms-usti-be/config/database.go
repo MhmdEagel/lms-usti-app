@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
 
 func ConnectDatabase() *gorm.DB {
 	dsn := fmt.Sprintf("%s:%s@tcp(localhost:3306)/lms_usti?charset=utf8mb4&parseTime=True&loc=Local", env.DB_USERNAME, env.DB_PASSWORD)

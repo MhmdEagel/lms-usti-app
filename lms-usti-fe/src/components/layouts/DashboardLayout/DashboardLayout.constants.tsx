@@ -1,4 +1,4 @@
-import { Grid2x2, ListTodo, School, Settings } from "lucide-react";
+import { Grid2x2, ListTodo, School, Settings, Users, ScrollText } from "lucide-react";
 
 const SIDEBAR_MAHASISWA = [
   {
@@ -27,12 +27,6 @@ const SIDEBAR_MAHASISWA = [
   },
 ];
 
-
-
-
-
-
-
 const SIDEBAR_DOSEN = [
   {
     key: "dashboard",
@@ -54,8 +48,31 @@ const SIDEBAR_DOSEN = [
   },
 ];
 
+const SIDEBAR_ADMIN = [
+  {
+    key: "dashboard",
+    label: "Dashboard",
+    href: "/admin",
+    icon: <Grid2x2 />,
+  },
+  {
+    key: "users",
+    label: "Manajemen User",
+    href: "/admin/users",
+    icon: <Users />,
+  },
+  {
+    key: "audit",
+    label: "Audit Logs",
+    href: "/admin/audit",
+    icon: <ScrollText />,
+  },
+  {
+    key: "settings",
+    label: "Pengaturan",
+    href: "/admin/settings",
+    icon: <Settings />,
+  },
+];
 
-
-
-
-export { SIDEBAR_MAHASISWA, SIDEBAR_DOSEN };
+export { SIDEBAR_MAHASISWA, SIDEBAR_DOSEN, SIDEBAR_ADMIN };

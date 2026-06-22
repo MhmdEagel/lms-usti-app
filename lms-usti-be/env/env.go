@@ -18,6 +18,8 @@ var MAX_FILE_PER_REQUEST string = goDotEnvVariable("MAX_FILE_PER_REQUEST")
 var BASE_STORAGE_PATH string = goDotEnvVariable("BASE_STORAGE_PATH")
 var DB_USERNAME string = goDotEnvVariable("DB_USERNAME")
 var DB_PASSWORD string = goDotEnvVariable("DB_PASSWORD")
+var ADMIN_EMAIL string = goDotEnvVariable("ADMIN_EMAIL")
+var ADMIN_PASSWORD string = goDotEnvVariable("ADMIN_PASSWORD")
 
 func goDotEnvVariable(key string) string {
 	err := godotenv.Load("./.env")
