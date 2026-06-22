@@ -1,10 +1,3 @@
-interface IRegister {
-  fullname: string;
-  email: string;
-  password: string;
-  role: string;
-}
-
 interface ILogin {
   email: string;
   password: string;
@@ -24,4 +17,4 @@ interface IActivation {
   token: string;
 }
 
-export type { IRegister, ILogin, IVerification, INewPassword, IActivation };
+export type { ILogin, IVerification, INewPassword, IActivation };

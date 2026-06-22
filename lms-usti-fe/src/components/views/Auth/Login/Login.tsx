@@ -114,15 +114,6 @@ export default function Login() {
                     "Login"
                   )}
                 </Button>
-                <div className="text-center">
-                  Belum punya akun?{" "}
-                  <Link
-                    className="font-bold text-primary hover:underline"
-                    href={"/auth/register/mahasiswa"}
-                  >
-                    register
-                  </Link>
-                </div>
               </div>
             </form>
           </Form>

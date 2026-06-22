@@ -50,12 +50,6 @@ const SIDEBAR_DOSEN = [
 
 const SIDEBAR_ADMIN = [
   {
-    key: "dashboard",
-    label: "Dashboard",
-    href: "/admin",
-    icon: <Grid2x2 />,
-  },
-  {
     key: "users",
     label: "Manajemen User",
     href: "/admin/users",
@@ -66,12 +60,6 @@ const SIDEBAR_ADMIN = [
     label: "Audit Logs",
     href: "/admin/audit",
     icon: <ScrollText />,
-  },
-  {
-    key: "settings",
-    label: "Pengaturan",
-    href: "/admin/settings",
-    icon: <Settings />,
   },
 ];
 

@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Metadata } from "next";
+import LoadingBar from "@/components/ui/loading-bar";
 
 export const metadata: Metadata = {
   title: {
@@ -17,7 +18,10 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <LoadingBar />
+        {children}
+      </body>
     </html>
   );
 }

@@ -28,10 +28,6 @@ export const DASHBOARD_TITLE_MAHASISWA = [
 ]
 export const DASHBOARD_TITLE_ADMIN = [
     {
-        path: "/admin",
-        title: "Dashboard",
-    },
-    {
         path: "/admin/users",
         title: "Manajemen User",
     },
@@ -39,8 +35,4 @@ export const DASHBOARD_TITLE_ADMIN = [
         path: "/admin/audit",
         title: "Audit Logs",
     },
-    {
-        path: "/admin/settings",
-        title: "Pengaturan",
-    }
 ]

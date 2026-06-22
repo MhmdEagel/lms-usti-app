@@ -11,7 +11,6 @@ import { ErrorResponse } from "@/types/Response";
 
 const useLogin = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const [registerSuccess, setRegisterSuccess] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const searchParams = useSearchParams();
 
