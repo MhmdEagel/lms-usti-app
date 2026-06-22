@@ -19,7 +19,7 @@ interface PropTypes {
   user?: {
     id: string;
     email: string;
-    role: "MAHASISWA" | "DOSEN";
+    role: "MAHASISWA" | "DOSEN" | "ADMIN";
     fullname?: string;
   };
   sidebarItems?: SidebarItem[];

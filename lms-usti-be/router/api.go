@@ -12,6 +12,7 @@ import (
 
 func InitRouter() *gin.Engine {
 	Db := config.ConnectDatabase()
+	config.SeedAdmin(Db)
 	r := gin.Default()
 	r.MaxMultipartMemory = 8 << 20
 	// TODO: Set CORS to be more secured

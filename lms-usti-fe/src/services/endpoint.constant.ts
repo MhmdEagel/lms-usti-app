@@ -1,6 +1,7 @@
 const endpoint = {
     AUTH: "/auth",
     CLASSROOM: "/classroom",
-    MEDIA: "/media"
+    MEDIA: "/media",
+    ADMIN: "/admin"
 }
 export default endpoint

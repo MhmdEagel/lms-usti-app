@@ -31,9 +31,11 @@ export async function middleware(request: NextRequest) {
     if (isAuthRoute) {
       if (user.role === "MAHASISWA") {
         return NextResponse.redirect(new URL("/mahasiswa", nextUrl));
-      } else {
-        return NextResponse.redirect(new URL("/dosen", nextUrl));
       }
+      if (user.role === "ADMIN") {
+        return NextResponse.redirect(new URL("/admin", nextUrl));
+      }
+      return NextResponse.redirect(new URL("/dosen", nextUrl));
     }
 
     if (!user && !isPublicRoute) {
@@ -42,10 +44,22 @@ export async function middleware(request: NextRequest) {
 
     const userRole = user.role;
     if (nextUrl.pathname.startsWith("/mahasiswa") && userRole !== "MAHASISWA") {
+      if (userRole === "ADMIN") {
+        return NextResponse.redirect(new URL("/admin", nextUrl));
+      }
       return NextResponse.redirect(new URL("/dosen", nextUrl));
     }
     if (nextUrl.pathname.startsWith("/dosen") && userRole !== "DOSEN") {
+      if (userRole === "ADMIN") {
+        return NextResponse.redirect(new URL("/admin", nextUrl));
+      }
       return NextResponse.redirect(new URL("/mahasiswa", nextUrl));
+    }
+    if (nextUrl.pathname.startsWith("/admin") && userRole !== "ADMIN") {
+      if (userRole === "MAHASISWA") {
+        return NextResponse.redirect(new URL("/mahasiswa", nextUrl));
+      }
+      return NextResponse.redirect(new URL("/dosen", nextUrl));
     }
   } catch {
     return NextResponse.redirect(loginUrl(nextUrl.pathname));

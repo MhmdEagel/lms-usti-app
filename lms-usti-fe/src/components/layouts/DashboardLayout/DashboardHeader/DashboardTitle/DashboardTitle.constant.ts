@@ -26,3 +26,21 @@ export const DASHBOARD_TITLE_MAHASISWA = [
         title: "Pengaturan"
     }
 ]
+export const DASHBOARD_TITLE_ADMIN = [
+    {
+        path: "/admin",
+        title: "Dashboard",
+    },
+    {
+        path: "/admin/users",
+        title: "Manajemen User",
+    },
+    {
+        path: "/admin/audit",
+        title: "Audit Logs",
+    },
+    {
+        path: "/admin/settings",
+        title: "Pengaturan",
+    }
+]
