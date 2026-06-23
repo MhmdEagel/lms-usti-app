@@ -15,9 +15,11 @@ interface PropTypes {
   assignmentId: string;
   title: string;
   deadline: string;
+  type?: "dosen" | "mahasiswa";
+  classroomId: string;
 }
 
-export default function AssignmentItem({ assignmentId, title, deadline }: PropTypes) {
+export default function AssignmentItem({ assignmentId, title, deadline, type = "dosen", classroomId }: PropTypes) {
   const router = useRouter();
   dayjs.locale("id");
   const isOverdue = dayjs(deadline).tz("Asia/Jakarta").isBefore(dayjs().tz("Asia/Jakarta"));
@@ -26,7 +28,7 @@ export default function AssignmentItem({ assignmentId, title, deadline }: PropTy
     <Card
       className="hover:bg-accent/50 cursor-pointer transition-colors"
       onClick={() =>
-        router.push(`/dosen/kelas/${assignmentId}/${assignmentId}`)
+        router.push(`/${type}/kelas/${classroomId}/${assignmentId}`)
       }
     >
       <CardContent className="flex items-center gap-4">

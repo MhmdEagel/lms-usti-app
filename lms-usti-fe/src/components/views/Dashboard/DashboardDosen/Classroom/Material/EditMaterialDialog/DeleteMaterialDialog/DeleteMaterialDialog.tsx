@@ -33,7 +33,7 @@ export default function DeleteMaterialDialog(props: PropTypes) {
         <AlertDialogHeader>
           <AlertDialogTitle>Apakah anda yakin?</AlertDialogTitle>
           <AlertDialogDescription>
-            Item yang sudah dihapus tidak dapat dikembalikan.
+            Materi yang sudah dihapus tidak dapat dikembalikan.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

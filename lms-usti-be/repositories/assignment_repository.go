@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"github.com/MhmdEagel/lms-usti-be/data"
+	"github.com/MhmdEagel/lms-usti-be/lib"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"gorm.io/gorm"
 )
@@ -14,7 +16,7 @@ type AssignmentRepositoryInterface interface {
 	CreateRubrics(assignmentRubric []model.AssignmentRubric) error
 	CreateAttachments(attachments []model.AssignmentAttachment) error
 	CreateSubmissions(submissions []model.Submission) error
-	FindAll(classroomId string) (assignments []model.Assignment, err error)
+	FindAll(classroomId string, pagination data.Pagination) (result *data.PaginationWithData, err error)
 	FindAllClassroomMahasiswa(classroomId string) ([]model.ClassroomMahasiswa, error)
 	FindById(assignmentId, classroomId string) (assignment model.Assignment, err error)
 	Update(assignment model.Assignment) error
@@ -43,12 +45,16 @@ func (a *AssignmentRepository) CreateRubrics(assignmentRubric []model.Assignment
 	}
 	return nil
 }
-func (a *AssignmentRepository) FindAll(classroomId string) (assignments []model.Assignment, err error) {
-	result := a.Db.Where("classroom_id = ?", classroomId).Find(&assignments)
-	if result.Error != nil {
-		return assignments, result.Error
+func (a *AssignmentRepository) FindAll(classroomId string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
+	var assignments []model.Assignment
+	result = &data.PaginationWithData{Pagination: pagination}
+	query := a.Db.Where("classroom_id = ?", classroomId)
+	if err := query.Scopes(lib.Paginate(assignments, &pagination, query)).Find(&assignments).Error; err != nil {
+		return nil, err
 	}
-	return assignments, nil
+	result.Data = assignments
+	result.Pagination = pagination
+	return result, nil
 }
 
 func (a *AssignmentRepository) FindById(assignmentId, classroomId string) (assignment model.Assignment, err error) {

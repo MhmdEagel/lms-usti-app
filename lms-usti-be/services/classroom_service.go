@@ -156,11 +156,13 @@ func (c *ClassroomService) EnrollMahasiswa(joinClassroomRequest data.JoinClassro
 	}
 	isSubmissionAlreadyCreated := c.submissionService.IsAlreadyCreated(mahasiswaId, classroom.ID)
 	if !isSubmissionAlreadyCreated {
-		assignments, err := c.assignmentService.FindAll(classroom.ID)
+		assignmentsPagination := data.Pagination{Limit: 9999, Current: 1}
+		paginatedResult, err := c.assignmentService.FindAll(classroom.ID, assignmentsPagination)
 		if err != nil {
 			log.Printf("EnrollMahasiswa: failed to find assignments: %v", err)
 			return data.NewAppError(500, "terjadi kesalahan server", err)
 		}
+		assignments := paginatedResult.Data.([]data.AssignmentResponse)
 		if len(assignments) > 0 {
 			for _, assignment := range assignments {
 				submission := data.SubmissionRequest{

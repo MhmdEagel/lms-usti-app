@@ -1,7 +1,7 @@
 import type { User } from "./Auth";
 
 interface IJoinClassroom {
-  code: string;
+  class_code: string;
 }
 interface ICreateClassroom {
   class_cover: string?;

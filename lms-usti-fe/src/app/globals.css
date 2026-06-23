@@ -170,3 +170,18 @@
   }
 }
 
+@keyframes loading-bar-progress {
+  0% {
+    width: 0%;
+    margin-left: 0;
+  }
+  40% {
+    width: 60%;
+    margin-left: 0;
+  }
+  100% {
+    width: 10%;
+    margin-left: 100%;
+  }
+}
+

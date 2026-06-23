@@ -3,14 +3,11 @@ import type {
   IActivation,
   ILogin,
   INewPassword,
-  IRegister,
   IVerification,
 } from "@/types/Auth";
 import endpoint from "./endpoint.constant";
 
 const authServices = {
-  register: (payload: IRegister) =>
-    instance.post(`${endpoint.AUTH}/register`, payload),
   login: (payload: ILogin) => instance.post(`${endpoint.AUTH}/login`, payload),
   activate: (payload: IActivation) =>
     instance.post(`${endpoint.AUTH}/activation`, payload),

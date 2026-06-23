@@ -3,8 +3,8 @@ import endpoint from "./endpoint.constant";
 import { INewMaterial, IUpdateMaterial } from "@/types/Classroom";
 
 export const materialServices = {
-  findAllMaterials: (classroomId: string) =>
-    instance.get(`${endpoint.CLASSROOM}/${classroomId}/materials`),
+  findAllMaterials: (classroomId: string, params?: { page?: number; limit?: number }) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}/materials`, { params }),
   findMaterialById: (classroomId: string, materialId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/materials/${materialId}`),
   create: (payload: INewMaterial, classroomId: string) =>

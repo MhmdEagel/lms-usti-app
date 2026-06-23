@@ -24,33 +24,6 @@ const resetSchema = z.object({
     ),
 });
 
-const registerSchema = z
-  .object({
-    fullname: z.string({ required_error: "Nama lengkap wajib diisi" }),
-    email: z
-      .string({ required_error: "Email wajib diisi" })
-      .email("Email tidak sesuai"),
-    // .regex(
-    //   /^[a-zA-Z0-9._%+-]+@sar\.ac\.id$/,
-    //   "Email harus menggunakan domain @sar.ac.id"
-    // )
-    password: z
-      .string({ required_error: "Password wajib diisi" })
-      .min(8, "Password minimal 8 karakter")
-      .regex(
-        /^(?=.*[A-Z])(?=.*\d).+$/,
-        "Password harus mengandung minimal satu huruf besar dan satu angka",
-      ),
-    confirmPassword: z.string({
-      required_error: "Konfirmasi password wajib diisi",
-    }),
-    role: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Password tidak sama",
-    path: ["confirmPassword"],
-  });
-
 const newPasswordSchema = z.object({
   old_password: z.string({ required_error: "Password lama wajib diisi" }),
   new_password: z
@@ -158,7 +131,6 @@ const newMaterialSchema = z.object({
 
 export {
   loginSchema,
-  registerSchema,
   resetSchema,
   newPasswordSchema,
   joinClassroomSchema,

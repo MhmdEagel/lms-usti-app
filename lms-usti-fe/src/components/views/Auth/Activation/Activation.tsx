@@ -16,10 +16,7 @@ export default function Activation() {
       {error && (
         <div>
           <p className="mx-auto mb-4 w-fit text-red-500">{error}</p>
-          <h1 className="mb-4 text-xl md:text-2xl">Silahkan lakukan registrasi ulang.</h1>
-          <Link href={`/auth/register/mahasiswa`}>
-            <Button className="w-full">Register</Button>
-          </Link>
+          <h1 className="mb-4 text-xl md:text-2xl">Silahkan hubungi admin untuk mendapatkan akun baru.</h1>
         </div>
       )}
       {success && (

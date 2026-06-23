@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/services"
@@ -35,12 +36,21 @@ func (m *MaterialController) Create(c *gin.Context) {
 
 func (m *MaterialController) FindAll(c *gin.Context) {
 	id := c.Param("id")
-	materials, err := m.materialService.FindAll(id)
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	page, _ := strconv.Atoi(c.Query("page"))
+
+	pagination := data.Pagination{Limit: limit, Current: page}
+	paginatedResult, err := m.materialService.FindAll(id, pagination)
 	if err != nil {
+		if appErr, ok := err.(*data.AppError); ok {
+			res := data.NewResponseFromError(appErr)
+			c.JSON(appErr.Code, res)
+			return
+		}
 		handleError(c, err)
 		return
 	}
-	res := data.NewResponse(http.StatusOK, "berhasil mengambil semua material", materials)
+	res := data.NewPaginationResponse(http.StatusOK, "berhasil mengambil semua material", paginatedResult.Pagination, paginatedResult.Data)
 	c.JSON(http.StatusOK, res)
 }
 

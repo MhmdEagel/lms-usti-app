@@ -1,5 +1,5 @@
 import Material from "@/components/views/Dashboard/DashboardDosen/Classroom/Material/Material";
-import MaterialSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/Material/MaterialSkeleton";
+import MaterialSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/Material/MaterialSkeleton/MaterialSkeleton";
 import { Suspense } from "react";
 
 export default async function MateriPage({
@@ -15,10 +15,8 @@ export default async function MateriPage({
   const limit = sp.limit ? parseInt(sp.limit) : 10;
 
   return (
-    <>
-      <Suspense fallback={<MaterialSkeleton />}>
-        <Material classroomId={classroomId} page={page} limit={limit} />
-      </Suspense>
-    </>
-  );
+    <Suspense fallback={<MaterialSkeleton />}>
+      <Material classroomId={classroomId} page={page} limit={limit} />
+    </Suspense>
+  )
 }

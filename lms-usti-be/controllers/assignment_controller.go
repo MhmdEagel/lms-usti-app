@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/services"
@@ -34,12 +35,21 @@ func (a *AssignmentController) Create(ctx *gin.Context) {
 
 func (a *AssignmentController) FindAll(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
-	assignments, err := a.assignmentService.FindAll(classroomId)
+	limit, _ := strconv.Atoi(ctx.Query("limit"))
+	page, _ := strconv.Atoi(ctx.Query("page"))
+
+	pagination := data.Pagination{Limit: limit, Current: page}
+	paginatedResult, err := a.assignmentService.FindAll(classroomId, pagination)
 	if err != nil {
+		if appErr, ok := err.(*data.AppError); ok {
+			res := data.NewResponseFromError(appErr)
+			ctx.JSON(appErr.Code, res)
+			return
+		}
 		handleError(ctx, err)
 		return
 	}
-	res := data.NewResponse(http.StatusOK, "berhasil mengambil semua assignment", assignments)
+	res := data.NewPaginationResponse(http.StatusOK, "berhasil mengambil semua assignment", paginatedResult.Pagination, paginatedResult.Data)
 	ctx.JSON(http.StatusOK, res)
 }
 

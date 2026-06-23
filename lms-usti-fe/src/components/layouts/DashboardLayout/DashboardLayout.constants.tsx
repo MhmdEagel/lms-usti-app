@@ -3,7 +3,7 @@ import { Grid2x2, ListTodo, School, Settings, Users, ScrollText } from "lucide-r
 const SIDEBAR_MAHASISWA = [
   {
     key: "dashboard",
-    label: "Dashboard",
+    label: "Beranda",
     href: "/mahasiswa",
     icon: <Grid2x2 />,
   },
@@ -30,7 +30,7 @@ const SIDEBAR_MAHASISWA = [
 const SIDEBAR_DOSEN = [
   {
     key: "dashboard",
-    label: "Dashboard",
+    label: "Beranda",
     href: "/dosen",
     icon: <Grid2x2 />,
   },
@@ -50,12 +50,6 @@ const SIDEBAR_DOSEN = [
 
 const SIDEBAR_ADMIN = [
   {
-    key: "dashboard",
-    label: "Dashboard",
-    href: "/admin",
-    icon: <Grid2x2 />,
-  },
-  {
     key: "users",
     label: "Manajemen User",
     href: "/admin/users",
@@ -66,12 +60,6 @@ const SIDEBAR_ADMIN = [
     label: "Audit Logs",
     href: "/admin/audit",
     icon: <ScrollText />,
-  },
-  {
-    key: "settings",
-    label: "Pengaturan",
-    href: "/admin/settings",
-    icon: <Settings />,
   },
 ];
 

@@ -1,6 +1,6 @@
 import React from "react";
 import MemberItem from "./MemberItem/MemberItem";
-import {getCurrentUser} from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { classroomServices } from "@/services/classroom.service";
 import { IClassroomMembers } from "@/types/Classroom";
 
@@ -11,7 +11,7 @@ export default async function ClassroomMembers({
 }) {
   const user = await getCurrentUser();
   const res = await classroomServices.getMembers(classroomId);
-  const members: IClassroomMembers = res.data.data
+  const members: IClassroomMembers = res.data.data;
   if (!members) {
     return (
       <div className="h-32 flex justify-center items-center text-center">
@@ -38,9 +38,9 @@ export default async function ClassroomMembers({
         {members.mahasiswa && members.mahasiswa.length > 0 ? (
           members.mahasiswa?.map((mahasiswa) => (
             <MemberItem
+              key={mahasiswa.userId}
               userRole={user?.role}
               userId={user?.id}
-              key={mahasiswa.id}
               fullname={mahasiswa.fullname}
             />
           ))

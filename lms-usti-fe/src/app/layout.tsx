@@ -1,3 +1,4 @@
+import NextTopLoader from 'nextjs-toploader';
 import "./globals.css";
 import { Metadata } from "next";
 
@@ -17,7 +18,10 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <NextTopLoader />
+        {children}
+      </body>
     </html>
   );
 }
