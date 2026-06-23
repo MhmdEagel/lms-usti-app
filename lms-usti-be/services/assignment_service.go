@@ -17,7 +17,7 @@ type AssignmentService struct {
 
 type AssignmentServiceInterface interface {
 	Create(assignmentRequest data.AssignmentRequest) error
-	FindAll(classroomId string) (assignments []data.AssignmentResponse, err error)
+	FindAll(classroomId string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error)
 	FindById(assignmentId, classroomId string) (assignment data.AssignmentDetailResponse, err error)
 	Update(assignmentRequest data.AssignmentUpdateRequest) error
 	Delete(assignmentId, classroomId string) error
@@ -109,16 +109,17 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 		})
 }
 
-func (a *AssignmentService) FindAll(classroomId string) (assignments []data.AssignmentResponse, err error) {
+func (a *AssignmentService) FindAll(classroomId string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error) {
 	classroom, err := a.classroomRepository.FindById(classroomId)
 	if err != nil {
-		return assignments, data.ErrClassroomNotFound(err)
+		return nil, data.ErrClassroomNotFound(err)
 	}
-	res, err := a.assignmentRepository.FindAll(classroom.ID)
+	paginatedResult, err = a.assignmentRepository.FindAll(classroom.ID, pagination)
 	if err != nil {
-		return assignments, err
+		return nil, err
 	}
-	for _, v := range res {
+	var assignments []data.AssignmentResponse
+	for _, v := range paginatedResult.Data.([]model.Assignment) {
 		assignment := data.AssignmentResponse{
 			ID:          v.ID,
 			Title:       v.Title,
@@ -127,7 +128,8 @@ func (a *AssignmentService) FindAll(classroomId string) (assignments []data.Assi
 		}
 		assignments = append(assignments, assignment)
 	}
-	return assignments, nil
+	paginatedResult.Data = assignments
+	return paginatedResult, nil
 }
 
 func (a *AssignmentService) FindById(assignmentId, classroomId string) (assignment data.AssignmentDetailResponse, err error) {

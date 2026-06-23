@@ -14,18 +14,28 @@ export default function LoadingBar() {
     if (currentPath !== prevPath.current) {
       prevPath.current = currentPath;
       setIsLoading(true);
-      const timer = setTimeout(() => setIsLoading(false), 400);
+      const timer = setTimeout(() => setIsLoading(false), 600);
       return () => clearTimeout(timer);
     }
   }, [pathname, searchParams]);
 
   return (
     <div
-      className="fixed top-0 left-0 z-[9999] w-full"
-      style={{ opacity: isLoading ? 1 : 0, transition: "opacity 0.2s" }}
+      className="fixed top-0 left-0 z-[9999] w-full pointer-events-none"
+      style={{
+        opacity: isLoading ? 1 : 0,
+        transition: "opacity 0.3s ease",
+      }}
     >
-      <div className="h-[3px] bg-primary relative overflow-hidden">
-        <div className="absolute inset-0 bg-primary/40 animate-pulse" />
+      <div className="h-[3px] w-full relative overflow-hidden bg-transparent">
+        <div
+          className="absolute top-0 left-[-1%] h-full bg-primary rounded-r-full"
+          style={{
+            animation: isLoading
+              ? "loading-bar-progress 1.5s ease-in-out infinite"
+              : "none",
+          }}
+        />
       </div>
     </div>
   );

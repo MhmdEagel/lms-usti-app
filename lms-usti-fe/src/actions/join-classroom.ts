@@ -12,7 +12,7 @@ export const joinClassroom = async (classCode: string) => {
     throw new Error("Hanya mahasiswa yang dapat gabung kelas");
 
   try {
-    await classroomServices.join({ code: classCode });
+    await classroomServices.join({ class_code: classCode });
     revalidatePath("/mahasiswa/kelas");
     return { success: "Berhasil gabung kelas", error: null };
   } catch (e) {

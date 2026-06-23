@@ -3,10 +3,22 @@ import AssignmentHeader from "./AssignmentHeader/AssignmentHeader";
 import AssignmentItem from "./AssignmentItem/AssignmentItem";
 import { assignmentServices } from "@/services/assignment.service";
 import { IAssignment } from "@/types/Classroom";
+import PaginationControls from "@/components/common/PaginationControls/PaginationControls";
 
-export default async function Assignment({ classroomId }: { classroomId: string }) {
+export default async function Assignment({
+  classroomId,
+  type = "dosen",
+  page = 1,
+  limit = 10,
+}: {
+  classroomId: string;
+  type?: "dosen" | "mahasiswa";
+  page?: number;
+  limit?: number;
+}) {
   const user = await getCurrentUser();
-  const res = await assignmentServices.findAllAssignments(classroomId);
+  const res = await assignmentServices.findAllAssignments(classroomId, { page, limit });
+  const pagination: PaginationInfo = res.data?.pagination;
   const listAssignment: IAssignment[] | null = res.data?.data;
 
   return (
@@ -17,6 +29,8 @@ export default async function Assignment({ classroomId }: { classroomId: string 
           listAssignment.map((item) => (
             <AssignmentItem
               key={item.id}
+              type={type}
+              classroomId={classroomId}
               assignmentId={item.id!}
               title={item.title}
               deadline={item.deadline!}
@@ -28,6 +42,14 @@ export default async function Assignment({ classroomId }: { classroomId: string 
           </div>
         )}
       </div>
+      {pagination && pagination.total_pages > 1 && (
+        <PaginationControls
+          current={pagination.current}
+          totalPages={pagination.total_pages}
+          total={pagination.total}
+          limit={pagination.limit}
+        />
+      )}
     </>
   );
 }

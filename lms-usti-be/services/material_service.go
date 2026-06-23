@@ -15,7 +15,7 @@ type MaterialService struct {
 }
 type MaterialServiceInterface interface {
 	Create(materialRequest data.MaterialRequest) error
-	FindAll(classroomId string) (materials []data.MaterialResponse, err error)
+	FindAll(classroomId string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error)
 	FindById(materialId, classroomId string) (material data.MaterialDetailResponse, err error)
 	Update(materialUpdateRequest data.MaterialUpdateRequest) error
 	Delete(materialId, classroomId string) error
@@ -68,16 +68,17 @@ func (m *MaterialService) Create(materialRequest data.MaterialRequest) error {
 	}
 	return nil
 }
-func (m *MaterialService) FindAll(classroomId string) (materials []data.MaterialResponse, err error) {
+func (m *MaterialService) FindAll(classroomId string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error) {
 	classroom, err := m.classroomRepository.FindById(classroomId)
 	if err != nil {
 		return nil, data.ErrClassroomNotFound(err)
 	}
-	res, err := m.materialRepository.FindAll(classroom.ID)
+	paginatedResult, err = m.materialRepository.FindAll(classroom.ID, pagination)
 	if err != nil {
-		return []data.MaterialResponse{}, err
+		return nil, err
 	}
-	for _, v := range res {
+	var materials []data.MaterialResponse
+	for _, v := range paginatedResult.Data.([]model.Material) {
 		material := data.MaterialResponse{
 			Id:          v.ID,
 			Title:       v.Title,
@@ -87,8 +88,8 @@ func (m *MaterialService) FindAll(classroomId string) (materials []data.Material
 		}
 		materials = append(materials, material)
 	}
-
-	return materials, nil
+	paginatedResult.Data = materials
+	return paginatedResult, nil
 }
 func (m *MaterialService) FindById(materialId, classroomId string) (material data.MaterialDetailResponse, err error) {
 	if _, err := m.classroomRepository.FindById(classroomId); err != nil {

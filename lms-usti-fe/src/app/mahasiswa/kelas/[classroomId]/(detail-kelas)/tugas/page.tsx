@@ -15,10 +15,8 @@ export default async function TugasPage({
   const limit = sp.limit ? parseInt(sp.limit) : 10;
 
   return (
-    <>
-      <Suspense fallback={<AssignmentSkeleton />}>
-        <Assignment classroomId={classroomId} page={page} limit={limit} />
-      </Suspense>
-    </>
+    <Suspense fallback={<AssignmentSkeleton />}>
+      <Assignment classroomId={classroomId} type="mahasiswa" page={page} limit={limit} />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
+import NextTopLoader from 'nextjs-toploader';
 import "./globals.css";
 import { Metadata } from "next";
-import LoadingBar from "@/components/ui/loading-bar";
 
 export const metadata: Metadata = {
   title: {
@@ -19,7 +19,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
-        <LoadingBar />
+        <NextTopLoader />
         {children}
       </body>
     </html>
