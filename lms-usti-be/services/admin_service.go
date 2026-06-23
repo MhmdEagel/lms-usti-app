@@ -73,6 +73,9 @@ func (a *AdminService) FindAllUsers(pagination data.Pagination) (paginationResul
 			Email:    v.Email,
 			Role:     v.Role,
 			Fullname: v.Fullname,
+			Profile:  v.Image,
+			Nim:      v.Nim,
+			Nidn:     v.Nidn,
 		}
 		users = append(users, userResponse)
 	}
@@ -116,6 +119,9 @@ func (a *AdminService) FindUserById(userId string) (*data.MeResponse, error) {
 		Email:    user.Email,
 		Role:     user.Role,
 		Fullname: user.Fullname,
+		Profile:  user.Image,
+		Nim:      user.Nim,
+		Nidn:     user.Nidn,
 	}
 	return res, nil
 }

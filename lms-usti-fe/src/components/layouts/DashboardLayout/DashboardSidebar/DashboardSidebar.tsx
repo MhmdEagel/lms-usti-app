@@ -79,6 +79,7 @@ export default function DashboardSidebar(props: PropTypes) {
       <SidebarFooter>
         <DashboardUserNav
           user={{ avatar: "", name: user?.fullname, email: user?.email }}
+          userRole={user?.role}
           onLogout={handleLogout}
         />
       </SidebarFooter>

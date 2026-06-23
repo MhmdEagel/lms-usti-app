@@ -12,6 +12,8 @@ type User struct {
 	Image                  string         `json:"profile,omitempty"`
 	Password               string         `json:"-" gorm:"not null"`
 	Role                   string         `json:"role" gorm:"type:varchar(20);not null"`
+	Nim                    string         `json:"nim,omitempty"`
+	Nidn                   string         `json:"nidn,omitempty"`
 	DosenClassrooms        []Classroom    `json:"dosenClassrooms,omitempty" gorm:"foreignKey:DosenId;"`
 	MahasiswaClassrooms    []Classroom    `json:"mahasiswaClassrooms,omitempty" gorm:"many2many:classroom_mahasiswas;constraint:OnDelete:CASCADE;"`
 	ClassroomAnnouncements []Announcement `json:"dosenAnnouncements,omitempty" gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE;"`

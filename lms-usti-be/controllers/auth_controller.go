@@ -77,6 +77,30 @@ func (a *AuthController) ResetPassword(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+func (a *AuthController) UpdateProfile(c *gin.Context) {
+	userId := getUserId(c)
+	if userId == "" {
+		appErr := data.NewAppError(http.StatusUnauthorized, "unauthorized", nil)
+		res := data.NewResponseFromError(appErr)
+		c.JSON(http.StatusUnauthorized, res)
+		return
+	}
+	var req data.UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		bindJSONError(c, err)
+		return
+	}
+	err := a.authService.UpdateProfile(userId, req)
+	if err != nil {
+		appErr := data.NewAppError(http.StatusInternalServerError, "gagal mengupdate profil", err)
+		res := data.NewResponseFromError(appErr)
+		c.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "profil berhasil diperbarui", nil)
+	c.JSON(http.StatusOK, res)
+}
+
 func (a *AuthController) Me(c *gin.Context) {
 	val, exist := c.Get("user")
 	if !exist {
@@ -84,13 +108,20 @@ func (a *AuthController) Me(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	user, ok := val.(data.MeResponse)
-	if ok {
-		res := data.NewResponse(http.StatusOK, "berhasil mengambil data user", user)
-		c.JSON(http.StatusOK, res)
+	userClaim, ok := val.(data.MeResponse)
+	if !ok {
+		appErr := data.NewAppError(http.StatusBadRequest, "invalid user data", nil)
+		res := data.NewResponseFromError(appErr)
+		c.JSON(http.StatusBadRequest, res)
 		return
 	}
-	appErr := data.NewAppError(http.StatusBadRequest, "invalid user data", nil)
-	res := data.NewResponseFromError(appErr)
-	c.JSON(http.StatusBadRequest, res)
+	user, err := a.authService.GetUserById(userClaim.UserId)
+	if err != nil {
+		appErr := data.NewAppError(http.StatusInternalServerError, "gagal mengambil data user", err)
+		res := data.NewResponseFromError(appErr)
+		c.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "berhasil mengambil data user", user)
+	c.JSON(http.StatusOK, res)
 }

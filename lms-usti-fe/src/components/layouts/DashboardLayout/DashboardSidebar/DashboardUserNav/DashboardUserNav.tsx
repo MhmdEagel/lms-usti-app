@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -21,6 +22,7 @@ import {
 
 export function DashboardUserNav({
   user,
+  userRole,
   onLogout,
 }: {
   user: {
@@ -28,9 +30,11 @@ export function DashboardUserNav({
     email: string | null | undefined;
     avatar?: string;
   };
+  userRole?: string;
   onLogout?: () => void;
 }) {
   const { isMobile } = useSidebar();
+  const router = useRouter();
 
   return (
     <SidebarMenu>
@@ -76,7 +80,12 @@ export function DashboardUserNav({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  const rolePath = userRole?.toLowerCase() || "mahasiswa";
+                  router.push(`/${rolePath}/pengaturan`);
+                }}
+              >
                 <Settings />
                 Pengaturan
               </DropdownMenuItem>

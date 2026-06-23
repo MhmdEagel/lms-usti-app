@@ -62,6 +62,7 @@ func InitRouter() *gin.Engine {
 			auth.POST("/reset-password", authController.SendResetPasswordEmail)
 			auth.POST("/new-password", authController.ResetPassword)
 			auth.Use(authMiddleware.Handle()).GET("/me", authController.Me)
+			auth.Use(authMiddleware.Handle()).PUT("/me/profile", authController.UpdateProfile)
 		}
 		admin := api.Group("/admin/users")
 		admin.Use(authMiddleware.Handle(), aclMiddleware.Handle([]string{"ADMIN"}))
