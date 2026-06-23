@@ -4,6 +4,7 @@ import MaterialItem from "./MaterialItem/MaterialItem";
 import { materialServices } from "@/services/material.service";
 import { IMaterial } from "@/types/Classroom";
 import PaginationControls from "@/components/common/PaginationControls/PaginationControls";
+import PaginationNav from "@/components/common/PaginationControls/PaginationNav";
 
 export default async function Material({
   classroomId,
@@ -22,7 +23,7 @@ export default async function Material({
   return (
     <>
       <MaterialHeader classroomId={classroomId} userRole={user?.role} />
-      <div className="mt-4 space-y-4">
+      <div className="mt-4 flex flex-col gap-4">
         {listMateri && listMateri.length > 0 ? (
           listMateri.map((item) => (
             <MaterialItem
@@ -36,13 +37,19 @@ export default async function Material({
           <div className="h-32 flex justify-center items-center">Belum ada materi yang ditambahkan</div>
         )}
       </div>
-      {pagination && pagination.total_pages > 1 && (
-        <PaginationControls
-          current={pagination.current}
-          totalPages={pagination.total_pages}
-          total={pagination.total}
-          limit={pagination.limit}
-        />
+      {pagination && (
+        <div className="flex items-center justify-between mt-4">
+          <PaginationControls
+            current={pagination.current}
+            limit={pagination.limit}
+          />
+          <PaginationNav
+            current={pagination.current}
+            totalPages={pagination.total_pages}
+            total={pagination.total}
+            limit={pagination.limit}
+          />
+        </div>
       )}
     </>
   );

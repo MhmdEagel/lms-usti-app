@@ -1,7 +1,7 @@
 export const DASHBOARD_TITLE_DOSEN = [
     {
         path: "/dosen",
-        title: "Dashboard",
+        title: "Beranda",
     },
     {
         path: "/dosen/kelas",
@@ -15,7 +15,7 @@ export const DASHBOARD_TITLE_DOSEN = [
 export const DASHBOARD_TITLE_MAHASISWA = [
     {
         path: "/mahasiswa",
-        title: "Dashboard",
+        title: "Beranda",
     },
     {
         path: "/mahasiswa/kelas",

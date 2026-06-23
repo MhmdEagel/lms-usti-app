@@ -4,6 +4,7 @@ import AssignmentItem from "./AssignmentItem/AssignmentItem";
 import { assignmentServices } from "@/services/assignment.service";
 import { IAssignment } from "@/types/Classroom";
 import PaginationControls from "@/components/common/PaginationControls/PaginationControls";
+import PaginationNav from "@/components/common/PaginationControls/PaginationNav";
 
 export default async function Assignment({
   classroomId,
@@ -24,7 +25,7 @@ export default async function Assignment({
   return (
     <>
       <AssignmentHeader classroomId={classroomId} userRole={user?.role} />
-      <div className="mt-4 space-y-4">
+      <div className="mt-4 flex flex-col gap-4">
         {listAssignment && listAssignment.length > 0 ? (
           listAssignment.map((item) => (
             <AssignmentItem
@@ -42,13 +43,19 @@ export default async function Assignment({
           </div>
         )}
       </div>
-      {pagination && pagination.total_pages > 1 && (
-        <PaginationControls
-          current={pagination.current}
-          totalPages={pagination.total_pages}
-          total={pagination.total}
-          limit={pagination.limit}
-        />
+      {pagination && (
+        <div className="flex items-center justify-between mt-4">
+          <PaginationControls
+            current={pagination.current}
+            limit={pagination.limit}
+          />
+          <PaginationNav
+            current={pagination.current}
+            totalPages={pagination.total_pages}
+            total={pagination.total}
+            limit={pagination.limit}
+          />
+        </div>
       )}
     </>
   );

@@ -3,7 +3,7 @@ import { Grid2x2, ListTodo, School, Settings, Users, ScrollText } from "lucide-r
 const SIDEBAR_MAHASISWA = [
   {
     key: "dashboard",
-    label: "Dashboard",
+    label: "Beranda",
     href: "/mahasiswa",
     icon: <Grid2x2 />,
   },
@@ -30,7 +30,7 @@ const SIDEBAR_MAHASISWA = [
 const SIDEBAR_DOSEN = [
   {
     key: "dashboard",
-    label: "Dashboard",
+    label: "Beranda",
     href: "/dosen",
     icon: <Grid2x2 />,
   },

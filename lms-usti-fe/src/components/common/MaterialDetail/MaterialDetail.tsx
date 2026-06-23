@@ -48,8 +48,8 @@ export default async function MaterialDetail(props: PropTypes) {
         />
         <div className="text-2xl md:text-4xl font-bold text-primary mb-1">
           404
-        </div>
         <div className="text-base md:text-2xl">Materi tidak ditemukan</div>
+        </div>
       </div>
     );
   }
