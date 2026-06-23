@@ -35,4 +35,8 @@ export const DASHBOARD_TITLE_ADMIN = [
         path: "/admin/audit",
         title: "Audit Logs",
     },
+    {
+        path: "/admin/pengaturan",
+        title: "Pengaturan",
+    },
 ]

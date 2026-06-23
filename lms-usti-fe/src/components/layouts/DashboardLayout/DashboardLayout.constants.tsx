@@ -61,6 +61,12 @@ const SIDEBAR_ADMIN = [
     href: "/admin/audit",
     icon: <ScrollText />,
   },
+  {
+    key: "pengaturan",
+    label: "Pengaturan",
+    href: "/admin/pengaturan",
+    icon: <Settings />,
+  },
 ];
 
 export { SIDEBAR_MAHASISWA, SIDEBAR_DOSEN, SIDEBAR_ADMIN };

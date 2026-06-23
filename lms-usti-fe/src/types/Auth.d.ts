@@ -17,4 +17,9 @@ interface IActivation {
   token: string;
 }
 
-export type { ILogin, IVerification, INewPassword, IActivation };
+interface IUpdateProfileRequest {
+  fullname?: string;
+  email?: string;
+}
+
+export type { ILogin, IVerification, INewPassword, IActivation, IUpdateProfileRequest };

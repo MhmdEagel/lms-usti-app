@@ -22,6 +22,8 @@ type AuthServiceInterface interface {
 	Login(loginRequest data.LoginRequest) (loginResponse data.LoginResponse, err error)
 	SendVerificationEmail(req data.SendVerificationRequest) error
 	ResetPassword(req data.NewPasswordRequest) error
+	GetUserById(userId string) (*data.MeResponse, error)
+	UpdateProfile(userId string, req data.UpdateProfileRequest) error
 }
 func (a *AuthService) Login(loginRequest data.LoginRequest) (loginResponse data.LoginResponse, err error) {
 	user, err := a.userRepository.FindByEmail(loginRequest.Email)
@@ -84,6 +86,42 @@ func (a *AuthService) ResetPassword(req data.NewPasswordRequest) error {
 	}
 	return nil
 }
+func (a *AuthService) GetUserById(userId string) (*data.MeResponse, error) {
+	user, err := a.userRepository.FindById(userId)
+	if err != nil {
+		return nil, err
+	}
+	return &data.MeResponse{
+		UserId:   user.ID,
+		Email:    user.Email,
+		Role:     user.Role,
+		Fullname: user.Fullname,
+		Profile:  user.Image,
+		Nim:      user.Nim,
+		Nidn:     user.Nidn,
+	}, nil
+}
+
+func (a *AuthService) UpdateProfile(userId string, req data.UpdateProfileRequest) error {
+	user, err := a.userRepository.FindById(userId)
+	if err != nil {
+		return err
+	}
+	if req.Fullname != nil {
+		user.Fullname = *req.Fullname
+	}
+	if req.Email != nil {
+		user.Email = *req.Email
+	}
+	if req.Profile != nil {
+		user.Image = *req.Profile
+	}
+	if err := a.userRepository.Update(user); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *AuthService) SendVerificationEmail(req data.SendVerificationRequest) error {
 	user, err := a.userRepository.FindByEmail(req.Email)
 	if err != nil {
