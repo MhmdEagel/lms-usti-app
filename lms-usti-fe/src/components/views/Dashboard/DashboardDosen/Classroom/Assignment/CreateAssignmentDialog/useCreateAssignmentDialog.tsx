@@ -8,7 +8,7 @@ import { createAssignmentSchema } from "@/schemas/assignment";
 import { newAssignment } from "@/actions/new-assignment";
 import { z } from "zod";
 import { uploadMaterial } from "@/actions/upload-material";
-import { IAttachment } from "@/types/Classroom";
+import { IAttachment, IAssignment } from "@/types/Classroom";
 import { AxiosError } from "axios";
 import { ErrorResponse } from "@/types/Response";
 import { uploadAssignment } from "@/actions/upload-assignment";
@@ -89,21 +89,27 @@ const useCreateAssignmentDialog = () => {
     classroomId: string,
   ) => {
     setIsPending(true);
-    console.log(data)
-    const payload = {
-      ...data,
-      rubrics: data.rubrics?.filter((r) => r.name && r.score) || [],
+    const payload: IAssignment = {
+      title: data.title,
+      deadline: data.deadline || undefined,
+      instruction: data.instruction || undefined,
+      rubrics: data.rubrics
+        ?.filter((r) => r.name && r.score)
+        .map((r) => ({ name: r.name, score: parseInt(r.score) || 0 })) || [],
+      attachments: [...arrayOfFiles, ...arrayOfLinks],
     };
 
-    // const res = await newAssignment(payload, classroomId);
-    // if (!res.success && res.error) {
-    //   toast.error(res.error);
-    //   setIsPending(false);
-    //   return;
-    // }
+    const res = await newAssignment(payload, classroomId);
+    if (!res.success && res.error) {
+      toast.error(res.error);
+      setIsPending(false);
+      return;
+    }
     setIsPending(false);
-    // toast.success(res.success);
+    toast.success(res.success);
     setArrayOfRubrics([]);
+    setArrayOfFiles([]);
+    setArrayOfLinks([]);
     setHasDeadline(false);
     setOpen("closed");
   };

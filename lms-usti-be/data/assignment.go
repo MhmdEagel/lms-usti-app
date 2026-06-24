@@ -4,7 +4,7 @@ import "time"
 
 type AssignmentRequest struct {
 	Title       string                    `json:"title" binding:"required"`
-	Deadline    time.Time                 `json:"deadline" binding:"required"`
+	Deadline    *time.Time                `json:"deadline"`
 	Instruction string                    `json:"instruction"`
 	Rubrics     []AssignmentRubricRequest `json:"rubrics"`
 	Attachments []AttachmentRequest       `json:"attachments"`
@@ -38,10 +38,11 @@ type AssignmentDetailResponse struct {
 	Attachments []AttachmentResponse       `json:"attachments"`
 }
 type AssignmentResponse struct {
-	ID          string    `json:"id"`
-	Title       string    `json:"title"`
-	Deadline    time.Time `json:"deadline"`
-	Instruction string    `json:"instruction"`
+	ID          string                   `json:"id"`
+	Title       string                   `json:"title"`
+	Deadline    time.Time                `json:"deadline"`
+	Instruction string                   `json:"instruction"`
+	Stats       *SubmissionStatsResponse `json:"stats"`
 }
 
 type AssignmentRubricResponse struct {

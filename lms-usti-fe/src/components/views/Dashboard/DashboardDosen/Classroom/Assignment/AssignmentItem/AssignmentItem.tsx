@@ -7,6 +7,8 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import "dayjs/locale/id";
 import { FileText } from "lucide-react";
+import AssignmentStatusBadge from "@/components/common/AssignmentStatusBadge";
+import type { SubmissionStats } from "@/types/Classroom";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -14,15 +16,17 @@ dayjs.extend(timezone);
 interface PropTypes {
   assignmentId: string;
   title: string;
-  deadline: string;
+  deadline?: string | null;
   type?: "dosen" | "mahasiswa";
   classroomId: string;
+  stats?: SubmissionStats | null;
 }
 
-export default function AssignmentItem({ assignmentId, title, deadline, type = "dosen", classroomId }: PropTypes) {
+export default function AssignmentItem({ assignmentId, title, deadline, type = "dosen", classroomId, stats }: PropTypes) {
   const router = useRouter();
   dayjs.locale("id");
-  const isOverdue = dayjs(deadline).tz("Asia/Jakarta").isBefore(dayjs().tz("Asia/Jakarta"));
+  const hasDeadline = deadline && !deadline.startsWith("0001");
+  const isOverdue = hasDeadline && dayjs(deadline).tz("Asia/Jakarta").isBefore(dayjs().tz("Asia/Jakarta"));
 
   return (
     <Card
@@ -35,11 +39,20 @@ export default function AssignmentItem({ assignmentId, title, deadline, type = "
         <div className="p-4 bg-accent rounded-full">
           <FileText />
         </div>
-        <div className="space-y-1">
+        <div className="space-y-1 flex-1">
           <div className="font-bold text-base md:text-lg">{title}</div>
-          <div className={`text-sm ${isOverdue ? "text-red-500" : "text-gray-500"}`}>
-            Batas pengumpulan: {dayjs(deadline).format("DD MMMM YYYY, HH:mm")}
-          </div>
+          {hasDeadline && (
+            <div className={`text-sm ${isOverdue ? "text-red-500" : "text-gray-500"}`}>
+              Batas pengumpulan: {dayjs(deadline).format("DD MMMM YYYY, HH:mm")}
+            </div>
+          )}
+          {type === "dosen" && stats && (
+            <AssignmentStatusBadge
+              totalStudents={stats.total_students}
+              totalSubmitted={stats.total_submitted}
+              totalGraded={stats.total_graded}
+            />
+          )}
         </div>
       </CardContent>
     </Card>

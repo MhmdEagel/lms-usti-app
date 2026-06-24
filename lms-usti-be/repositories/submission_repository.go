@@ -21,6 +21,7 @@ type SubmissionRepositoryInterface interface {
 	Delete(submissionId string) error
 	DeleteFiles(submissionFiles []model.SubmissionFile) error
 	DeleteLinks(submissionLinks []model.SubmissionLink) error
+	GetSubmissionStats(assignmentId string) (totalStudents, totalSubmitted, totalGraded int64, err error)
 	IsAlreadyCreated(studentId string, classroomId string) bool
 }
 
@@ -80,6 +81,19 @@ func (s *SubmissionRepository) FindByAssignmentIdAndStudentId(assignmentId, stud
 	}
 	return submission, nil
 }
+func (s *SubmissionRepository) GetSubmissionStats(assignmentId string) (totalStudents, totalSubmitted, totalGraded int64, err error) {
+	if err := s.Db.Model(&model.Submission{}).Where("assignment_id = ?", assignmentId).Count(&totalStudents).Error; err != nil {
+		return 0, 0, 0, err
+	}
+	if err := s.Db.Model(&model.Submission{}).Where("assignment_id = ? AND status = ?", assignmentId, "submitted").Count(&totalSubmitted).Error; err != nil {
+		return 0, 0, 0, err
+	}
+	if err := s.Db.Model(&model.Submission{}).Where("assignment_id = ? AND score IS NOT NULL", assignmentId).Count(&totalGraded).Error; err != nil {
+		return 0, 0, 0, err
+	}
+	return totalStudents, totalSubmitted, totalGraded, nil
+}
+
 func (s *SubmissionRepository) IsAlreadyCreated(studentId string, classroomId string) bool {
 	var count int64
 	s.Db.Model(&model.Submission{}).

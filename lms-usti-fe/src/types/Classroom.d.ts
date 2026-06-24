@@ -88,6 +88,13 @@ interface IAssignment {
   instruction?: string?;
   rubrics?: IRubrics[];
   attachments?: IAttachment[];
+  stats?: SubmissionStats | null;
+}
+
+interface SubmissionStats {
+  total_students: number;
+  total_submitted: number;
+  total_graded: number;
 }
 interface IUpdateAssignment {
   id?: string?;
@@ -121,5 +128,6 @@ export type {
 
   IAssignment,
   IUpdateAssignment,
-  IRubrics
+  IRubrics,
+  SubmissionStats,
 };

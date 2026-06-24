@@ -34,7 +34,8 @@ export default async function Assignment({
               classroomId={classroomId}
               assignmentId={item.id!}
               title={item.title}
-              deadline={item.deadline!}
+              deadline={item.deadline}
+              stats={item.stats}
             />
           ))
         ) : (

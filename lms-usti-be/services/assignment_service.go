@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/lib"
@@ -33,9 +34,13 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 	}
 	return a.assignmentRepository.Transaction(
 		func(repo repositories.AssignmentRepositoryInterface) error {
+			deadline := time.Time{}
+			if assignmentRequest.Deadline != nil {
+				deadline = *assignmentRequest.Deadline
+			}
 			assignment := &model.Assignment{
 				Title:       assignmentRequest.Title,
-				Deadline:    assignmentRequest.Deadline,
+				Deadline:    deadline,
 				Instruction: assignmentRequest.Instruction,
 				ClassroomId: classroom.ID,
 			}
@@ -120,11 +125,13 @@ func (a *AssignmentService) FindAll(classroomId string, pagination data.Paginati
 	}
 	var assignments []data.AssignmentResponse
 	for _, v := range paginatedResult.Data.([]model.Assignment) {
+		stats, _ := a.submissionService.GetSubmissionStats(v.ID)
 		assignment := data.AssignmentResponse{
 			ID:          v.ID,
 			Title:       v.Title,
 			Instruction: v.Instruction,
 			Deadline:    v.Deadline,
+			Stats:       &stats,
 		}
 		assignments = append(assignments, assignment)
 	}
