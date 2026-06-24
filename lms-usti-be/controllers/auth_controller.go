@@ -101,6 +101,50 @@ func (a *AuthController) UpdateProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+func (a *AuthController) SendOTP(c *gin.Context) {
+	userId := getUserId(c)
+	if userId == "" {
+		appErr := data.NewAppError(http.StatusUnauthorized, "unauthorized", nil)
+		res := data.NewResponseFromError(appErr)
+		c.JSON(http.StatusUnauthorized, res)
+		return
+	}
+	var req data.SendOTPRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		bindJSONError(c, err)
+		return
+	}
+	err := a.authService.SendOTP(userId, req)
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "kode OTP telah dikirim ke email", nil)
+	c.JSON(http.StatusOK, res)
+}
+
+func (a *AuthController) VerifyOTPAndChangePassword(c *gin.Context) {
+	userId := getUserId(c)
+	if userId == "" {
+		appErr := data.NewAppError(http.StatusUnauthorized, "unauthorized", nil)
+		res := data.NewResponseFromError(appErr)
+		c.JSON(http.StatusUnauthorized, res)
+		return
+	}
+	var req data.VerifyOTPRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		bindJSONError(c, err)
+		return
+	}
+	err := a.authService.VerifyOTPAndChangePassword(userId, req)
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "password berhasil diubah", nil)
+	c.JSON(http.StatusOK, res)
+}
+
 func (a *AuthController) Me(c *gin.Context) {
 	val, exist := c.Get("user")
 	if !exist {

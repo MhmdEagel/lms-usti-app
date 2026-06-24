@@ -12,6 +12,7 @@ interface PropTypes {
     email: string;
     role: "MAHASISWA" | "DOSEN" | "ADMIN";
     fullname?: string;
+    profile?: string;
   };
   children: ReactNode;
   type: string;

@@ -1,7 +1,6 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { IClassroom } from "@/types/Classroom";
-import { User as UserIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -28,8 +27,9 @@ export default function StudentClassroomItem(props: PropTypes) {
         <CardContent>
           <div className="flex gap-4 items-center">
             <Avatar className="size-12">
+              <AvatarImage src={classroom?.dosen.profile || ""} alt={classroom?.dosen.fullname} />
               <AvatarFallback>
-                <UserIcon />
+                {classroom?.dosen.fullname?.charAt(0)?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
             <div>

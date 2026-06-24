@@ -22,6 +22,7 @@ interface PropTypes {
     email: string;
     role: "MAHASISWA" | "DOSEN" | "ADMIN";
     fullname?: string;
+    profile?: string;
   };
   sidebarItems?: SidebarItem[];
 }
@@ -78,7 +79,7 @@ export default function DashboardSidebar(props: PropTypes) {
       </SidebarContent>
       <SidebarFooter>
         <DashboardUserNav
-          user={{ avatar: "", name: user?.fullname, email: user?.email }}
+          user={{ avatar: user?.profile || "", name: user?.fullname, email: user?.email }}
           userRole={user?.role}
           onLogout={handleLogout}
         />
