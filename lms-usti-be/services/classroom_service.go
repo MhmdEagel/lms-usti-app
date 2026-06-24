@@ -17,8 +17,8 @@ type ClassroomService struct {
 
 type ClassroomServiceInterface interface {
 	Create(classroomRequest data.CreateClassroomRequest) error
-	FindAllByDosenId(dosenId string, pagination data.Pagination) (paginationResult data.PaginationWithData, err error)
-	FindAllByMahasiswaId(mahasiswaId string, pagination data.Pagination) (paginationResult data.PaginationWithData, err error)
+	FindAllByDosenId(dosenId string, search string, pagination data.Pagination) (paginationResult data.PaginationWithData, err error)
+	FindAllByMahasiswaId(mahasiswaId string, search string, pagination data.Pagination) (paginationResult data.PaginationWithData, err error)
 	FindAllClassroomMember(classroomId string) (classroomMembers data.ClassroomMembersReponse, err error)
 	FindById(classroomId string) (classroom data.ClassroomDetailResponse, err error)
 	EnrollMahasiswa(joinClassroomRequest data.JoinClassroomRequest, mahasiswaId string) error
@@ -44,8 +44,8 @@ func (c *ClassroomService) Create(classroomRequest data.CreateClassroomRequest) 
 	return c.classroomRepository.Create(classroom)
 }
 
-func (c *ClassroomService) FindAllByDosenId(dosenId string, pagination data.Pagination) (paginationResult data.PaginationWithData, err error) {
-	paginationRes, err := c.classroomRepository.FindAllByDosenId(dosenId, pagination)
+func (c *ClassroomService) FindAllByDosenId(dosenId string, search string, pagination data.Pagination) (paginationResult data.PaginationWithData, err error) {
+	paginationRes, err := c.classroomRepository.FindAllByDosenId(dosenId, search, pagination)
 	if err != nil {
 		return paginationResult, err
 	}
@@ -70,8 +70,8 @@ func (c *ClassroomService) FindAllByDosenId(dosenId string, pagination data.Pagi
 	paginationRes.Data = classrooms
 	return *paginationRes, nil
 }
-func (c *ClassroomService) FindAllByMahasiswaId(mahasiswaId string, pagination data.Pagination) (paginationResult data.PaginationWithData, err error) {
-	paginationRes, err := c.classroomRepository.FindAllByMahasiswaId(mahasiswaId, pagination)
+func (c *ClassroomService) FindAllByMahasiswaId(mahasiswaId string, search string, pagination data.Pagination) (paginationResult data.PaginationWithData, err error) {
+	paginationRes, err := c.classroomRepository.FindAllByMahasiswaId(mahasiswaId, search, pagination)
 	if err != nil {
 		return paginationResult, err
 	}

@@ -64,11 +64,12 @@ func (c *ClassroomController) FindAllByDosenId(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
+	search := ctx.Query("search")
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
-	
+
 	pagination := data.Pagination{Limit: limit, Current: page}
-	paginationResult, err := c.classroomService.FindAllByDosenId(user.UserId, pagination)
+	paginationResult, err := c.classroomService.FindAllByDosenId(user.UserId, search, pagination)
 	if err != nil {
 		log.Printf("FindAllByDosenId: %v", err)
 		appErr := data.ErrInternalServer(nil)
@@ -113,11 +114,12 @@ func (c *ClassroomController) FindAllByMahasiswaId(ctx *gin.Context) {
 		return
 	}
 
+	search := ctx.Query("search")
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
 
 	pagination := data.Pagination{Limit: limit, Current: page}
-	paginationResult, err := c.classroomService.FindAllByMahasiswaId(user.UserId, pagination)
+	paginationResult, err := c.classroomService.FindAllByMahasiswaId(user.UserId, search, pagination)
 	if err != nil {
 		log.Printf("FindAllByMahasiswaId: %v", err)
 		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)

@@ -33,8 +33,8 @@ function ClassroomListSkeleton() {
   );
 }
 
-async function ClassroomList() {
-  const res = await classroomServices.findAllMahasiswaClassrooms();
+async function ClassroomList({ search }: { search?: string }) {
+  const res = await classroomServices.findAllMahasiswaClassrooms(search ? { search } : undefined);
   const classes: IClassroom[] = res.data.data;
 
   if (classes && classes.length > 0) {
@@ -72,7 +72,11 @@ async function ClassroomList() {
   );
 }
 
-export default function Classroom() {
+export default function Classroom({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) {
   return (
     <Suspense fallback={<ClassroomListSkeleton />}>
       <div className="p-4">
@@ -83,7 +87,7 @@ export default function Classroom() {
           </Button>
           <JoinClassroom />
         </div>
-        <ClassroomList />
+        <ClassroomList search={searchParams?.search} />
       </div>
     </Suspense>
   );

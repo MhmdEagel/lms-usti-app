@@ -8,7 +8,8 @@ export default async function ClassroomList({
 }: {
   searchParams: { [key: string]: string | undefined };
 }) {
-  const res = await classroomServices.findAllDosenClassrooms();
+  const search = searchParams?.search;
+  const res = await classroomServices.findAllDosenClassrooms(search ? { search } : undefined);
   const classes: IClassroom[] = res.data.data
   if (classes && classes.length > 0) {
     return (
