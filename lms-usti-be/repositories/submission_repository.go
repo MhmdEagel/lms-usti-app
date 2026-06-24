@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"gorm.io/gorm"
 )
@@ -21,6 +22,7 @@ type SubmissionRepositoryInterface interface {
 	Delete(submissionId string) error
 	DeleteFiles(submissionFiles []model.SubmissionFile) error
 	DeleteLinks(submissionLinks []model.SubmissionLink) error
+	GetSubmissionStatsBatch(assignmentIds []string) (map[string]data.SubmissionStatsResponse, error)
 	IsAlreadyCreated(studentId string, classroomId string) bool
 }
 
@@ -80,6 +82,42 @@ func (s *SubmissionRepository) FindByAssignmentIdAndStudentId(assignmentId, stud
 	}
 	return submission, nil
 }
+
+
+func (s *SubmissionRepository) GetSubmissionStatsBatch(assignmentIds []string) (map[string]data.SubmissionStatsResponse, error) {
+	if len(assignmentIds) == 0 {
+		return map[string]data.SubmissionStatsResponse{}, nil
+	}
+	type statsRow struct {
+		AssignmentID   string `gorm:"column:assignment_id"`
+		TotalStudents  int64  `gorm:"column:total_students"`
+		TotalSubmitted int64  `gorm:"column:total_submitted"`
+		TotalGraded    int64  `gorm:"column:total_graded"`
+	}
+	var rows []statsRow
+	if err := s.Db.Model(&model.Submission{}).
+		Select("assignment_id, COUNT(*) as total_students, COUNT(CASE WHEN status = 'submitted' THEN 1 END) as total_submitted, COUNT(CASE WHEN score IS NOT NULL THEN 1 END) as total_graded").
+		Where("assignment_id IN ?", assignmentIds).
+		Group("assignment_id").
+		Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	result := make(map[string]data.SubmissionStatsResponse, len(rows))
+	for _, row := range rows {
+		result[row.AssignmentID] = data.SubmissionStatsResponse{
+			TotalStudents:  row.TotalStudents,
+			TotalSubmitted: row.TotalSubmitted,
+			TotalGraded:    row.TotalGraded,
+		}
+	}
+	for _, id := range assignmentIds {
+		if _, ok := result[id]; !ok {
+			result[id] = data.SubmissionStatsResponse{}
+		}
+	}
+	return result, nil
+}
+
 func (s *SubmissionRepository) IsAlreadyCreated(studentId string, classroomId string) bool {
 	var count int64
 	s.Db.Model(&model.Submission{}).

@@ -10,6 +10,7 @@ import (
 type Submission struct {
 	ID              string           `gorm:"primaryKey"`
 	Status          string           `gorm:"not null"`
+	Score           *float64
 	SubmissionDate  sql.NullTime
 	StudentId       string           `gorm:"not null"`
 	AssignmentId    string           `gorm:"not null"`
