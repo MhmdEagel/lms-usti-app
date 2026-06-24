@@ -11,6 +11,8 @@ type AnnouncementRepository struct {
 type AnnouncementRepositoryInterface interface {
 	Create(announcement model.Announcement) error
 	FindAll(classroomId string) (announcements []model.Announcement, err error)
+	FindById(announcementId string) (model.Announcement, error)
+	Update(announcement model.Announcement) error
 	Delete(announcementId string, classroomId string) error
 }
 
@@ -31,6 +33,21 @@ func (a *AnnouncementRepository) FindAll(classroomId string) (announcements []mo
 		return []model.Announcement{}, result.Error
 	}
 	return announcements, nil
+}
+func (a *AnnouncementRepository) FindById(announcementId string) (model.Announcement, error) {
+	var announcement model.Announcement
+	result := a.Db.First(&announcement, "id = ?", announcementId)
+	if result.Error != nil {
+		return model.Announcement{}, result.Error
+	}
+	return announcement, nil
+}
+func (a *AnnouncementRepository) Update(announcement model.Announcement) error {
+	result := a.Db.Save(&announcement)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
 func (a *AnnouncementRepository) Delete(announcementId, classroomId string) error {
 	res := a.Db.Where("id = ? AND classroom_id = ? ", announcementId, classroomId).Delete(model.Announcement{})

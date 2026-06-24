@@ -15,8 +15,8 @@ type ClassroomRepositoryInterface interface {
 	Create(classroom model.Classroom) error
 	FindById(classroomId string) (classroom model.Classroom, err error)
 	FindByClassCode(classCode string) (classroom model.Classroom, err error)
-	FindAllByDosenId(dosenId string, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error)
-	FindAllByMahasiswaId(mahasiswaId string, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error)
+	FindAllByDosenId(dosenId string, search string, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error)
+	FindAllByMahasiswaId(mahasiswaId string, search string, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error)
 	Update(classroom model.Classroom) error
 	Delete(classroomId string, dosenId string) error
 	Enroll(classroomMahasiswa model.ClassroomMahasiswa) error
@@ -49,9 +49,13 @@ func (u *ClassroomRepository) FindByClassCode(classCode string) (classroom model
 	}
 	return classroom, nil
 }
-func (u *ClassroomRepository) FindAllByDosenId(dosenId string, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error) {
+func (u *ClassroomRepository) FindAllByDosenId(dosenId string, search string, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error) {
 	var classrooms []model.Classroom
-	result := u.Db.Scopes(lib.Paginate(classrooms, &pagination, u.Db)).Preload("Dosen").Where("dosen_id = ?", dosenId).Find(&classrooms)
+	query := u.Db.Scopes(lib.Paginate(classrooms, &pagination, u.Db)).Preload("Dosen").Where("dosen_id = ?", dosenId)
+	if search != "" {
+		query = query.Where("class_name LIKE ?", "%"+search+"%")
+	}
+	result := query.Find(&classrooms)
 	if result.Error != nil {
 		return paginationResult, result.Error
 	}
@@ -62,10 +66,15 @@ func (u *ClassroomRepository) FindAllByDosenId(dosenId string, pagination data.P
 	return paginationResult, nil
 }
 
-func (u *ClassroomRepository) FindAllByMahasiswaId(mahasiswaId string, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error) {
+func (u *ClassroomRepository) FindAllByMahasiswaId(mahasiswaId string, search string, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error) {
 	var classrooms []model.Classroom
 	var classroomMahasiswa []model.ClassroomMahasiswa
-	result := u.Db.Scopes(lib.Paginate(classroomMahasiswa, &pagination, u.Db)).Preload("Classroom").Preload("Classroom.Dosen").Where("user_id = ?", mahasiswaId).Find(&classroomMahasiswa)
+	query := u.Db.Scopes(lib.Paginate(classroomMahasiswa, &pagination, u.Db)).Preload("Classroom").Preload("Classroom.Dosen").Where("user_id = ?", mahasiswaId)
+	if search != "" {
+		query = query.Joins("JOIN classrooms ON classrooms.id = classroom_mahasiswas.classroom_id").
+			Where("classrooms.class_name LIKE ?", "%"+search+"%")
+	}
+	result := query.Find(&classroomMahasiswa)
 	if result.Error != nil {
 		return paginationResult, result.Error
 	}

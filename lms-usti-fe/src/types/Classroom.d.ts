@@ -31,6 +31,7 @@ interface IAnnouncement extends ICreateAnnouncement {
   id: string;
   created_by: string;
   created_at: string;
+  is_pinned: boolean;
 }
 
 interface IClassroom {

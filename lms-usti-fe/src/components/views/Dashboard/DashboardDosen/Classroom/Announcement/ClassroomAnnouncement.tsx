@@ -28,10 +28,9 @@ export default async function ClassroomAnnouncement({
           {listPengumuman.map((pengumuman) => (
             <AnnouncementItem
               key={pengumuman.id}
-              createdBy={pengumuman.created_by}
-              content={pengumuman.content}
-              annId={pengumuman.id}
+              announcement={pengumuman}
               classroomId={classroomId}
+              userRole={user?.role}
             />
           ))}
         </div>

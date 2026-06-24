@@ -34,6 +34,7 @@ export default function Classroom({
           <SearchBar />
           <Button className="cursor-pointer" variant={"outline"}>
             <Filter />
+            Filter
           </Button>
           <CreateClassroom />
         </div>

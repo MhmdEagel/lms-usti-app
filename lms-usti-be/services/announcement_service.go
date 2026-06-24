@@ -16,6 +16,7 @@ type AnnouncementService struct {
 type AnnouncementServiceInterface interface {
 	Create(announcementRequest data.AnnouncementRequest) error
 	FindAll(classroomId string) (announcements []data.AnnouncementResponse, err error)
+	Update(announcementId, classroomId string, req data.AnnouncementUpdateRequest) error
 	Delete(announcementId, classroomId string) error
 }
 
@@ -52,12 +53,27 @@ func (a *AnnouncementService) FindAll(classroomId string) (announcements []data.
 			Id:        v.ID,
 			Title:     v.Title,
 			Content:   v.Content,
+			IsPinned:  v.IsPinned,
 			CreatedBy: v.Dosen.Fullname,
 			CreatedAt: v.CreatedAt.Format(time.RFC3339Nano),
 		}
 		announcements = append(announcements, announcement)
 	}
 	return announcements, nil
+}
+func (a *AnnouncementService) Update(announcementId, classroomId string, req data.AnnouncementUpdateRequest) error {
+	if _, err := a.classroomRepository.FindById(classroomId); err != nil {
+		return data.ErrClassroomNotFound(err)
+	}
+	announcement, err := a.announcementRepository.FindById(announcementId)
+	if err != nil {
+		return data.ErrAnnouncementNotFound(err)
+	}
+	announcement.IsPinned = req.IsPinned
+	if err := a.announcementRepository.Update(announcement); err != nil {
+		return data.ErrInternalServer(err)
+	}
+	return nil
 }
 func (a *AnnouncementService) Delete(announcementId, classroomId string) error {
 	err := a.announcementRepository.Delete(announcementId, classroomId)

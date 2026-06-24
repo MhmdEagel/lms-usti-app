@@ -56,6 +56,23 @@ func (a *AnnouncementController) Create(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+func (a *AnnouncementController) Update(ctx *gin.Context) {
+	var req data.AnnouncementUpdateRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		bindJSONError(ctx, err)
+		return
+	}
+	classroomId := ctx.Param("id")
+	announcementId := ctx.Param("announcementId")
+	err := a.announcementService.Update(announcementId, classroomId, req)
+	if err != nil {
+		handleError(ctx, err)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "announcement berhasil diperbarui", nil)
+	ctx.JSON(http.StatusOK, res)
+}
+
 func (a *AnnouncementController) Delete(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
 	announcementId := ctx.Param("announcementId")
