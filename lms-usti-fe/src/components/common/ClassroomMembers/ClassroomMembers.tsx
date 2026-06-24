@@ -30,6 +30,7 @@ export default async function ClassroomMembers({
           userRole={user?.role}
           userId=""
           fullname={members.dosen?.fullname}
+          profile={members.dosen?.profile}
         />
       </div>
 
@@ -42,6 +43,7 @@ export default async function ClassroomMembers({
               userRole={user?.role}
               userId={user?.id}
               fullname={mahasiswa.fullname}
+              profile={mahasiswa.profile}
             />
           ))
         ) : (

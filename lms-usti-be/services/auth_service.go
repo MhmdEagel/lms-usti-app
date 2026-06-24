@@ -2,6 +2,7 @@ package services
 
 import (
 	"log"
+	"time"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/lib"
@@ -13,10 +14,11 @@ import (
 type AuthService struct {
 	userRepository         repositories.UserRepositoryInterface
 	verificationRepository repositories.VerificationRepositoryInterface
+	mediaService           MediaServiceInterface
 }
 
-func NewAuthService(userRepository repositories.UserRepositoryInterface, verificationRepository repositories.VerificationRepositoryInterface) AuthServiceInterface {
-	return &AuthService{userRepository: userRepository, verificationRepository: verificationRepository}
+func NewAuthService(userRepository repositories.UserRepositoryInterface, verificationRepository repositories.VerificationRepositoryInterface, mediaService MediaServiceInterface) AuthServiceInterface {
+	return &AuthService{userRepository: userRepository, verificationRepository: verificationRepository, mediaService: mediaService}
 }
 type AuthServiceInterface interface {
 	Login(loginRequest data.LoginRequest) (loginResponse data.LoginResponse, err error)
@@ -24,6 +26,8 @@ type AuthServiceInterface interface {
 	ResetPassword(req data.NewPasswordRequest) error
 	GetUserById(userId string) (*data.MeResponse, error)
 	UpdateProfile(userId string, req data.UpdateProfileRequest) error
+	SendOTP(userId string, req data.SendOTPRequest) error
+	VerifyOTPAndChangePassword(userId string, req data.VerifyOTPRequest) error
 }
 func (a *AuthService) Login(loginRequest data.LoginRequest) (loginResponse data.LoginResponse, err error) {
 	user, err := a.userRepository.FindByEmail(loginRequest.Email)
@@ -114,10 +118,75 @@ func (a *AuthService) UpdateProfile(userId string, req data.UpdateProfileRequest
 		user.Email = *req.Email
 	}
 	if req.Profile != nil {
+		if user.Image != "" {
+			_ = a.mediaService.Remove(user.Image, MediaKindProfile)
+		}
 		user.Image = *req.Profile
 	}
 	if err := a.userRepository.Update(user); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (a *AuthService) SendOTP(userId string, req data.SendOTPRequest) error {
+	user, err := a.userRepository.FindById(userId)
+	if err != nil {
+		log.Printf("SendOTP: user not found: %v", err)
+		return data.NewAppError(404, "user tidak ditemukan", err)
+	}
+	if !lib.IsPasswordMatch(user.Password, req.OldPassword) {
+		log.Printf("SendOTP: password mismatch for userId %s", userId)
+		return data.ErrInvalidCredentials(nil)
+	}
+	otp := lib.GenerateOTP()
+	token := model.VerificationToken{
+		Email:   user.Email,
+		Token:   otp,
+		Expires: time.Now().Add(10 * time.Minute),
+	}
+	if err := a.verificationRepository.Create(token); err != nil {
+		log.Printf("SendOTP: failed to save token: %v", err)
+		return data.NewAppError(500, "gagal menyimpan token", err)
+	}
+	if err := lib.SendOTPEmail(user.Email, otp); err != nil {
+		log.Printf("SendOTP: failed to send email: %v", err)
+		return data.NewAppError(500, "gagal mengirim email", err)
+	}
+	return nil
+}
+
+func (a *AuthService) VerifyOTPAndChangePassword(userId string, req data.VerifyOTPRequest) error {
+	user, err := a.userRepository.FindById(userId)
+	if err != nil {
+		log.Printf("VerifyOTP: user not found: %v", err)
+		return data.NewAppError(404, "user tidak ditemukan", err)
+	}
+	verificationToken, err := a.verificationRepository.FindByEmailAndToken(user.Email, req.OTP)
+	if err != nil {
+		log.Printf("VerifyOTP: token not found: %v", err)
+		return data.NewAppError(400, "kode OTP tidak valid", err)
+	}
+	if lib.IsTokenVerificationExpired(&verificationToken.Expires) {
+		log.Printf("VerifyOTP: token expired for email %s", user.Email)
+		return data.ErrTokenExpired(nil)
+	}
+	if !lib.IsPasswordMatch(user.Password, req.OldPassword) {
+		log.Printf("VerifyOTP: password mismatch for email %s", user.Email)
+		return data.ErrInvalidCredentials(nil)
+	}
+	newPassword, err := lib.HashPassword(req.NewPassword)
+	if err != nil {
+		log.Printf("VerifyOTP: failed to hash password: %v", err)
+		return data.NewAppError(500, "terjadi kesalahan server", err)
+	}
+	user.Password = newPassword
+	if err := a.userRepository.UpdatePassword(user); err != nil {
+		log.Printf("VerifyOTP: failed to update password: %v", err)
+		return data.NewAppError(500, "terjadi kesalahan server", err)
+	}
+	if err := a.verificationRepository.DeleteByEmail(user.Email); err != nil {
+		log.Printf("VerifyOTP: failed to delete token: %v", err)
 	}
 	return nil
 }

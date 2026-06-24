@@ -20,6 +20,13 @@ interface IActivation {
 interface IUpdateProfileRequest {
   fullname?: string;
   email?: string;
+  profile?: string;
 }
 
-export type { ILogin, IVerification, INewPassword, IActivation, IUpdateProfileRequest };
+interface IVerifyOTPRequest {
+  otp: string;
+  old_password: string;
+  new_password: string;
+}
+
+export type { ILogin, IVerification, INewPassword, IActivation, IUpdateProfileRequest, IVerifyOTPRequest };

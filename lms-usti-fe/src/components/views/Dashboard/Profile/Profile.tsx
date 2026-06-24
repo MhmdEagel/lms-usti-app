@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Camera, Pencil } from "lucide-react";
+import { Camera, Pencil, Loader2 } from "lucide-react";
 import { useProfileForm } from "./useProfileForm";
 import ProfileEdit from "./ProfileEdit/ProfileEdit";
 
@@ -27,11 +27,23 @@ export default function Profile({ user }: ProfileProps) {
   const {
     isEditing,
     isPending,
+    isUploadingPicture,
+    previewUrl,
     form,
     handleEdit,
     handleCancel,
     setIsEditing,
+    handleUploadPicture,
+    fileInputRef,
   } = useProfileForm(user);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleUploadPicture(file);
+    }
+    e.target.value = "";
+  };
 
   return (
     <div className="bg-white min-h-screen">
@@ -46,14 +58,30 @@ export default function Profile({ user }: ProfileProps) {
             <div className="flex flex-col items-center gap-4">
               <div className="relative">
                 <Avatar className="size-24 md:size-[96px]">
-                  <AvatarImage src={user.profile || ""} alt={user.fullname} />
+                  <AvatarImage src={previewUrl || user.profile || ""} alt={user.fullname} />
                   <AvatarFallback className="text-2xl md:text-4xl bg-primary text-white">
                     {user.fullname?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute bottom-0 right-0 bg-primary p-1.5 rounded-full">
-                  <Camera className="size-4 text-white" />
-                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingPicture}
+                  className="absolute bottom-0 right-0 bg-primary p-1.5 rounded-full cursor-pointer hover:bg-primary/90 transition disabled:opacity-70"
+                >
+                  {isUploadingPicture ? (
+                    <Loader2 className="size-4 text-white animate-spin" />
+                  ) : (
+                    <Camera className="size-4 text-white" />
+                  )}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
               </div>
               <div className="text-center">
                 <h2 className="text-lg md:text-xl font-bold">

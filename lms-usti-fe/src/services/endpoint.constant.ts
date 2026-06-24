@@ -3,6 +3,7 @@ const endpoint = {
     CLASSROOM: "/classroom",
     MEDIA: "/media",
     ADMIN: "/admin",
-    PROFILE: "/auth/me/profile"
+    PROFILE: "/auth/me/profile",
+    OTP: "/auth/me"
 }
 export default endpoint

@@ -129,10 +129,30 @@ const newMaterialSchema = z.object({
   attachments: z.array(AttachmentSchema).optional(),
 });
 
+const changePasswordSchema = z
+  .object({
+    old_password: z.string({ required_error: "Password lama wajib diisi" }),
+    new_password: z
+      .string({ required_error: "Password baru wajib diisi" })
+      .min(8, "Password minimal 8 karakter")
+      .regex(
+        /^(?=.*[A-Z])(?=.*\d).+$/,
+        "Password harus mengandung minimal satu huruf besar dan satu angka",
+      ),
+    confirmPassword: z.string({
+      required_error: "Konfirmasi password wajib diisi",
+    }),
+  })
+  .refine((data) => data.new_password === data.confirmPassword, {
+    message: "Konfirmasi password tidak cocok",
+    path: ["confirmPassword"],
+  });
+
 export {
   loginSchema,
   resetSchema,
   newPasswordSchema,
+  changePasswordSchema,
   joinClassroomSchema,
   newClassroomSchema,
   newAnnouncementSchema,

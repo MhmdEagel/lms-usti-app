@@ -23,6 +23,14 @@ type MahasiswaResponse struct {
 	UserId   string `json:"userId"`
 	Fullname string `json:"fullname"`
 }
+type SendOTPRequest struct {
+	OldPassword string `json:"old_password" binding:"required"`
+}
+type VerifyOTPRequest struct {
+	OTP         string `json:"otp" binding:"required"`
+	OldPassword string `json:"old_password" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required"`
+}
 type LoginResponse struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`

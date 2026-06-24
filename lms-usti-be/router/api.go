@@ -34,7 +34,9 @@ func InitRouter() *gin.Engine {
 		assignmentRepository := repositories.NewAssignmentRepository(Db)
 		submissionRepository := repositories.NewSubmissionRepository(Db)
 
-		authService := services.NewAuthService(userRepository, verificationRepository)
+		mediaService := services.NewMediaService()
+
+		authService := services.NewAuthService(userRepository, verificationRepository, mediaService)
 
 		auditLogRepository := repositories.NewAuditLogRepository(Db)
 		auditService := services.NewAuditService(auditLogRepository)
@@ -51,8 +53,6 @@ func InitRouter() *gin.Engine {
 
 		materialService := services.NewMaterialService(materialRepository, classroomRepository)
 
-		mediaService := services.NewMediaService()
-
 		api.GET("", controllers.Test)
 		auth := api.Group("/auth")
 		{
@@ -63,6 +63,8 @@ func InitRouter() *gin.Engine {
 			auth.POST("/new-password", authController.ResetPassword)
 			auth.Use(authMiddleware.Handle()).GET("/me", authController.Me)
 			auth.Use(authMiddleware.Handle()).PUT("/me/profile", authController.UpdateProfile)
+			auth.Use(authMiddleware.Handle()).POST("/me/send-otp", authController.SendOTP)
+			auth.Use(authMiddleware.Handle()).POST("/me/verify-otp", authController.VerifyOTPAndChangePassword)
 		}
 		admin := api.Group("/admin/users")
 		admin.Use(authMiddleware.Handle(), aclMiddleware.Handle([]string{"ADMIN"}))

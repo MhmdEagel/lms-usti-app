@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { updateProfileSchema } from "@/schemas/profile";
 import { updateProfile } from "@/actions/profile";
+import { uploadProfilePicture } from "@/actions/upload-profile-picture";
 import { toast } from "sonner";
 import type { IUpdateProfileRequest } from "@/types/Auth";
 
@@ -17,6 +18,9 @@ export const useProfileForm = (user: {
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<UpdateProfileForm>({
     resolver: zodResolver(updateProfileSchema),
@@ -51,12 +55,37 @@ export const useProfileForm = (user: {
     setIsEditing(false);
   };
 
+  const handleUploadPicture = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Hanya file gambar yang diperbolehkan (jpg, jpeg, png, gif, webp)");
+      return;
+    }
+    setIsUploadingPicture(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await uploadProfilePicture(formData);
+      const fileUrl: string = res.data?.file_url || res.file_url;
+      setPreviewUrl(fileUrl);
+      await updateProfile({ profile: fileUrl });
+      toast.success("Foto profil berhasil diperbarui");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Gagal mengupload foto");
+    } finally {
+      setIsUploadingPicture(false);
+    }
+  };
+
   return {
     isEditing,
     isPending,
+    isUploadingPicture,
+    previewUrl,
     form,
     handleEdit,
     handleCancel,
     setIsEditing,
+    handleUploadPicture,
+    fileInputRef,
   };
 };
