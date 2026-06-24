@@ -32,7 +32,7 @@ export default function AssignmentItem({ assignmentId, title, deadline, type = "
     <Card
       className="hover:bg-accent/50 cursor-pointer transition-colors"
       onClick={() =>
-        router.push(`/${type}/kelas/${classroomId}/${assignmentId}`)
+        router.push(`/${type}/kelas/${classroomId}/tugas/${assignmentId}`)
       }
     >
       <CardContent className="flex items-center gap-4">

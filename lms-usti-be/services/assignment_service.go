@@ -123,9 +123,15 @@ func (a *AssignmentService) FindAll(classroomId string, pagination data.Paginati
 	if err != nil {
 		return nil, err
 	}
+	assignmentModels := paginatedResult.Data.([]model.Assignment)
+	assignmentIds := make([]string, len(assignmentModels))
+	for i, v := range assignmentModels {
+		assignmentIds[i] = v.ID
+	}
+	statsMap, _ := a.submissionService.GetSubmissionStatsBatch(assignmentIds)
 	var assignments []data.AssignmentResponse
-	for _, v := range paginatedResult.Data.([]model.Assignment) {
-		stats, _ := a.submissionService.GetSubmissionStats(v.ID)
+	for _, v := range assignmentModels {
+		stats := statsMap[v.ID]
 		assignment := data.AssignmentResponse{
 			ID:          v.ID,
 			Title:       v.Title,

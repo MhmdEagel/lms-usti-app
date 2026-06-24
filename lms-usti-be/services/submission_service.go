@@ -21,6 +21,7 @@ type SubmissionServiceInterface interface {
 	FindById(req data.SubmissionDetailRequest) (result data.SubmissionDetailResponse, err error)
 	Submit(submitReq data.SubmitRequest) error
 	GetSubmissionStats(assignmentId string) (data.SubmissionStatsResponse, error)
+	GetSubmissionStatsBatch(assignmentIds []string) (map[string]data.SubmissionStatsResponse, error)
 	IsAlreadyCreated(studentId string, classroomId string) bool
 }
 
@@ -173,6 +174,10 @@ func (s *SubmissionService) GetSubmissionStats(assignmentId string) (data.Submis
 		TotalSubmitted: totalSubmitted,
 		TotalGraded:    totalGraded,
 	}, nil
+}
+
+func (s *SubmissionService) GetSubmissionStatsBatch(assignmentIds []string) (map[string]data.SubmissionStatsResponse, error) {
+	return s.submissionRepository.GetSubmissionStatsBatch(assignmentIds)
 }
 
 func (s *SubmissionService) IsAlreadyCreated(studentId string, classroomId string) bool {
