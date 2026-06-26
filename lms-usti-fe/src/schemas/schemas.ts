@@ -49,6 +49,8 @@ const newClassroomSchema = z
     day: z.string({ required_error: "Hari wajib dipilih" }),
     class_start: z.string({ required_error: "Jam mulai kelas wajib diisi" }),
     class_end: z.string({ required_error: "Jam selesai kelas wajib diisi" }),
+    prodi: z.string({ required_error: "Program studi wajib dipilih" }),
+    tahun_ajaran: z.string({ required_error: "Tahun ajaran wajib diisi" }),
   })
   .refine(
     (data) => {

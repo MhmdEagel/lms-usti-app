@@ -9,7 +9,15 @@ export default async function ClassroomList({
   searchParams: { [key: string]: string | undefined };
 }) {
   const search = searchParams?.search;
-  const res = await classroomServices.findAllDosenClassrooms(search ? { search } : undefined);
+  const prodi = searchParams?.prodi;
+  const term = searchParams?.term;
+  const tahun_ajaran = searchParams?.tahun_ajaran;
+  const room_number = searchParams?.room_number;
+  const res = await classroomServices.findAllDosenClassrooms(
+    search || prodi || term || tahun_ajaran || room_number
+      ? { search, prodi, term, tahun_ajaran, room_number }
+      : undefined,
+  );
   const classes: IClassroom[] = res.data.data
   if (classes && classes.length > 0) {
     return (

@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import FilterSheet from "@/components/common/FilterSheet";
+import ActiveFilterCapsules from "@/components/common/ActiveFilterCapsules";
 
 function ClassroomListSkeleton() {
   return (
@@ -33,8 +35,17 @@ function ClassroomListSkeleton() {
   );
 }
 
-async function ClassroomList({ search }: { search?: string }) {
-  const res = await classroomServices.findAllMahasiswaClassrooms(search ? { search } : undefined);
+async function ClassroomList({ searchParams: params }: { searchParams: { [key: string]: string | undefined } }) {
+  const search = params?.search;
+  const prodi = params?.prodi;
+  const term = params?.term;
+  const tahun_ajaran = params?.tahun_ajaran;
+  const room_number = params?.room_number;
+  const res = await classroomServices.findAllMahasiswaClassrooms(
+    search || prodi || term || tahun_ajaran || room_number
+      ? { search, prodi, term, tahun_ajaran, room_number }
+      : undefined,
+  );
   const classes: IClassroom[] = res.data.data;
 
   if (classes && classes.length > 0) {
@@ -82,12 +93,16 @@ export default function Classroom({
       <div className="p-4">
         <div className="mb-4 flex gap-4 items-center">
           <SearchBar />
-          <Button className="cursor-pointer" variant={"outline"}>
-            <Filter />
-          </Button>
+          <FilterSheet>
+            <Button className="cursor-pointer" variant={"outline"}>
+              <Filter />
+              Filter
+            </Button>
+          </FilterSheet>
           <JoinClassroom />
         </div>
-        <ClassroomList search={searchParams?.search} />
+        <ActiveFilterCapsules />
+        <ClassroomList searchParams={searchParams} />
       </div>
     </Suspense>
   );

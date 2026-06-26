@@ -11,6 +11,8 @@ interface ICreateClassroom {
   day: number?;
   class_start: string?;
   class_end: string?;
+  prodi: string?;
+  tahun_ajaran: string?;
 }
 interface IUpdateClassroom {
   class_cover?: string?;
@@ -20,6 +22,8 @@ interface IUpdateClassroom {
   day?: number?;
   class_start?: string?;
   class_end?: string?;
+  prodi?: string?;
+  tahun_ajaran?: string?;
 }
 
 interface ICreateAnnouncement {
@@ -44,6 +48,8 @@ interface IClassroom {
   day: number;
   class_start: string;
   class_end: string;
+  prodi: string;
+  tahun_ajaran: string;
   dosen: User;
 }
 
