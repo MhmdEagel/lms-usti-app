@@ -255,3 +255,22 @@ func (c *ClassroomController) FindAllClassroomMember(ctx *gin.Context) {
 	res := data.NewResponse(http.StatusOK, "success find all classroom member", classroomMembers)
 	ctx.JSON(http.StatusOK, res)
 }
+
+func (c *ClassroomController) FindClassroomMemberById(ctx *gin.Context) {
+	classroomId := ctx.Param("id")
+	memberId := ctx.Param("memberId")
+	member, err := c.classroomService.FindClassroomMemberByMemberId(classroomId, memberId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			res := data.NewResponse(http.StatusNotFound, "classroom or member not found", nil)
+			ctx.JSON(http.StatusNotFound, res)
+			return
+		}
+		log.Printf("FindClassroomMemberById: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "success find member by id", member)
+	ctx.JSON(http.StatusOK, res)
+}

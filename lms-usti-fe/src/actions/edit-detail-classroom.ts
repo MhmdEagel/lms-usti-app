@@ -29,8 +29,10 @@ export const editDetailClassroom = async ({
     term,
   } = payload;
 
-  const classStartDateObj = dayjs.tz(`10-10-2010 ${class_start}`, "Asia/Jakarta");
-  const classEndDateObj = dayjs.tz(`10-10-2010 ${class_end}`, "Asia/Jakarta");
+  const classStartDateObj = dayjs.tz(`2010-10-10 ${class_start  }`, "Asia/Jakarta");
+  const classEndDateObj = dayjs(`2010-10-10 ${class_end}`).tz("Asia/Jakarta");
+
+  
 
   const updatedClassroom: IUpdateClassroom = {
     class_cover,

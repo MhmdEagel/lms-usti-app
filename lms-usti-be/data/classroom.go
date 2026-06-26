@@ -73,7 +73,7 @@ type ClassroomResponse struct {
 	ClassEnd    time.Time  `json:"class_end"`
 	Prodi       string     `json:"prodi"`
 	TahunAjaran string     `json:"tahun_ajaran"`
-	Dosen      model.User `json:"dosen"`
+	Dosen       model.User `json:"dosen"`
 }
 
 type ClassroomDetailResponse struct {
@@ -88,10 +88,15 @@ type ClassroomDetailResponse struct {
 	ClassEnd    time.Time  `json:"class_end"`
 	Prodi       string     `json:"prodi"`
 	TahunAjaran string     `json:"tahun_ajaran"`
-	Dosen      model.User `json:"dosen"`
+	Dosen       model.User `json:"dosen"`
 }
 
 type ClassroomMembersReponse struct {
 	Dosen     model.User   `json:"dosen"`
 	Mahasiswa []model.User `json:"mahasiswa"`
+}
+
+type ClassroomMemberDetailResponse struct {
+	ClassName string `json:"class_name"`
+	Member    model.User `json:"member"`
 }

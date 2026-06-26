@@ -40,11 +40,11 @@ export default function ClassroomDetailLayoutNavbar({
             <span>Tugas</span>
           </ClassroomDetailLayoutNavbarItem>
           <ClassroomDetailLayoutNavbarItem
-            isActive={url === `/${type}/kelas/${classroomId}/mahasiswa`}
-            href={`/${type}/kelas/${classroomId}/mahasiswa`}
+            isActive={url === `/${type}/kelas/${classroomId}/anggota`}
+            href={`/${type}/kelas/${classroomId}/anggota`}
           >
             <Users size={16} />
-            <span>Mahasiswa</span>
+            <span>Anggota</span>
           </ClassroomDetailLayoutNavbarItem>
           <ClassroomDetailLayoutNavbarItem
             isActive={url === `/${type}/kelas/${classroomId}/pengaturan`}
