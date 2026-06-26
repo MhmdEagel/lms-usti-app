@@ -6,6 +6,8 @@ import CreateClassroom from "./CreateClassroom";
 import { SearchBar } from "@/components/ui/searchfield";
 import { Skeleton } from "@/components/ui/skeleton";
 import ClassroomSkeleton from "./ClassroomSkeleton";
+import FilterSheet from "@/components/common/FilterSheet";
+import ActiveFilterCapsules from "@/components/common/ActiveFilterCapsules";
 
 export default function Classroom({
   searchParams,
@@ -32,12 +34,15 @@ export default function Classroom({
       <div className="p-4">
         <div className="mb-4 flex gap-4 items-center">
           <SearchBar />
-          <Button className="cursor-pointer" variant={"outline"}>
-            <Filter />
-            Filter
-          </Button>
+          <FilterSheet>
+            <Button className="cursor-pointer" variant={"outline"}>
+              <Filter />
+              Filter
+            </Button>
+          </FilterSheet>
           <CreateClassroom />
         </div>
+        <ActiveFilterCapsules />
         <ClassroomList searchParams={searchParams} />
       </div>
     </Suspense>

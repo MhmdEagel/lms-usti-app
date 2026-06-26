@@ -14,9 +14,9 @@ export const classroomServices = {
     instance.post(`${endpoint.CLASSROOM}/create`, payload),
   update: (payload: IUpdateClassroom, classroomId: string) =>
     instance.put(`${endpoint.CLASSROOM}/${classroomId}`, payload),
-  findAllDosenClassrooms: (params?: { search?: string }) =>
+  findAllDosenClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string }) =>
     instance.get(`${endpoint.CLASSROOM}/dosen/classrooms`, { params }),
-  findAllMahasiswaClassrooms: (params?: { search?: string }) =>
+  findAllMahasiswaClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string }) =>
     instance.get(`${endpoint.CLASSROOM}/mahasiswa/classrooms`, { params }),
   getDetail: (classroomId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}`),

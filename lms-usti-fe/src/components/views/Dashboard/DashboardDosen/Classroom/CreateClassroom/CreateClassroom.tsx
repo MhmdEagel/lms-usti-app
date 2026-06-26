@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import CLASS_DAYS from "../../../../../../constants/ClassDays.constant";
+import PROGRAM_STUDI from "@/constants/programStudi.constant";
 import { Input } from "@/components/ui/input";
 import useCreateClassroom from "./useCreateClassroom";
 import {
@@ -238,6 +239,50 @@ export default function CreateClassroom() {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={createClassForm.control}
+                name="prodi"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Program Studi</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Pilih Program Studi" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {PROGRAM_STUDI.map((item) => (
+                          <SelectItem key={item.id} value={item.value}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createClassForm.control}
+                name="tahun_ajaran"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tahun Ajaran</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Contoh: 2025/2026"
+                        {...field}
+                        autoComplete="off"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="flex gap-2 justify-end">
                 <DialogClose asChild>
                   <Button onClick={handleCloseForm} variant="outline">
