@@ -2,7 +2,6 @@
 import { CardContent } from "@/components/ui/card";
 import { getDayName, getTimeString } from "@/lib/utils";
 import { UserDetail } from "@/types/User";
-import dayjs from "dayjs";
 import ShareClassroomCode from "../ShareClassroomCode/ShareClassroomCode";
 
 interface PropTypes {
@@ -38,8 +37,8 @@ export default function ClassroomHeader(props: PropTypes) {
           <div className="text-sm sm:text-base">Ruangan {room_number}</div>
           <div className="text-sm sm:text-base">Semester {term}</div>
           <div className="text-sm sm:text-base">
-            {getDayName(day)}, {getTimeString(dayjs(class_start).toDate())} -{" "}
-            {getTimeString(dayjs(class_end).toDate())}
+            {getDayName(day)}, {getTimeString(class_start)} -{" "}
+            {getTimeString(class_end)}
           </div>
           <div className="font-bold truncate">{dosen.fullname}</div>
         </>

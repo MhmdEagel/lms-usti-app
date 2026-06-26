@@ -8,6 +8,8 @@ export default async function ClassroomPage({
 }: {
   searchParams: Promise<{ [key: string]: string |  undefined }>
 }) {
-  const search = (await searchParams)
-  return <Classroom searchParams={search} />;
+  const sp = await searchParams;
+  const page = sp.page ? parseInt(sp.page) : 1;
+  const limit = sp.limit ? parseInt(sp.limit) : 10;
+  return <Classroom searchParams={sp} page={page} limit={limit} />;
 }

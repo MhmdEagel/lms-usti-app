@@ -118,6 +118,19 @@ interface IRubrics {
   score: number;
 }
 
+interface IClassroomMemberDetail {
+  class_name: string;
+  member: {
+    userId: string;
+    fullname: string;
+    email: string;
+    profile?: string;
+    role: string;
+    nim?: string;
+    nidn?: string;
+  };
+}
+
 export type {
   IJoinClassroom,
   ICreateClassroom,
@@ -137,4 +150,5 @@ export type {
   IUpdateAssignment,
   IRubrics,
   SubmissionStats,
+  IClassroomMemberDetail,
 };

@@ -11,8 +11,12 @@ import ActiveFilterCapsules from "@/components/common/ActiveFilterCapsules";
 
 export default function Classroom({
   searchParams,
+  page = 1,
+  limit = 10,
 }: {
   searchParams: { [key: string]: string | undefined };
+  page?: number;
+  limit?: number;
 }) {
   return (
     <Suspense
@@ -43,7 +47,7 @@ export default function Classroom({
           <CreateClassroom />
         </div>
         <ActiveFilterCapsules />
-        <ClassroomList searchParams={searchParams} />
+        <ClassroomList searchParams={searchParams} page={page} limit={limit} />
       </div>
     </Suspense>
   );
