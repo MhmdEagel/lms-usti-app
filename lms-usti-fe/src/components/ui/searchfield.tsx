@@ -6,7 +6,7 @@ import { Search, X } from "lucide-react";
 import { Input } from "./input";
 import useDebounce from "@/hooks/useDebounce";
 
-function SearchBar() {
+function SearchBar({ placeholder = "Cari kelas..." }: { placeholder?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const debounce = useDebounce();
@@ -46,7 +46,7 @@ function SearchBar() {
       <div className="relative">
         <Input
           className="peer ps-9 pe-9"
-          placeholder="Cari kelas..."
+          placeholder={placeholder}
           type="text"
           value={value}
           onChange={handleChange}

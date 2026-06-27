@@ -18,7 +18,7 @@ type AssignmentService struct {
 
 type AssignmentServiceInterface interface {
 	Create(assignmentRequest data.AssignmentRequest) error
-	FindAll(classroomId string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error)
+	FindAll(classroomId string, search string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error)
 	FindById(assignmentId, classroomId string) (assignment data.AssignmentDetailResponse, err error)
 	Update(assignmentRequest data.AssignmentUpdateRequest) error
 	Delete(assignmentId, classroomId string) error
@@ -114,12 +114,12 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 		})
 }
 
-func (a *AssignmentService) FindAll(classroomId string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error) {
+func (a *AssignmentService) FindAll(classroomId string, search string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error) {
 	classroom, err := a.classroomRepository.FindById(classroomId)
 	if err != nil {
 		return nil, data.ErrClassroomNotFound(err)
 	}
-	paginatedResult, err = a.assignmentRepository.FindAll(classroom.ID, pagination)
+	paginatedResult, err = a.assignmentRepository.FindAll(classroom.ID, search, pagination)
 	if err != nil {
 		return nil, err
 	}

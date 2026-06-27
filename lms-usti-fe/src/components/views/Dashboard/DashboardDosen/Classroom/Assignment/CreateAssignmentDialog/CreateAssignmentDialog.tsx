@@ -1,11 +1,6 @@
 "use client";
 
 import { FileText, Plus, Upload, X } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -66,16 +61,9 @@ export default function CreateAssignmentDialog({
   console.log(arrayOfFiles);
   return (
     <>
-      <Tooltip>
-        <TooltipTrigger className="ml-auto" asChild>
-          <Button onClick={() => setOpen("open")} type="button" size={"icon"}>
-            <Plus />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Buat Tugas</p>
-        </TooltipContent>
-      </Tooltip>
+      <Button onClick={() => setOpen("open")} type="button">
+        <Plus /> Tambah Tugas
+      </Button>
       <div
         data-state={open}
         className="
