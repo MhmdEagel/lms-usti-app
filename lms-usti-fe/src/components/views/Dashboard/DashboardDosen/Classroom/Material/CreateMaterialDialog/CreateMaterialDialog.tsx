@@ -3,11 +3,6 @@
 import { Book, Plus, Upload, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -30,9 +25,8 @@ import type { IAttachment } from "@/types/Classroom";
 import dynamic from "next/dynamic";
 
 const ViewPdf = dynamic(() => import("@/components/common/ViewPdf/ViewPdf"), {
-  ssr: false
+  ssr: false,
 });
-
 
 export default function CreateMaterialDialog({
   classroomId,
@@ -59,16 +53,9 @@ export default function CreateMaterialDialog({
   const [previewFile, setPreviewFile] = useState<IAttachment | null>(null);
   return (
     <>
-      <Tooltip>
-        <TooltipTrigger className="ml-auto" asChild>
-          <Button onClick={() => setOpen("open")} type="button" size={"icon"}>
-            <Plus />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Buat Materi</p>
-        </TooltipContent>
-      </Tooltip>
+      <Button onClick={() => setOpen("open")} type="button">
+        <Plus /> Tambah Materi
+      </Button>
       <div
         data-state={open}
         className="
@@ -98,8 +85,10 @@ export default function CreateMaterialDialog({
           >
             <X />
           </Button>
-          <Book />
-          <div className="text-lg md:text-xl">Buat Materi</div>
+          <div>
+            <div className="text-lg md:text-xl font-bold">Buat Materi</div>
+            <div>Silahkan isi form di bawah ini untuk membuat materi</div>
+          </div>
           <Button
             disabled={isPending}
             type="button"
@@ -110,15 +99,15 @@ export default function CreateMaterialDialog({
             }
             className="ml-auto"
           >
-            Posting
+            Simpan
           </Button>
         </div>
         <Form {...materialForm}>
           <form
-            className="space-y-4 max-w-xl mx-auto mt-4"
+            className="space-y-4 max-w-3xl mx-auto mt-4"
             encType="multipart/form-data"
           >
-            <Card className="max-w-lg mx-auto">
+            <Card>
               <CardHeader>
                 <div className="font-bold">Detail Kelas</div>
               </CardHeader>
@@ -131,6 +120,7 @@ export default function CreateMaterialDialog({
                       <FormLabel>Judul</FormLabel>
                       <FormControl>
                         <Input
+                          className="w-full"
                           placeholder="Judul materi..."
                           {...field}
                           value={field.value ?? ""}
@@ -150,6 +140,7 @@ export default function CreateMaterialDialog({
                       <FormControl>
                         <div className="relative">
                           <ContentEditor
+                            className="min-h-32"
                             placeholder="Masukkan deskripsi..."
                             onChange={field.onChange}
                             isInvalid={!!fieldState.error}
@@ -192,96 +183,111 @@ export default function CreateMaterialDialog({
                 />
               </CardContent>
             </Card>
-            <Card className="max-w-xl mx-auto relative">
+            <Card className="relative">
               {isPendingUploadFile ? (
                 <div className="bg-slate-600/90 absolute top-0 left-0 right-0 bottom-0 rounded-lg flex justify-center items-center">
                   <Spinner variant="circle" className="text-white" size={60} />
                 </div>
               ) : null}
-              <CardHeader>
-                <div className="font-bold">Lampiran</div>
-              </CardHeader>
+
               <CardContent>
-                {arrayOfAttachments.filter(a => a.type === "FILE" || a.type === "VIDEO").length > 0 ? (
+                <div className="mb-4">
+                  <div className="font-bold mb-2">Lampiran</div>
+                  <hr />
+                </div>
+                <div className="flex flex-col gap-2 items-center font-semibold text-sm">
+                  <Button
+                    onClick={() => pdfMateriRef.current?.click()}
+                    type="button"
+                    size={"icon"}
+                  >
+                    <Upload />
+                  </Button>
+                  Upload (PDF/DOCS/PPT/VIDEO)
+                </div>
+                {arrayOfAttachments.filter(
+                  (a) => a.type === "FILE" || a.type === "VIDEO",
+                ).length > 0 ? (
                   <Card className="mb-4">
                     <CardHeader>
                       <div>File</div>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-col gap-2">
-                        {arrayOfAttachments.filter(a => a.type === "FILE" || a.type === "VIDEO").map((item) => {
-                          const handleDeleteFile = async () => {
-                            const newArray = arrayOfAttachments.filter(
-                              (a) => a.unique_name !== item.unique_name,
+                        {arrayOfAttachments
+                          .filter(
+                            (a) => a.type === "FILE" || a.type === "VIDEO",
+                          )
+                          .map((item) => {
+                            const handleDeleteFile = async () => {
+                              const newArray = arrayOfAttachments.filter(
+                                (a) => a.unique_name !== item.unique_name,
+                              );
+                              setIsPending(true);
+                              setIsPendingUploadFile(true);
+                              try {
+                                await deleteFileMaterial(item.unique_name);
+                                setArrayOfAttachments(newArray);
+                                materialForm.setValue("attachments", newArray);
+                              } finally {
+                                setIsPendingUploadFile(false);
+                                setIsPending(false);
+                              }
+                            };
+                            return (
+                              <FileItem
+                                key={item.unique_name}
+                                fileName={item.name}
+                                onDelete={handleDeleteFile}
+                                isPending={isPending || isPendingUploadFile}
+                                fileUrl={item.url}
+                                onClick={() => setPreviewFile(item)}
+                              />
                             );
-                            setIsPending(true);
-                            setIsPendingUploadFile(true);
-                            try {
-                              await deleteFileMaterial(item.unique_name);
-                              setArrayOfAttachments(newArray);
-                              materialForm.setValue("attachments", newArray);
-                            } finally {
-                              setIsPendingUploadFile(false);
-                              setIsPending(false);
-                            }
-                          };
-                          return (
-                            <FileItem
-                              key={item.unique_name}
-                              fileName={item.name}
-                              onDelete={handleDeleteFile}
-                              isPending={isPending || isPendingUploadFile}
-                              fileUrl={item.url}
-                              onClick={() => setPreviewFile(item)}
-                            />
-                          );
-                        })}
+                          })}
                       </div>
                     </CardContent>
                   </Card>
                 ) : null}
-                {linkAttachments.filter(a => a.type === "LINK").length > 0 ? (
+
+                <div className="mb-4">
+                  <div className="font-bold mb-2">Link Referensi</div>
+                  <hr />
+                </div>
+                <AddLinkDialog
+                  attachments={linkAttachments}
+                  setAttachments={setLinkAttachments}
+                  setValue={materialForm.setValue}
+                />
+                {linkAttachments.filter((a) => a.type === "LINK").length > 0 ? (
                   <Card className="mb-4">
                     <CardHeader>
                       <div>Link</div>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-col gap-2 ">
-                        {linkAttachments.filter(a => a.type === "LINK").map((item, index) => {
-                          const handleDeleteLink = () => {
-                            const newArray = linkAttachments.filter((_, i) => i !== index);
-                            setLinkAttachments(newArray);
-                            materialForm.setValue("attachments", newArray);
-                          };
-                          return (
-                            <LinkItem
-                              key={index}
-                              linkName={item.name}
-                              onDelete={handleDeleteLink}
-                            />
-                          );
-                        })}
+                        {linkAttachments
+                          .filter((a) => a.type === "LINK")
+                          .map((item, index) => {
+                            const handleDeleteLink = () => {
+                              const newArray = linkAttachments.filter(
+                                (_, i) => i !== index,
+                              );
+                              setLinkAttachments(newArray);
+                              materialForm.setValue("attachments", newArray);
+                            };
+                            return (
+                              <LinkItem
+                                key={index}
+                                linkName={item.name}
+                                onDelete={handleDeleteLink}
+                              />
+                            );
+                          })}
                       </div>
                     </CardContent>
                   </Card>
                 ) : null}
-                <div className="flex justify-center gap-4">
-                  <div className="flex flex-col gap-2 items-center font-semibold text-sm">
-                    <Button
-                      onClick={() => pdfMateriRef.current?.click()}
-                      type="button"
-                      size={"icon"}
-                    >
-                      <Upload />
-                    </Button>
-                    Upload (PDF/DOCS/PPT/VIDEO)
-                  </div>
-                  <AddLinkDialog
-                    attachments={linkAttachments}
-                    setAttachments={setLinkAttachments}
-                    setValue={materialForm.setValue}
-                  />
-                </div>
               </CardContent>
             </Card>
           </form>
@@ -297,4 +303,3 @@ export default function CreateMaterialDialog({
     </>
   );
 }
-

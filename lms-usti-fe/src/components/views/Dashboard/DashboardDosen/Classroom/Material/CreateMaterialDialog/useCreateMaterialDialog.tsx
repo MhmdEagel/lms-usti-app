@@ -50,6 +50,7 @@ const useCreateMaterialDialog = () => {
     toast.success(res.success);
     setArrayOfFiles([]);
     setArrayOfLinks([]);
+    materialForm.reset();
     setOpen("closed");
   };
 
@@ -66,6 +67,7 @@ const useCreateMaterialDialog = () => {
     setArrayOfFiles([]);
     setArrayOfLinks([]);
     setIsPending(false);
+    materialForm.reset();
     setOpen("closed");
   };
 

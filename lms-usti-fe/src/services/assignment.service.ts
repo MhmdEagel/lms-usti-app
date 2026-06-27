@@ -3,7 +3,7 @@ import endpoint from "./endpoint.constant";
 import { IAssignment, IUpdateAssignment } from "@/types/Classroom";
 
 export const assignmentServices = {
-  findAllAssignments: (classroomId: string, params?: { page?: number; limit?: number }) =>
+  findAllAssignments: (classroomId: string, params?: { page?: number; limit?: number; search?: string }) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/assignments`, { params }),
   findAssignmentById: (classroomId: string, assignmentId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/assignments/${assignmentId}`),

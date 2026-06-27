@@ -35,11 +35,12 @@ func (a *AssignmentController) Create(ctx *gin.Context) {
 
 func (a *AssignmentController) FindAll(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
+	search := ctx.Query("search")
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
 
 	pagination := data.Pagination{Limit: limit, Current: page}
-	paginatedResult, err := a.assignmentService.FindAll(classroomId, pagination)
+	paginatedResult, err := a.assignmentService.FindAll(classroomId, search, pagination)
 	if err != nil {
 		if appErr, ok := err.(*data.AppError); ok {
 			res := data.NewResponseFromError(appErr)

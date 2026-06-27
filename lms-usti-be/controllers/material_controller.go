@@ -36,11 +36,12 @@ func (m *MaterialController) Create(c *gin.Context) {
 
 func (m *MaterialController) FindAll(c *gin.Context) {
 	id := c.Param("id")
+	search := c.Query("search")
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	page, _ := strconv.Atoi(c.Query("page"))
 
 	pagination := data.Pagination{Limit: limit, Current: page}
-	paginatedResult, err := m.materialService.FindAll(id, pagination)
+	paginatedResult, err := m.materialService.FindAll(id, search, pagination)
 	if err != nil {
 		if appErr, ok := err.(*data.AppError); ok {
 			res := data.NewResponseFromError(appErr)
