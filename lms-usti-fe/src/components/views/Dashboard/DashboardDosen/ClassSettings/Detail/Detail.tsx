@@ -24,7 +24,6 @@ import { IClassroom } from "@/types/Classroom";
 import CLASS_COVER from "@/constants/classCover.constant";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import dayjs from "dayjs";
 import { useEffect } from "react";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -139,9 +138,7 @@ export default function Detail({
           <FormField
             control={editForm.control}
             name="class_start"
-            defaultValue={getTimeString(
-              dayjs(classDetail.class_start).toDate(),
-            )}
+            defaultValue={getTimeString(classDetail.class_start)}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Waktu Mulai</FormLabel>
@@ -155,7 +152,7 @@ export default function Detail({
           <FormField
             control={editForm.control}
             name="class_end"
-            defaultValue={getTimeString(dayjs(classDetail.class_end).toDate())}
+            defaultValue={getTimeString(classDetail.class_end)}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Waktu Selesai</FormLabel>
@@ -216,7 +213,7 @@ export default function Detail({
             )}
           />
           <Button disabled={isPending} className="ml-auto" type="submit">
-            {isPending ? <Spinner variant="circle" color="white" /> : "Simpan"}
+            {isPending ? "Menyimpan..." : "Simpan"}
           </Button>
         </div>
       </form>

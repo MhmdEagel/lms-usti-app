@@ -14,7 +14,7 @@ type MaterialRepository struct {
 type MaterialRepositoryInterface interface {
 	Create(material *model.Material) error
 	CreateAttachments(attachments []model.MaterialAttachment) error
-	FindAll(classroomId string, pagination data.Pagination) (result *data.PaginationWithData, err error)
+	FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error)
 	FindById(materialId string) (material model.Material, err error)
 	Update(material model.Material) error
 	Delete(materialId, classroomId string) error
@@ -46,10 +46,13 @@ func (m *MaterialRepository) Update(material model.Material) error {
 	}
 	return nil
 }
-func (m *MaterialRepository) FindAll(classroomId string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
+func (m *MaterialRepository) FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
 	var materials []model.Material
 	result = &data.PaginationWithData{Pagination: pagination}
 	query := m.Db.Where("classroom_id = ?", classroomId)
+	if search != "" {
+		query = query.Where("title LIKE ?", "%"+search+"%")
+	}
 	if err := query.Scopes(lib.Paginate(materials, &pagination, query)).Find(&materials).Error; err != nil {
 		return nil, err
 	}

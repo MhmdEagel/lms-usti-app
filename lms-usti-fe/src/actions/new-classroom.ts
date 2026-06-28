@@ -27,9 +27,11 @@ export const createNewClassroom = async (data: z.infer<typeof newClassroomSchema
     class_start,
     class_end,
     term,
+    prodi,
+    tahun_ajaran,
   } = data;
-  const timeStartDateObj = dayjs.tz(`10-10-2010 ${class_start}`, "Asia/Jakarta");
-  const timeEndDateObj = dayjs.tz(`10-10-2010 ${class_end}`, "Asia/Jakarta");
+  const timeStartDateObj = dayjs.tz(`2010-10-10 ${class_start}`, "Asia/Jakarta");
+  const timeEndDateObj = dayjs.tz(`2010-10-10 ${class_end}`, "Asia/Jakarta");
   const newClassroom = {
     class_cover,
     class_name,
@@ -38,6 +40,8 @@ export const createNewClassroom = async (data: z.infer<typeof newClassroomSchema
     room_number,
     class_start: timeStartDateObj.toISOString(),
     class_end: timeEndDateObj.toISOString(),
+    prodi,
+    tahun_ajaran,
   };
   try {
     await classroomServices.create(newClassroom);

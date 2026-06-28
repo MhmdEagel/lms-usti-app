@@ -7,16 +7,15 @@ import { toast } from "sonner";
 import { createAssignmentSchema } from "@/schemas/assignment";
 import { newAssignment } from "@/actions/new-assignment";
 import { z } from "zod";
-import { uploadMaterial } from "@/actions/upload-material";
+import { uploadAssignment } from "@/actions/upload-assignment";
 import { IAttachment } from "@/types/Classroom";
 import { AxiosError } from "axios";
 import { ErrorResponse } from "@/types/Response";
-import { uploadAssignment } from "@/actions/upload-assignment";
+import { deleteMaterialBatch } from "@/actions/delete-material-batch";
 
 const useCreateAssignmentDialog = () => {
   const [open, setOpen] = useState("closed");
-  const [arrayOfFiles, setArrayOfFiles] = useState<IAttachment[]>([]);
-  const [arrayOfLinks, setArrayOfLinks] = useState<IAttachment[]>([]);
+  const [attachments, setAttachments] = useState<IAttachment[]>([]);
 
   const [hasDeadline, setHasDeadline] = useState(false);
   const [arrayOfRubrics, setArrayOfRubrics] = useState<
@@ -44,8 +43,6 @@ const useCreateAssignmentDialog = () => {
     resolver: zodResolver(createAssignmentSchema),
   });
 
-  const pdfMateriRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     assignmentForm.setValue("rubrics", arrayOfRubrics);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -67,14 +64,13 @@ const useCreateAssignmentDialog = () => {
     try {
       setIsPendingUploadFile(true);
       const res = await uploadAssignment(formData);
-      console.log(res)
       const newFile: IAttachment = {
         name: res.data?.file_name,
         url: res.data?.file_url,
         unique_name: res.data?.unique_file_name,
         type: "FILE",
       };
-      setArrayOfFiles((prevValue) => [...prevValue, newFile]);
+      setAttachments((prevValue) => [...prevValue, newFile]);
       toast.success("File berhasil diupload");
     } catch (e) {
       const err = e as AxiosError<ErrorResponse>;
@@ -89,28 +85,49 @@ const useCreateAssignmentDialog = () => {
     classroomId: string,
   ) => {
     setIsPending(true);
-    console.log(data)
     const payload = {
-      ...data,
-      rubrics: data.rubrics?.filter((r) => r.name && r.score) || [],
+      title: data.title,
+      deadline: data.deadline || undefined,
+      instruction: data.instruction || undefined,
+      rubrics: data.rubrics
+        ?.filter((r) => r.name && r.score)
+        .map((r) => ({ name: r.name, score: parseInt(r.score) || 0 })) || [],
+      attachments,
     };
 
-    // const res = await newAssignment(payload, classroomId);
-    // if (!res.success && res.error) {
-    //   toast.error(res.error);
-    //   setIsPending(false);
-    //   return;
-    // }
+    const res = await newAssignment(payload, classroomId);
+    if (!res.success && res.error) {
+      toast.error(res.error);
+      setIsPending(false);
+      return;
+    }
     setIsPending(false);
-    // toast.success(res.success);
+    toast.success(res.success);
     setArrayOfRubrics([]);
+    setAttachments([]);
     setHasDeadline(false);
+    assignmentForm.reset();
     setOpen("closed");
   };
 
-  const handleClose = () => {
+  const handleClose = async () => {
+    try {
+      setIsPending(true);
+      const filesToDelete = attachments.filter(
+        (a) => a.type === "FILE" || a.type === "VIDEO",
+      );
+      if (filesToDelete.length > 0) {
+        await deleteMaterialBatch(filesToDelete);
+      }
+    } catch (e) {
+      const err = e as AxiosError<ErrorResponse>;
+      toast.error(err.response?.data.meta.message);
+    }
+    setAttachments([]);
     setArrayOfRubrics([]);
     setHasDeadline(false);
+    setIsPending(false);
+    assignmentForm.reset();
     setOpen("closed");
   };
 
@@ -120,6 +137,9 @@ const useCreateAssignmentDialog = () => {
 
     hasDeadline,
     setHasDeadline,
+
+    attachments,
+    setAttachments,
 
     arrayOfRubrics,
     setArrayOfRubrics,
@@ -138,18 +158,11 @@ const useCreateAssignmentDialog = () => {
     setRubricName,
     setRubricValue,
     totalScore,
-
     canAddRubric,
-    pdfMateriRef,
 
     handleUploadFile,
     isPendingUploadFile,
     setIsPendingUploadFile,
-    arrayOfFiles,
-    setArrayOfFiles,
-
-    arrayOfLinks,
-    setArrayOfLinks
   };
 };
 

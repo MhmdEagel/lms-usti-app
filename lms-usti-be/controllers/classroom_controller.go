@@ -64,11 +64,20 @@ func (c *ClassroomController) FindAllByDosenId(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
+	search := ctx.Query("search")
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
-	
+
+	filter := data.ClassroomFilter{
+		Search:      search,
+		Prodi:       ctx.Query("prodi"),
+		Term:        ctx.Query("term"),
+		TahunAjaran: ctx.Query("tahun_ajaran"),
+		RoomNumber:  ctx.Query("room_number"),
+	}
+
 	pagination := data.Pagination{Limit: limit, Current: page}
-	paginationResult, err := c.classroomService.FindAllByDosenId(user.UserId, pagination)
+	paginationResult, err := c.classroomService.FindAllByDosenId(user.UserId, filter, pagination)
 	if err != nil {
 		log.Printf("FindAllByDosenId: %v", err)
 		appErr := data.ErrInternalServer(nil)
@@ -113,11 +122,20 @@ func (c *ClassroomController) FindAllByMahasiswaId(ctx *gin.Context) {
 		return
 	}
 
+	search := ctx.Query("search")
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
 
+	filter := data.ClassroomFilter{
+		Search:      search,
+		Prodi:       ctx.Query("prodi"),
+		Term:        ctx.Query("term"),
+		TahunAjaran: ctx.Query("tahun_ajaran"),
+		RoomNumber:  ctx.Query("room_number"),
+	}
+
 	pagination := data.Pagination{Limit: limit, Current: page}
-	paginationResult, err := c.classroomService.FindAllByMahasiswaId(user.UserId, pagination)
+	paginationResult, err := c.classroomService.FindAllByMahasiswaId(user.UserId, filter, pagination)
 	if err != nil {
 		log.Printf("FindAllByMahasiswaId: %v", err)
 		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
@@ -235,5 +253,24 @@ func (c *ClassroomController) FindAllClassroomMember(ctx *gin.Context) {
 		return
 	}
 	res := data.NewResponse(http.StatusOK, "success find all classroom member", classroomMembers)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *ClassroomController) FindClassroomMemberById(ctx *gin.Context) {
+	classroomId := ctx.Param("id")
+	memberId := ctx.Param("memberId")
+	member, err := c.classroomService.FindClassroomMemberByMemberId(classroomId, memberId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			res := data.NewResponse(http.StatusNotFound, "classroom or member not found", nil)
+			ctx.JSON(http.StatusNotFound, res)
+			return
+		}
+		log.Printf("FindClassroomMemberById: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "success find member by id", member)
 	ctx.JSON(http.StatusOK, res)
 }

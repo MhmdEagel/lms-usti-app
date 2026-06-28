@@ -47,7 +47,7 @@ func InitRouter() *gin.Engine {
 
 		assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService)
 
-		classroomService := services.NewClassroomService(classroomRepository, submissionService, assignmentService)
+		classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService)
 
 		announcementService := services.NewAnnouncementService(announcementRepository, classroomRepository)
 
@@ -84,7 +84,6 @@ func InitRouter() *gin.Engine {
 			adminAudit.GET("", auditController.FindAllLogs)
 		}
 
-
 		classroom := api.Group("/classroom")
 		classroom.Use(authMiddleware.Handle())
 		{
@@ -101,11 +100,13 @@ func InitRouter() *gin.Engine {
 			classroom.POST("/join", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.Enroll)
 			classroom.GET("/:id", classroomController.FindById)
 			classroom.GET("/:id/members", classroomController.FindAllClassroomMember)
+			classroom.GET("/:id/members/:memberId", classroomController.FindClassroomMemberById)
 			classroom.DELETE("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Delete)
 			classroom.PUT("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Update)
 
 			classroom.GET("/:id/announcements", announcementController.FindAll)
 			classroom.POST("/:id/announcements", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Create)
+			classroom.PUT("/:id/announcements/:announcementId", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Update)
 			classroom.DELETE("/:id/announcements/:announcementId", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Delete)
 
 			classroom.GET("/:id/materials", materialController.FindAll)

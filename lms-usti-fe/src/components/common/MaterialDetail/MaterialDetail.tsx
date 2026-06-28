@@ -124,8 +124,8 @@ export default async function MaterialDetail(props: PropTypes) {
                 attachments={data.attachments.filter((a) => a.type === "FILE" || a.type === "VIDEO")}
               />
             ) : (
-              <div className="text-center h-32 flex justify-center items-center">
-                Belum ada lampiran
+              <div className="h-23 flex items-center justify-center">
+                Tidak ada lampiran
               </div>
             )}
           </CardContent>
@@ -134,7 +134,7 @@ export default async function MaterialDetail(props: PropTypes) {
       <div className="p-4 w-full">
         <Card>
           <CardHeader className="border-b-2 pb-2">
-            <div className="text-base md:text-xl font-bold">LINK</div>
+            <div className="text-base md:text-xl font-bold">Link Referensi</div>
           </CardHeader>
           <CardContent>
             {data.attachments &&
@@ -149,8 +149,8 @@ export default async function MaterialDetail(props: PropTypes) {
                 </div>
               </div>
             ) : (
-              <div className="text-center h-32 flex justify-center items-center">
-                Belum ada link materi
+              <div className="h-23 flex items-center justify-center">
+                Tidak ada link referensi
               </div>
             )}
           </CardContent>

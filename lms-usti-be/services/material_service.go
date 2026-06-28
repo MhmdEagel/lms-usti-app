@@ -15,7 +15,7 @@ type MaterialService struct {
 }
 type MaterialServiceInterface interface {
 	Create(materialRequest data.MaterialRequest) error
-	FindAll(classroomId string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error)
+	FindAll(classroomId string, search string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error)
 	FindById(materialId, classroomId string) (material data.MaterialDetailResponse, err error)
 	Update(materialUpdateRequest data.MaterialUpdateRequest) error
 	Delete(materialId, classroomId string) error
@@ -68,12 +68,12 @@ func (m *MaterialService) Create(materialRequest data.MaterialRequest) error {
 	}
 	return nil
 }
-func (m *MaterialService) FindAll(classroomId string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error) {
+func (m *MaterialService) FindAll(classroomId string, search string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error) {
 	classroom, err := m.classroomRepository.FindById(classroomId)
 	if err != nil {
 		return nil, data.ErrClassroomNotFound(err)
 	}
-	paginatedResult, err = m.materialRepository.FindAll(classroom.ID, pagination)
+	paginatedResult, err = m.materialRepository.FindAll(classroom.ID, search, pagination)
 	if err != nil {
 		return nil, err
 	}

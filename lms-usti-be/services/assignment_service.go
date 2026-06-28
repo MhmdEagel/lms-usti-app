@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/lib"
@@ -17,7 +18,7 @@ type AssignmentService struct {
 
 type AssignmentServiceInterface interface {
 	Create(assignmentRequest data.AssignmentRequest) error
-	FindAll(classroomId string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error)
+	FindAll(classroomId string, search string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error)
 	FindById(assignmentId, classroomId string) (assignment data.AssignmentDetailResponse, err error)
 	Update(assignmentRequest data.AssignmentUpdateRequest) error
 	Delete(assignmentId, classroomId string) error
@@ -33,9 +34,13 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 	}
 	return a.assignmentRepository.Transaction(
 		func(repo repositories.AssignmentRepositoryInterface) error {
+			deadline := time.Time{}
+			if assignmentRequest.Deadline != nil {
+				deadline = *assignmentRequest.Deadline
+			}
 			assignment := &model.Assignment{
 				Title:       assignmentRequest.Title,
-				Deadline:    assignmentRequest.Deadline,
+				Deadline:    deadline,
 				Instruction: assignmentRequest.Instruction,
 				ClassroomId: classroom.ID,
 			}
@@ -109,22 +114,30 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 		})
 }
 
-func (a *AssignmentService) FindAll(classroomId string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error) {
+func (a *AssignmentService) FindAll(classroomId string, search string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error) {
 	classroom, err := a.classroomRepository.FindById(classroomId)
 	if err != nil {
 		return nil, data.ErrClassroomNotFound(err)
 	}
-	paginatedResult, err = a.assignmentRepository.FindAll(classroom.ID, pagination)
+	paginatedResult, err = a.assignmentRepository.FindAll(classroom.ID, search, pagination)
 	if err != nil {
 		return nil, err
 	}
+	assignmentModels := paginatedResult.Data.([]model.Assignment)
+	assignmentIds := make([]string, len(assignmentModels))
+	for i, v := range assignmentModels {
+		assignmentIds[i] = v.ID
+	}
+	statsMap, _ := a.submissionService.GetSubmissionStatsBatch(assignmentIds)
 	var assignments []data.AssignmentResponse
-	for _, v := range paginatedResult.Data.([]model.Assignment) {
+	for _, v := range assignmentModels {
+		stats := statsMap[v.ID]
 		assignment := data.AssignmentResponse{
 			ID:          v.ID,
 			Title:       v.Title,
 			Instruction: v.Instruction,
 			Deadline:    v.Deadline,
+			Stats:       &stats,
 		}
 		assignments = append(assignments, assignment)
 	}
@@ -202,8 +215,10 @@ func (a *AssignmentService) Update(assignmentRequest data.AssignmentUpdateReques
 				updatedRubrics = append(updatedRubrics, rubric)
 			}
 
-			if err := repo.DeleteRubrics(res.Rubrics); err != nil {
-				return err
+			if len(res.Rubrics) > 0 {
+				if err := repo.DeleteRubrics(res.Rubrics); err != nil {
+					return err
+				}
 			}
 			if len(updatedRubrics) > 0 {
 				if err := repo.CreateRubrics(updatedRubrics); err != nil {
@@ -246,7 +261,6 @@ func (a *AssignmentService) Update(assignmentRequest data.AssignmentUpdateReques
 			return nil
 		})
 }
-
 func (a *AssignmentService) Delete(assignmentId, classroomId string) error {
 	classroom, err := a.classroomRepository.FindById(classroomId)
 	if err != nil {

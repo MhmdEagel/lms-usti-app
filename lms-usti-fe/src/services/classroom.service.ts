@@ -14,10 +14,10 @@ export const classroomServices = {
     instance.post(`${endpoint.CLASSROOM}/create`, payload),
   update: (payload: IUpdateClassroom, classroomId: string) =>
     instance.put(`${endpoint.CLASSROOM}/${classroomId}`, payload),
-  findAllDosenClassrooms: () =>
-    instance.get(`${endpoint.CLASSROOM}/dosen/classrooms`),
-  findAllMahasiswaClassrooms: () =>
-    instance.get(`${endpoint.CLASSROOM}/mahasiswa/classrooms`),
+  findAllDosenClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string; page?: number; limit?: number }) =>
+    instance.get(`${endpoint.CLASSROOM}/dosen/classrooms`, { params }),
+  findAllMahasiswaClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string; page?: number; limit?: number }) =>
+    instance.get(`${endpoint.CLASSROOM}/mahasiswa/classrooms`, { params }),
   getDetail: (classroomId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}`),
   createAnnouncement: (payload: ICreateAnnouncement, classroomId: string) =>
@@ -31,6 +31,17 @@ export const classroomServices = {
     instance.delete(
       `${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}`,
     ),
+  updateAnnouncement: (
+    classroomId: string,
+    announcementId: string,
+    payload: { is_pinned: boolean },
+  ) =>
+    instance.put(
+      `${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}`,
+      payload,
+    ),
   getMembers: (classroomId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/members`),
+  getMemberDetail: (classroomId: string, memberId: string) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}/members/${memberId}`),
 };

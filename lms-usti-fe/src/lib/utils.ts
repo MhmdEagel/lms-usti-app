@@ -1,8 +1,13 @@
 import CLASS_DAYS from "@/constants/ClassDays.constant";
 import { clsx, type ClassValue } from "clsx";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import {v4 as uuidv4} from "uuid"
 import { twMerge } from "tailwind-merge";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -22,7 +27,7 @@ export function getDayName(day: number) {
   return dayObj?.name;
 }
 
-export function getTimeString(time: Date) {
+export function getTimeString(time: string | Date) {
   const result = dayjs(time).format("HH:mm");
   return result;
 }

@@ -27,10 +27,12 @@ export default async function ClassroomMembers({
           {user?.role !== "DOSEN" ? "Dosen" : "Anda"}
         </div>
         <MemberItem
-          userRole={user?.role}
-          userId=""
+          viewerRole={user?.role}
+          classroomId={classroomId}
+          userId={members.dosen?.userId}
           fullname={members.dosen?.fullname}
           profile={members.dosen?.profile}
+          isCurrentUser={user?.id === members.dosen?.userId}
         />
       </div>
 
@@ -40,10 +42,12 @@ export default async function ClassroomMembers({
           members.mahasiswa?.map((mahasiswa) => (
             <MemberItem
               key={mahasiswa.userId}
-              userRole={user?.role}
-              userId={user?.id}
+              viewerRole={user?.role}
+              classroomId={classroomId}
+              userId={mahasiswa.userId}
               fullname={mahasiswa.fullname}
               profile={mahasiswa.profile}
+              isCurrentUser={user?.id === mahasiswa.userId}
             />
           ))
         ) : (

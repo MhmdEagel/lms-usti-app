@@ -5,24 +5,34 @@ import { materialServices } from "@/services/material.service";
 import { IMaterial } from "@/types/Classroom";
 import PaginationControls from "@/components/common/PaginationControls/PaginationControls";
 import PaginationNav from "@/components/common/PaginationControls/PaginationNav";
+import { SearchBar } from "@/components/ui/searchfield";
+import CreateMaterialDialog from "./CreateMaterialDialog/CreateMaterialDialog";
 
 export default async function Material({
   classroomId,
   page = 1,
   limit = 10,
+  search = "",
 }: {
   classroomId: string;
   page?: number;
   limit?: number;
+  search?: string;
 }) {
   const user = await getCurrentUser();
-  const res = await materialServices.findAllMaterials(classroomId, { page, limit });
+  const res = await materialServices.findAllMaterials(classroomId, { page, limit, search });
   const pagination: PaginationInfo = res.data?.pagination;
   const listMateri: IMaterial[] | null = res.data?.data;
 
   return (
     <>
-      <MaterialHeader classroomId={classroomId} userRole={user?.role} />
+      <MaterialHeader />
+      <div className="mt-4 flex items-center gap-4">
+        <div className="flex-1">
+          <SearchBar placeholder="Cari materi..." />
+        </div>
+        {user?.role === "DOSEN" ? <CreateMaterialDialog classroomId={classroomId} /> : null}
+      </div>
       <div className="mt-4 flex flex-col gap-4">
         {listMateri && listMateri.length > 0 ? (
           listMateri.map((item) => (

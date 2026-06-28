@@ -11,41 +11,46 @@ import (
 
 type ClassroomService struct {
 	classroomRepository repositories.ClassroomRepositoryInterface
+	userRepository      repositories.UserRepositoryInterface
 	submissionService   SubmissionServiceInterface
 	assignmentService   AssignmentServiceInterface
 }
 
 type ClassroomServiceInterface interface {
 	Create(classroomRequest data.CreateClassroomRequest) error
-	FindAllByDosenId(dosenId string, pagination data.Pagination) (paginationResult data.PaginationWithData, err error)
-	FindAllByMahasiswaId(mahasiswaId string, pagination data.Pagination) (paginationResult data.PaginationWithData, err error)
+	FindAllByDosenId(dosenId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult data.PaginationWithData, err error)
+	FindAllByMahasiswaId(mahasiswaId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult data.PaginationWithData, err error)
 	FindAllClassroomMember(classroomId string) (classroomMembers data.ClassroomMembersReponse, err error)
+	FindClassroomMemberByMemberId(classroomId, memberId string) (classroomMember data.ClassroomMemberDetailResponse, err error)
 	FindById(classroomId string) (classroom data.ClassroomDetailResponse, err error)
 	EnrollMahasiswa(joinClassroomRequest data.JoinClassroomRequest, mahasiswaId string) error
 	Update(classroomUpdateRequest data.UpdateClassroomRequest) error
 	Delete(classroomId string, userId string) error
 }
 
-func NewClassroomService(classroomRepository repositories.ClassroomRepositoryInterface, submissionService SubmissionServiceInterface, assignmentService AssignmentServiceInterface) ClassroomServiceInterface {
-	return &ClassroomService{classroomRepository: classroomRepository, submissionService: submissionService, assignmentService: assignmentService}
+func NewClassroomService(classroomRepository repositories.ClassroomRepositoryInterface,
+	userRepository repositories.UserRepositoryInterface, submissionService SubmissionServiceInterface, assignmentService AssignmentServiceInterface) ClassroomServiceInterface {
+	return &ClassroomService{classroomRepository: classroomRepository, userRepository: userRepository, submissionService: submissionService, assignmentService: assignmentService}
 }
 
 func (c *ClassroomService) Create(classroomRequest data.CreateClassroomRequest) error {
 	classroom := model.Classroom{
-		ClassCover: classroomRequest.ClassCover,
-		ClassName:  classroomRequest.ClassName,
-		Term:       classroomRequest.Term,
-		RoomNumber: classroomRequest.RoomNumber,
-		Day:        classroomRequest.Day,
-		ClassStart: classroomRequest.ClassStart,
-		ClassEnd:   classroomRequest.ClassEnd,
-		DosenId:    classroomRequest.DosenId,
+		ClassCover:  classroomRequest.ClassCover,
+		ClassName:   classroomRequest.ClassName,
+		Term:        classroomRequest.Term,
+		RoomNumber:  classroomRequest.RoomNumber,
+		Day:         classroomRequest.Day,
+		ClassStart:  classroomRequest.ClassStart,
+		ClassEnd:    classroomRequest.ClassEnd,
+		Prodi:       classroomRequest.Prodi,
+		TahunAjaran: classroomRequest.TahunAjaran,
+		DosenId:     classroomRequest.DosenId,
 	}
 	return c.classroomRepository.Create(classroom)
 }
 
-func (c *ClassroomService) FindAllByDosenId(dosenId string, pagination data.Pagination) (paginationResult data.PaginationWithData, err error) {
-	paginationRes, err := c.classroomRepository.FindAllByDosenId(dosenId, pagination)
+func (c *ClassroomService) FindAllByDosenId(dosenId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult data.PaginationWithData, err error) {
+	paginationRes, err := c.classroomRepository.FindAllByDosenId(dosenId, filter, pagination)
 	if err != nil {
 		return paginationResult, err
 	}
@@ -53,16 +58,18 @@ func (c *ClassroomService) FindAllByDosenId(dosenId string, pagination data.Pagi
 	var classrooms []data.ClassroomResponse
 	for _, v := range paginationRes.Data.([]model.Classroom) {
 		classroomResponse := data.ClassroomResponse{
-			ID:         v.ID,
-			ClassCover: v.ClassCover,
-			ClassCode:  v.ClassCode,
-			ClassName:  v.ClassName,
-			Term:       v.Term,
-			RoomNumber: v.RoomNumber,
-			Day:        v.Day,
-			ClassStart: v.ClassStart,
-			ClassEnd:   v.ClassEnd,
-			Dosen:      v.Dosen,
+			ID:          v.ID,
+			ClassCover:  v.ClassCover,
+			ClassCode:   v.ClassCode,
+			ClassName:   v.ClassName,
+			Term:        v.Term,
+			RoomNumber:  v.RoomNumber,
+			Day:         v.Day,
+			ClassStart:  v.ClassStart,
+			ClassEnd:    v.ClassEnd,
+			Prodi:       v.Prodi,
+			TahunAjaran: v.TahunAjaran,
+			Dosen:       v.Dosen,
 		}
 		classrooms = append(classrooms, classroomResponse)
 	}
@@ -70,8 +77,8 @@ func (c *ClassroomService) FindAllByDosenId(dosenId string, pagination data.Pagi
 	paginationRes.Data = classrooms
 	return *paginationRes, nil
 }
-func (c *ClassroomService) FindAllByMahasiswaId(mahasiswaId string, pagination data.Pagination) (paginationResult data.PaginationWithData, err error) {
-	paginationRes, err := c.classroomRepository.FindAllByMahasiswaId(mahasiswaId, pagination)
+func (c *ClassroomService) FindAllByMahasiswaId(mahasiswaId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult data.PaginationWithData, err error) {
+	paginationRes, err := c.classroomRepository.FindAllByMahasiswaId(mahasiswaId, filter, pagination)
 	if err != nil {
 		return paginationResult, err
 	}
@@ -79,16 +86,18 @@ func (c *ClassroomService) FindAllByMahasiswaId(mahasiswaId string, pagination d
 	var classrooms []data.ClassroomResponse
 	for _, v := range paginationRes.Data.([]model.Classroom) {
 		classroomResponse := data.ClassroomResponse{
-			ID:         v.ID,
-			ClassCover: v.ClassCover,
-			ClassCode:  v.ClassCode,
-			ClassName:  v.ClassName,
-			Term:       v.Term,
-			RoomNumber: v.RoomNumber,
-			Day:        v.Day,
-			ClassStart: v.ClassStart,
-			ClassEnd:   v.ClassEnd,
-			Dosen:      v.Dosen,
+			ID:          v.ID,
+			ClassCover:  v.ClassCover,
+			ClassCode:   v.ClassCode,
+			ClassName:   v.ClassName,
+			Term:        v.Term,
+			RoomNumber:  v.RoomNumber,
+			Day:         v.Day,
+			ClassStart:  v.ClassStart,
+			ClassEnd:    v.ClassEnd,
+			Prodi:       v.Prodi,
+			TahunAjaran: v.TahunAjaran,
+			Dosen:       v.Dosen,
 		}
 		classrooms = append(classrooms, classroomResponse)
 	}
@@ -103,16 +112,18 @@ func (c *ClassroomService) FindById(classroomId string) (classroom data.Classroo
 		return classroom, err
 	}
 	classroom = data.ClassroomDetailResponse{
-		ID:         classroomData.ID,
-		ClassCover: classroomData.ClassCover,
-		ClassCode:  classroomData.ClassCode,
-		ClassName:  classroomData.ClassName,
-		Term:       classroomData.Term,
-		RoomNumber: classroomData.RoomNumber,
-		Day:        classroomData.Day,
-		ClassStart: classroomData.ClassStart,
-		ClassEnd:   classroomData.ClassEnd,
-		Dosen:      classroomData.Dosen,
+		ID:          classroomData.ID,
+		ClassCover:  classroomData.ClassCover,
+		ClassCode:   classroomData.ClassCode,
+		ClassName:   classroomData.ClassName,
+		Term:        classroomData.Term,
+		RoomNumber:  classroomData.RoomNumber,
+		Day:         classroomData.Day,
+		ClassStart:  classroomData.ClassStart,
+		ClassEnd:    classroomData.ClassEnd,
+		Prodi:       classroomData.Prodi,
+		TahunAjaran: classroomData.TahunAjaran,
+		Dosen:       classroomData.Dosen,
 	}
 	return classroom, nil
 }
@@ -137,6 +148,18 @@ func (c *ClassroomService) FindAllClassroomMember(classroomId string) (classroom
 	return classroomMembers, nil
 }
 
+func (c *ClassroomService) FindClassroomMemberByMemberId(classroomId, memberId string) (classroomMemberDetailRes data.ClassroomMemberDetailResponse, err error) {
+	classroom, err := c.classroomRepository.FindById(classroomId)
+	if err != nil {
+		return data.ClassroomMemberDetailResponse{}, err
+	}
+	user, err := c.userRepository.FindById(memberId)
+	if err != nil {
+		return data.ClassroomMemberDetailResponse{}, err
+	}
+	return data.ClassroomMemberDetailResponse{ClassName: classroom.ClassName, Member: user}, nil
+}
+
 func (c *ClassroomService) EnrollMahasiswa(joinClassroomRequest data.JoinClassroomRequest, mahasiswaId string) error {
 	classroom, err := c.classroomRepository.FindByClassCode(joinClassroomRequest.ClassCode)
 	if err != nil {
@@ -157,7 +180,7 @@ func (c *ClassroomService) EnrollMahasiswa(joinClassroomRequest data.JoinClassro
 	isSubmissionAlreadyCreated := c.submissionService.IsAlreadyCreated(mahasiswaId, classroom.ID)
 	if !isSubmissionAlreadyCreated {
 		assignmentsPagination := data.Pagination{Limit: 9999, Current: 1}
-		paginatedResult, err := c.assignmentService.FindAll(classroom.ID, assignmentsPagination)
+		paginatedResult, err := c.assignmentService.FindAll(classroom.ID, "", assignmentsPagination)
 		if err != nil {
 			log.Printf("EnrollMahasiswa: failed to find assignments: %v", err)
 			return data.NewAppError(500, "terjadi kesalahan server", err)
@@ -208,6 +231,12 @@ func (c *ClassroomService) Update(classroomUpdateRequest data.UpdateClassroomReq
 	}
 	if classroomUpdateRequest.ClassEnd != nil {
 		classroom.ClassEnd = *classroomUpdateRequest.ClassEnd
+	}
+	if classroomUpdateRequest.Prodi != nil {
+		classroom.Prodi = *classroomUpdateRequest.Prodi
+	}
+	if classroomUpdateRequest.TahunAjaran != nil {
+		classroom.TahunAjaran = *classroomUpdateRequest.TahunAjaran
 	}
 	return c.classroomRepository.Update(classroom)
 }

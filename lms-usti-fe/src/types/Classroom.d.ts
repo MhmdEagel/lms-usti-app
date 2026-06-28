@@ -11,6 +11,8 @@ interface ICreateClassroom {
   day: number?;
   class_start: string?;
   class_end: string?;
+  prodi: string?;
+  tahun_ajaran: string?;
 }
 interface IUpdateClassroom {
   class_cover?: string?;
@@ -20,6 +22,8 @@ interface IUpdateClassroom {
   day?: number?;
   class_start?: string?;
   class_end?: string?;
+  prodi?: string?;
+  tahun_ajaran?: string?;
 }
 
 interface ICreateAnnouncement {
@@ -31,6 +35,7 @@ interface IAnnouncement extends ICreateAnnouncement {
   id: string;
   created_by: string;
   created_at: string;
+  is_pinned: boolean;
 }
 
 interface IClassroom {
@@ -43,6 +48,8 @@ interface IClassroom {
   day: number;
   class_start: string;
   class_end: string;
+  prodi: string;
+  tahun_ajaran: string;
   dosen: User;
 }
 
@@ -88,6 +95,13 @@ interface IAssignment {
   instruction?: string?;
   rubrics?: IRubrics[];
   attachments?: IAttachment[];
+  stats?: SubmissionStats | null;
+}
+
+interface SubmissionStats {
+  total_students: number;
+  total_submitted: number;
+  total_graded: number;
 }
 interface IUpdateAssignment {
   id?: string?;
@@ -102,6 +116,19 @@ interface IRubrics {
   id?: string?;
   name: string;
   score: number;
+}
+
+interface IClassroomMemberDetail {
+  class_name: string;
+  member: {
+    userId: string;
+    fullname: string;
+    email: string;
+    profile?: string;
+    role: string;
+    nim?: string;
+    nidn?: string;
+  };
 }
 
 export type {
@@ -121,5 +148,7 @@ export type {
 
   IAssignment,
   IUpdateAssignment,
-  IRubrics
+  IRubrics,
+  SubmissionStats,
+  IClassroomMemberDetail,
 };

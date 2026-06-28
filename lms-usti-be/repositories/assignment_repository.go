@@ -16,7 +16,7 @@ type AssignmentRepositoryInterface interface {
 	CreateRubrics(assignmentRubric []model.AssignmentRubric) error
 	CreateAttachments(attachments []model.AssignmentAttachment) error
 	CreateSubmissions(submissions []model.Submission) error
-	FindAll(classroomId string, pagination data.Pagination) (result *data.PaginationWithData, err error)
+	FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error)
 	FindAllClassroomMahasiswa(classroomId string) ([]model.ClassroomMahasiswa, error)
 	FindById(assignmentId, classroomId string) (assignment model.Assignment, err error)
 	Update(assignment model.Assignment) error
@@ -45,10 +45,13 @@ func (a *AssignmentRepository) CreateRubrics(assignmentRubric []model.Assignment
 	}
 	return nil
 }
-func (a *AssignmentRepository) FindAll(classroomId string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
+func (a *AssignmentRepository) FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
 	var assignments []model.Assignment
 	result = &data.PaginationWithData{Pagination: pagination}
 	query := a.Db.Where("classroom_id = ?", classroomId)
+	if search != "" {
+		query = query.Where("title LIKE ?", "%"+search+"%")
+	}
 	if err := query.Scopes(lib.Paginate(assignments, &pagination, query)).Find(&assignments).Error; err != nil {
 		return nil, err
 	}
@@ -69,9 +72,6 @@ func (a *AssignmentRepository) Update(assignment model.Assignment) error {
 	res := a.Db.Where("id = ? AND classroom_id = ?", assignment.ID, assignment.ClassroomId).Model(&model.Assignment{}).Updates(assignment)
 	if res.Error != nil {
 		return res.Error
-	}
-	if res.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
 	}
 	return nil
 }

@@ -1,20 +1,22 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { User as UserIcon } from "lucide-react";
+import { Pin, User as UserIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import DOMPurify from "isomorphic-dompurify";
-import DeleteAction from "./DeleteAction/DeleteAction";
+import type { IAnnouncement } from "@/types/Classroom";
+import AnnouncementAction from "./AnnouncementAction";
+
+interface PropTypes {
+  announcement: IAnnouncement;
+  classroomId: string;
+  userRole?: string;
+}
 
 export default function AnnouncementItem({
-  createdBy,
-  content,
-  annId,
+  announcement,
   classroomId,
-}: {
-  createdBy: string;
-  content: string;
-  annId: string;
-  classroomId: string;
-}) {
+  userRole,
+}: PropTypes) {
   return (
     <Card>
       <CardHeader>
@@ -26,17 +28,30 @@ export default function AnnouncementItem({
               </AvatarFallback>
             </Avatar>
             <div>
-              <div className="text-primary font-bold">{createdBy}</div>
+              <div className="text-primary font-bold">
+                {announcement.created_by}
+              </div>
               <div className="capitalize">Dosen</div>
             </div>
           </div>
-          <DeleteAction classroomId={classroomId} annId={annId} />
+          {announcement.is_pinned && (
+            <div className="ml-4 flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+              <Pin className="size-3" />
+              Pengumuman Dipin
+            </div>
+          )}
+          {userRole === "DOSEN" && (
+            <AnnouncementAction
+              announcement={announcement}
+              classroomId={classroomId}
+            />
+          )}
         </div>
       </CardHeader>
       <CardContent>
         <div
           className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.content) }}
         ></div>
       </CardContent>
     </Card>

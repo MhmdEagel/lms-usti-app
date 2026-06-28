@@ -5,26 +5,36 @@ import { assignmentServices } from "@/services/assignment.service";
 import { IAssignment } from "@/types/Classroom";
 import PaginationControls from "@/components/common/PaginationControls/PaginationControls";
 import PaginationNav from "@/components/common/PaginationControls/PaginationNav";
+import { SearchBar } from "@/components/ui/searchfield";
+import CreateAssignmentDialog from "./CreateAssignmentDialog/CreateAssignmentDialog";
 
 export default async function Assignment({
   classroomId,
   type = "dosen",
   page = 1,
   limit = 10,
+  search = "",
 }: {
   classroomId: string;
   type?: "dosen" | "mahasiswa";
   page?: number;
   limit?: number;
+  search?: string;
 }) {
   const user = await getCurrentUser();
-  const res = await assignmentServices.findAllAssignments(classroomId, { page, limit });
+  const res = await assignmentServices.findAllAssignments(classroomId, { page, limit, search });
   const pagination: PaginationInfo = res.data?.pagination;
   const listAssignment: IAssignment[] | null = res.data?.data;
 
   return (
     <>
-      <AssignmentHeader classroomId={classroomId} userRole={user?.role} />
+      <AssignmentHeader />
+      <div className="mt-4 flex items-center gap-4">
+        <div className="flex-1">
+          <SearchBar placeholder="Cari tugas..." />
+        </div>
+        {user?.role === "DOSEN" ? <CreateAssignmentDialog classroomId={classroomId} /> : null}
+      </div>
       <div className="mt-4 flex flex-col gap-4">
         {listAssignment && listAssignment.length > 0 ? (
           listAssignment.map((item) => (
@@ -34,7 +44,8 @@ export default async function Assignment({
               classroomId={classroomId}
               assignmentId={item.id!}
               title={item.title}
-              deadline={item.deadline!}
+              deadline={item.deadline}
+              stats={item.stats}
             />
           ))
         ) : (

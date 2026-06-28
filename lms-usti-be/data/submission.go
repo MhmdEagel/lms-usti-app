@@ -36,6 +36,12 @@ type SubmissionLinkResponse struct {
 	LinkUrl  string `json:"link_url"`
 }
 
+type SubmissionStatsResponse struct {
+	TotalStudents  int64 `json:"total_students"`
+	TotalSubmitted int64 `json:"total_submitted"`
+	TotalGraded    int64 `json:"total_graded"`
+}
+
 type SubmissionResponse struct {
 	Id             string            `json:"id"`
 	Status         string            `json:"status"`

@@ -36,7 +36,7 @@ export default function FileItem({
         <div className="rounded-full bg-gray-600 p-2">
           <FileText size={"24"} color="white" />
         </div>
-        <span className="text-sm truncate max-w-[200px]">{fileName}</span>
+        <span className="text-sm max-w-[100px] truncate">{fileName}</span>
       </div>
       <Button
         onClick={(e) => {

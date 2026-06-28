@@ -10,10 +10,11 @@ import (
 type Submission struct {
 	ID              string           `gorm:"primaryKey"`
 	Status          string           `gorm:"not null"`
+	Score           *float64
 	SubmissionDate  sql.NullTime
 	StudentId       string           `gorm:"not null"`
 	AssignmentId    string           `gorm:"not null"`
-	Assignment      Assignment       `gorm:"foreignKey:AssignmentId"`
+	Assignment      Assignment       `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
 	User            User             `gorm:"foreignKey:StudentId"`
 	SubmissionFiles []SubmissionFile `gorm:"foreignKey:SubmissionId;constraint:OnDelete:CASCADE;"`
 	SubmissionLinks []SubmissionLink `gorm:"foreignKey:SubmissionId;constraint:OnDelete:CASCADE;"`
