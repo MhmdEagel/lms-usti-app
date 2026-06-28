@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { IAttachment } from "@/types/Classroom";
@@ -15,8 +15,7 @@ import { deleteMaterialBatch } from "@/actions/delete-material-batch";
 const useCreateMaterialDialog = () => {
   const [open, setOpen] = useState("closed");
   const [isVisible, setIsVisible] = useState(false);
-  const [arrayOfFiles, setArrayOfFiles] = useState<IAttachment[]>([]);
-  const [arrayOfLinks, setArrayOfLinks] = useState<IAttachment[]>([]);
+  const [attachments, setAttachments] = useState<IAttachment[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
   const materialForm = useForm({
@@ -26,11 +25,6 @@ const useCreateMaterialDialog = () => {
     resolver: zodResolver(createMaterialSchema),
   });
 
-  useEffect(() => {
-    materialForm.setValue("attachments", arrayOfFiles);
-  }, [arrayOfFiles]);
-
-  const pdfMateriRef = useRef<HTMLInputElement>(null);
   const handleMaterialForm = async (
     data: z.infer<typeof newMaterialSchema>,
     classroomId: string,
@@ -38,7 +32,7 @@ const useCreateMaterialDialog = () => {
     setIsPending(true);
     const payload = {
       ...data,
-      attachments: [...arrayOfFiles, ...arrayOfLinks],
+      attachments,
     };
     const res = await newMaterial(payload, classroomId);
     if (!res.success && res.error) {
@@ -48,8 +42,7 @@ const useCreateMaterialDialog = () => {
     }
     setIsPending(false);
     toast.success(res.success);
-    setArrayOfFiles([]);
-    setArrayOfLinks([]);
+    setAttachments([]);
     materialForm.reset();
     setOpen("closed");
   };
@@ -57,15 +50,17 @@ const useCreateMaterialDialog = () => {
   const handleClose = async () => {
     try {
       setIsPending(true);
-      if (arrayOfFiles.length > 0) {
-        await deleteMaterialBatch(arrayOfFiles);
+      const filesToDelete = attachments.filter(
+        (a) => a.type === "FILE" || a.type === "VIDEO",
+      );
+      if (filesToDelete.length > 0) {
+        await deleteMaterialBatch(filesToDelete);
       }
     } catch (e) {
       const err = e as AxiosError<ErrorResponse>;
       toast.error(err.response?.data.meta.message);
     }
-    setArrayOfFiles([]);
-    setArrayOfLinks([]);
+    setAttachments([]);
     setIsPending(false);
     materialForm.reset();
     setOpen("closed");
@@ -84,7 +79,7 @@ const useCreateMaterialDialog = () => {
         unique_name: res.data?.unique_file_name,
         type: "FILE",
       };
-      setArrayOfFiles((prevValue) => [...prevValue, newFile]);
+      setAttachments((prev) => [...prev, newFile]);
       toast.success("File berhasil diupload");
     } catch (e) {
       const err = e as AxiosError<ErrorResponse>;
@@ -97,13 +92,10 @@ const useCreateMaterialDialog = () => {
   return {
     open,
     setOpen,
-    arrayOfFiles,
-    setArrayOfFiles,
-    arrayOfLinks,
-    setArrayOfLinks,
+    attachments,
+    setAttachments,
     isPending,
     setIsPending,
-    pdfMateriRef,
     handleMaterialForm,
     materialForm,
     handleUploadFile,

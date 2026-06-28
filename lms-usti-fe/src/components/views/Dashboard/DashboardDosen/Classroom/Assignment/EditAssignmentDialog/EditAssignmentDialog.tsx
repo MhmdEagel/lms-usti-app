@@ -1,7 +1,7 @@
 "use client";
 
 import { FileText, Link, Plus, UploadIcon, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,67 +15,116 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import ContentEditor from "@/components/ui/content-editor";
 import RubrikItem from "../RubrikItem/RubrikItem";
-import useCreateAssignmentDialog from "./useCreateAssignmentDialog";
-import { Label } from "@/components/ui/label";
+import AddLinkDialog from "@/components/common/AddLinkDialog/AddLinkDialog";
 import FileItem from "@/components/common/FileItem/FileItem";
 import LinkItem from "@/components/common/LinkItem/LinkItem";
-import AddLinkDialog from "@/components/common/AddLinkDialog/AddLinkDialog";
-import { deleteFileAssignment } from "@/actions/delete-file-assignment";
-import { DatePickerTime } from "@/components/ui/calendar-time-picker";
+import useEditAssignmentDialog, { type TrackedAttachment } from "./useEditAssignmentDialog";
 import { Spinner } from "@/components/ui/spinner";
+import type { IAttachment, IAssignment } from "@/types/Classroom";
+import { Dispatch, SetStateAction, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
+import { deleteFileAssignment } from "@/actions/delete-file-assignment";
+import { Label } from "@/components/ui/label";
+import { DatePickerTime } from "@/components/ui/calendar-time-picker";
 import { Dropzone, DropzoneEmptyState } from "@/components/ui/dropzone";
-import type { IAttachment } from "@/types/Classroom";
 
-export default function CreateAssignmentDialog({
-  classroomId,
-}: {
+interface PropTypes {
+  open: string;
+  setOpen: Dispatch<SetStateAction<string>>;
   classroomId: string;
-}) {
+  assignment: IAssignment;
+}
+
+const ContentEditor = dynamic(() => import("@/components/ui/content-editor"), {
+  ssr: false,
+});
+
+export default function EditAssignmentDialog(props: PropTypes) {
   const {
-    open,
-    setOpen,
-    hasDeadline,
-    setHasDeadline,
-    attachments,
-    setAttachments,
-    arrayOfRubrics,
-    setArrayOfRubrics,
+    trackedAttachments,
+    setTrackedAttachments,
     isPending,
-    setIsPending,
-    handleAddRubric,
+    isPendingUploadFile,
     handleAssignmentForm,
     assignmentForm,
+    handleUploadFile,
     handleClose,
+    initializeAttachments,
+    hasDeadline,
+    setHasDeadline,
+    arrayOfRubrics,
+    setArrayOfRubrics,
+    handleAddRubric,
     rubricName,
     rubricValue,
     setRubricName,
     setRubricValue,
     totalScore,
     canAddRubric,
-    handleUploadFile,
-    isPendingUploadFile,
-    setIsPendingUploadFile,
-  } = useCreateAssignmentDialog();
+  } = useEditAssignmentDialog();
+  const { open, setOpen, assignment, classroomId } = props;
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const setAttachments: Dispatch<SetStateAction<IAttachment[]>> = useCallback(
+    (value) => {
+      setTrackedAttachments((prev) => {
+        if (typeof value === "function") {
+          return value(prev) as TrackedAttachment[];
+        }
+        return value as TrackedAttachment[];
+      });
+    },
+    [setTrackedAttachments],
+  );
+
+  useEffect(() => {
+    if (assignment.attachments && assignment.attachments.length > 0) {
+      initializeAttachments(assignment.attachments);
+    }
+    if (assignment.rubrics && assignment.rubrics.length > 0) {
+      const rubrics = assignment.rubrics.map((r) => ({
+        name: r.name,
+        score: r.score.toString(),
+      }));
+      setArrayOfRubrics(rubrics);
+    }
+    if (assignment.deadline && !assignment.deadline.startsWith("0001")) {
+      setHasDeadline(true);
+      assignmentForm.setValue("deadline", assignment.deadline);
+    }
+  }, [assignment]);
+
+  const currentFiles = trackedAttachments.filter(
+    (f) => f.status !== "deleted" && f.type !== "LINK",
+  );
+
   const handleDeleteAttachment = async (item: IAttachment) => {
     if (item.type === "FILE" || item.type === "VIDEO") {
-      setIsPending(true);
-      setIsPendingUploadFile(true);
-      try {
-        await deleteFileAssignment(item.unique_name);
-        setAttachments((prev) =>
-          prev.filter((a) => a.unique_name !== item.unique_name),
+      const tracked = item as TrackedAttachment;
+      if (tracked.status === "new") {
+        try {
+          await deleteFileAssignment(item.unique_name);
+        } catch {
+          throw new Error("Gagal menghapus file");
+        }
+        setTrackedAttachments((prev) =>
+          prev.filter((f) => f.unique_name !== item.unique_name),
         );
-      } finally {
-        setIsPendingUploadFile(false);
-        setIsPending(false);
+      } else {
+        setTrackedAttachments((prev) =>
+          prev.map((f) =>
+            f.unique_name === item.unique_name
+              ? { ...f, status: "deleted" as const }
+              : f,
+          ),
+        );
       }
     } else {
-      setAttachments((prev) => prev.filter((a) => a.id !== item.id));
+      setTrackedAttachments((prev) =>
+        prev.filter((a) => a.id !== item.id),
+      );
     }
   };
 
@@ -93,13 +142,10 @@ export default function CreateAssignmentDialog({
 
   return (
     <>
-      <Button onClick={() => setOpen("open")} type="button">
-        <Plus /> Tambah Tugas
-      </Button>
       <div
         data-state={open}
         className="
-        fixed 
+        fixed
         z-50 inset-0
         bg-white p-4 space-y-4 
 
@@ -119,7 +165,7 @@ export default function CreateAssignmentDialog({
       >
         <div className="sticky top-0 left-0 right-0 z-60 bg-white px-4 flex items-center gap-4 border-b-[3px] pb-4">
           <Button
-            onClick={() => handleClose()}
+            onClick={() => handleClose(setOpen)}
             type="button"
             variant={"secondary"}
           >
@@ -127,15 +173,15 @@ export default function CreateAssignmentDialog({
           </Button>
           <FileText />
           <div>
-            <div className="text-lg md:text-xl font-bold">Buat Tugas</div>
-            <div>Silahkan isi form di bawah ini untuk membuat tugas</div>
+            <div className="text-lg md:text-xl font-bold">Edit Tugas</div>
+            <div>Silahkan edit form di bawah ini</div>
           </div>
           <Button
             disabled={isPending}
             type="button"
             onClick={() =>
               assignmentForm.handleSubmit((data) =>
-                handleAssignmentForm(data, classroomId),
+                handleAssignmentForm(data, classroomId, assignment.id!, setOpen),
               )()
             }
             className="ml-auto"
@@ -152,6 +198,7 @@ export default function CreateAssignmentDialog({
               <CardContent className="space-y-4">
                 <FormField
                   control={assignmentForm.control}
+                  defaultValue={assignment.title}
                   name="title"
                   render={({ field }) => (
                     <FormItem>
@@ -161,7 +208,6 @@ export default function CreateAssignmentDialog({
                           className="w-full"
                           placeholder="Judul tugas..."
                           {...field}
-                          value={field.value ?? ""}
                           autoComplete="off"
                         />
                       </FormControl>
@@ -180,6 +226,7 @@ export default function CreateAssignmentDialog({
                           <ContentEditor
                             className="min-h-32"
                             placeholder="Masukkan instruksi..."
+                            defaultValue={assignment.instruction ?? undefined}
                             onChange={field.onChange}
                             isInvalid={!!fieldState.error}
                           />
@@ -247,9 +294,7 @@ export default function CreateAssignmentDialog({
                   onChange={handleFileInputChange}
                 />
 
-                {attachments.filter(
-                  (a) => a.type === "FILE" || a.type === "VIDEO",
-                ).length === 0 && (
+                {currentFiles.length === 0 && (
                   <Dropzone
                     accept={{
                       "application/pdf": [".pdf"],
@@ -279,23 +324,20 @@ export default function CreateAssignmentDialog({
                   </Dropzone>
                 )}
 
-                {attachments.filter(
-                  (a) => a.type === "FILE" || a.type === "VIDEO",
-                ).length > 0 && (
+                {currentFiles.length > 0 && (
                   <div className="grid grid-cols-3 gap-2 mt-4">
-                    {attachments
-                      .filter((a) => a.type === "FILE" || a.type === "VIDEO")
-                      .map((item) => (
-                        <FileItem
-                          key={item.unique_name}
-                          fileName={item.name}
-                          onDelete={() => handleDeleteAttachment(item)}
-                          isPending={isPending || isPendingUploadFile}
-                          fileUrl={item.url}
-                        />
-                      ))}
+                    {currentFiles.map((item) => (
+                      <FileItem
+                        key={item.unique_name}
+                        fileName={item.name}
+                        onDelete={() => handleDeleteAttachment(item)}
+                        isPending={isPending || isPendingUploadFile}
+                        fileUrl={item.url}
+                      />
+                    ))}
                   </div>
                 )}
+
                 <div className="mt-6 mb-4">
                   <div className="flex items-center justify-between">
                     <div className="font-bold">Link Referensi</div>
@@ -310,7 +352,8 @@ export default function CreateAssignmentDialog({
                   </div>
                   <hr className="mt-4" />
                 </div>
-                {attachments.filter((a) => a.type === "LINK").length === 0 && (
+
+                {trackedAttachments.filter((a) => a.type === "LINK" && a.status !== "deleted").length === 0 && (
                   <Button
                     onClick={() => setLinkDialogOpen(true)}
                     type="button"
@@ -326,14 +369,15 @@ export default function CreateAssignmentDialog({
                   </Button>
                 )}
 
-                {attachments.filter((a) => a.type === "LINK").length > 0 && (
+                {trackedAttachments.filter((a) => a.type === "LINK" && a.status !== "deleted").length > 0 && (
                   <div className="grid grid-cols-3 gap-2 mt-4">
-                    {attachments
-                      .filter((a) => a.type === "LINK")
+                    {trackedAttachments
+                      .filter((a) => a.type === "LINK" && a.status !== "deleted")
                       .map((item) => (
                         <LinkItem
                           key={item.id}
                           linkName={item.name}
+                          url={item.url}
                           onDelete={() => handleDeleteAttachment(item)}
                         />
                       ))}
@@ -398,7 +442,7 @@ export default function CreateAssignmentDialog({
       <AddLinkDialog
         open={linkDialogOpen}
         setOpen={setLinkDialogOpen}
-        attachments={attachments}
+        attachments={trackedAttachments}
         setAttachments={setAttachments}
         setValue={assignmentForm.setValue}
       />

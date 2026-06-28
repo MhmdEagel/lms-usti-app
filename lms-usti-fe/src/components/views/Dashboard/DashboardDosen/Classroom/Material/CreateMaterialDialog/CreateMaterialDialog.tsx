@@ -1,7 +1,7 @@
 "use client";
 
-import { Book, Plus, Upload, X } from "lucide-react";
-import { useState } from "react";
+import { Book, Link, Plus, UploadIcon, X } from "lucide-react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { deleteFileMaterial } from "@/actions/delete-file-material";
 import type { IAttachment } from "@/types/Classroom";
 import dynamic from "next/dynamic";
+import { Dropzone, DropzoneEmptyState } from "@/components/ui/dropzone";
 
 const ViewPdf = dynamic(() => import("@/components/common/ViewPdf/ViewPdf"), {
   ssr: false,
@@ -36,13 +37,10 @@ export default function CreateMaterialDialog({
   const {
     open,
     setOpen,
-    arrayOfFiles: arrayOfAttachments,
-    setArrayOfFiles: setArrayOfAttachments,
-    arrayOfLinks: linkAttachments,
-    setArrayOfLinks: setLinkAttachments,
+    attachments,
+    setAttachments,
     isPending,
     isPendingUploadFile,
-    pdfMateriRef,
     handleMaterialForm,
     materialForm,
     handleUploadFile,
@@ -51,6 +49,39 @@ export default function CreateMaterialDialog({
     handleClose,
   } = useCreateMaterialDialog();
   const [previewFile, setPreviewFile] = useState<IAttachment | null>(null);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDeleteAttachment = async (item: IAttachment) => {
+    if (item.type === "FILE" || item.type === "VIDEO") {
+      setIsPending(true);
+      setIsPendingUploadFile(true);
+      try {
+        await deleteFileMaterial(item.unique_name);
+        setAttachments((prev) =>
+          prev.filter((a) => a.unique_name !== item.unique_name),
+        );
+      } finally {
+        setIsPendingUploadFile(false);
+        setIsPending(false);
+      }
+    } else {
+      setAttachments((prev) => prev.filter((a) => a.id !== item.id));
+    }
+  };
+
+  const handleFileInputChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = e.target.files;
+    if (files) {
+      for (const file of Array.from(files)) {
+        await handleUploadFile(file);
+      }
+      e.target.value = "";
+    }
+  };
+
   return (
     <>
       <Button onClick={() => setOpen("open")} type="button">
@@ -85,6 +116,7 @@ export default function CreateMaterialDialog({
           >
             <X />
           </Button>
+          <Book />
           <div>
             <div className="text-lg md:text-xl font-bold">Buat Materi</div>
             <div>Silahkan isi form di bawah ini untuk membuat materi</div>
@@ -151,36 +183,6 @@ export default function CreateMaterialDialog({
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={materialForm.control}
-                  name="attachments"
-                  render={({ field: { value, onChange, ...fieldProps } }) => (
-                    <FormItem className="hidden">
-                      <FormControl>
-                        <Input
-                          {...fieldProps}
-                          ref={pdfMateriRef}
-                          type="file"
-                          id="material_file"
-                          accept="application/pdf"
-                          onChange={async (e) => {
-                            if (
-                              e.target &&
-                              e.target.files![0].type !== "application/pdf"
-                            ) {
-                              toast.error("File harus berupa pdf");
-                              e.target.value = "";
-                              return;
-                            }
-                            const file = e.target.files![0];
-                            await handleUploadFile(file);
-                            e.target.value = "";
-                          }}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
               </CardContent>
             </Card>
             <Card className="relative">
@@ -192,102 +194,122 @@ export default function CreateMaterialDialog({
 
               <CardContent>
                 <div className="mb-4">
-                  <div className="font-bold mb-2">Lampiran</div>
-                  <hr />
+                  <div className="flex items-center justify-between">
+                    <div className="font-bold">Lampiran</div>
+                    <Button
+                      onClick={() => fileInputRef.current?.click()}
+                      type="button"
+                      size={"icon"}
+                      variant="outline"
+                    >
+                      <Plus />
+                    </Button>
+                  </div>
+                  <hr className="mt-4" />
                 </div>
-                <div className="flex flex-col gap-2 items-center font-semibold text-sm">
-                  <Button
-                    onClick={() => pdfMateriRef.current?.click()}
-                    type="button"
-                    size={"icon"}
-                  >
-                    <Upload />
-                  </Button>
-                  Upload (PDF/DOCS/PPT/VIDEO)
-                </div>
-                {arrayOfAttachments.filter(
-                  (a) => a.type === "FILE" || a.type === "VIDEO",
-                ).length > 0 ? (
-                  <Card className="mb-4">
-                    <CardHeader>
-                      <div>File</div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-col gap-2">
-                        {arrayOfAttachments
-                          .filter(
-                            (a) => a.type === "FILE" || a.type === "VIDEO",
-                          )
-                          .map((item) => {
-                            const handleDeleteFile = async () => {
-                              const newArray = arrayOfAttachments.filter(
-                                (a) => a.unique_name !== item.unique_name,
-                              );
-                              setIsPending(true);
-                              setIsPendingUploadFile(true);
-                              try {
-                                await deleteFileMaterial(item.unique_name);
-                                setArrayOfAttachments(newArray);
-                                materialForm.setValue("attachments", newArray);
-                              } finally {
-                                setIsPendingUploadFile(false);
-                                setIsPending(false);
-                              }
-                            };
-                            return (
-                              <FileItem
-                                key={item.unique_name}
-                                fileName={item.name}
-                                onDelete={handleDeleteFile}
-                                isPending={isPending || isPendingUploadFile}
-                                fileUrl={item.url}
-                                onClick={() => setPreviewFile(item)}
-                              />
-                            );
-                          })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : null}
 
-                <div className="mb-4">
-                  <div className="font-bold mb-2">Link Referensi</div>
-                  <hr />
-                </div>
-                <AddLinkDialog
-                  attachments={linkAttachments}
-                  setAttachments={setLinkAttachments}
-                  setValue={materialForm.setValue}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf,application/msword,application/vnd.ms-powerpoint,video/*"
+                  className="hidden"
+                  multiple
+                  onChange={handleFileInputChange}
                 />
-                {linkAttachments.filter((a) => a.type === "LINK").length > 0 ? (
-                  <Card className="mb-4">
-                    <CardHeader>
-                      <div>Link</div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-col gap-2 ">
-                        {linkAttachments
-                          .filter((a) => a.type === "LINK")
-                          .map((item, index) => {
-                            const handleDeleteLink = () => {
-                              const newArray = linkAttachments.filter(
-                                (_, i) => i !== index,
-                              );
-                              setLinkAttachments(newArray);
-                              materialForm.setValue("attachments", newArray);
-                            };
-                            return (
-                              <LinkItem
-                                key={index}
-                                linkName={item.name}
-                                onDelete={handleDeleteLink}
-                              />
-                            );
-                          })}
+
+                {attachments.filter(
+                  (a) => a.type === "FILE" || a.type === "VIDEO",
+                ).length === 0 && (
+                  <Dropzone
+                    accept={{
+                      "application/pdf": [".pdf"],
+                      "application/msword": [".doc", ".docx"],
+                      "application/vnd.ms-powerpoint": [".ppt", ".pptx"],
+                      "video/*": [".mp4", ".mov", ".avi"],
+                    }}
+                    maxFiles={5}
+                    onDrop={async (files) => {
+                      for (const file of files) {
+                        await handleUploadFile(file);
+                      }
+                    }}
+                    onError={(error) => toast.error(error.message)}
+                  >
+                    <DropzoneEmptyState>
+                      <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                        <UploadIcon size={16} />
                       </div>
-                    </CardContent>
-                  </Card>
-                ) : null}
+                      <p className="my-2 w-full truncate font-medium text-sm">
+                        Unggah file
+                      </p>
+                      <p className="w-full truncate text-muted-foreground text-xs">
+                        Seret dan lepas atau klik untuk mengunggah
+                      </p>
+                    </DropzoneEmptyState>
+                  </Dropzone>
+                )}
+
+                {attachments.filter(
+                  (a) => a.type === "FILE" || a.type === "VIDEO",
+                ).length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 mt-4">
+                    {attachments
+                      .filter((a) => a.type === "FILE" || a.type === "VIDEO")
+                      .map((item) => (
+                        <FileItem
+                          key={item.unique_name}
+                          fileName={item.name}
+                          onDelete={() => handleDeleteAttachment(item)}
+                          isPending={isPending || isPendingUploadFile}
+                          fileUrl={item.url}
+                          onClick={() => setPreviewFile(item)}
+                        />
+                      ))}
+                  </div>
+                )}
+                <div className="mt-6 mb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="font-bold">Link Referensi</div>
+                    <Button
+                      onClick={() => setLinkDialogOpen(true)}
+                      type="button"
+                      size={"icon"}
+                      variant="outline"
+                    >
+                      <Plus />
+                    </Button>
+                  </div>
+                  <hr className="mt-4" />
+                </div>
+                {attachments.filter((a) => a.type === "LINK").length === 0 && (
+                  <Button
+                    onClick={() => setLinkDialogOpen(true)}
+                    type="button"
+                    variant="outline"
+                    className="relative h-auto w-full flex-col overflow-hidden p-8"
+                  >
+                    <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                      <Link size={16} />
+                    </div>
+                    <p className="my-2 w-full truncate font-medium text-sm">
+                      Tambah Link
+                    </p>
+                  </Button>
+                )}
+
+                {attachments.filter((a) => a.type === "LINK").length > 0 && (
+                  <div className="flex flex-col gap-2 mt-4">
+                    {attachments
+                      .filter((a) => a.type === "LINK")
+                      .map((item) => (
+                        <LinkItem
+                          key={item.id}
+                          linkName={item.name}
+                          onDelete={() => handleDeleteAttachment(item)}
+                        />
+                      ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </form>
@@ -300,6 +322,13 @@ export default function CreateMaterialDialog({
           onClose={() => setPreviewFile(null)}
         />
       )}
+      <AddLinkDialog
+        open={linkDialogOpen}
+        setOpen={setLinkDialogOpen}
+        attachments={attachments}
+        setAttachments={setAttachments}
+        setValue={materialForm.setValue}
+      />
     </>
   );
 }

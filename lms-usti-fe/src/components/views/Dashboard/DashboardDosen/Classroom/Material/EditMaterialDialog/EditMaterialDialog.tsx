@@ -1,7 +1,8 @@
 "use client";
 
-import { Book, Upload, X } from "lucide-react";
-import { useState } from "react";
+import { Book, Link, Plus, UploadIcon, X } from "lucide-react";
+import { useState, useRef } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -21,9 +22,9 @@ import useEditMaterialDialog, { type TrackedAttachment } from "./useEditMaterial
 import { Spinner } from "@/components/ui/spinner";
 import type { IAttachment, IMaterial } from "@/types/Classroom";
 import { Dispatch, SetStateAction, useEffect, useCallback } from "react";
-import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { deleteFileMaterial } from "@/actions/delete-file-material";
+import { Dropzone, DropzoneEmptyState } from "@/components/ui/dropzone";
 
 interface PropTypes {
   open: string;
@@ -42,7 +43,6 @@ export default function EditMaterialDialog(props: PropTypes) {
     setTrackedAttachments,
     isPending,
     isPendingUploadFile,
-    pdfMateriRef,
     handleMaterialForm,
     materialForm,
     handleUploadFile,
@@ -51,6 +51,8 @@ export default function EditMaterialDialog(props: PropTypes) {
   } = useEditMaterialDialog();
   const { open, setOpen, material, classroomId } = props;
   const [previewFile, setPreviewFile] = useState<IAttachment | null>(null);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const setAttachments: Dispatch<SetStateAction<IAttachment[]>> = useCallback(
     (value) => {
@@ -69,7 +71,51 @@ export default function EditMaterialDialog(props: PropTypes) {
       initializeAttachments(material.attachments);
     }
   }, [material]);
-  const currentFiles = trackedAttachments.filter((f) => f.status !== "deleted" && f.type !== "LINK");
+
+  const currentFiles = trackedAttachments.filter(
+    (f) => f.status !== "deleted" && f.type !== "LINK",
+  );
+
+  const handleDeleteAttachment = async (item: IAttachment) => {
+    if (item.type === "FILE" || item.type === "VIDEO") {
+      const tracked = item as TrackedAttachment;
+      if (tracked.status === "new") {
+        try {
+          await deleteFileMaterial(item.unique_name);
+        } catch {
+          throw new Error("Gagal menghapus file");
+        }
+        setTrackedAttachments((prev) =>
+          prev.filter((f) => f.unique_name !== item.unique_name),
+        );
+      } else {
+        setTrackedAttachments((prev) =>
+          prev.map((f) =>
+            f.unique_name === item.unique_name
+              ? { ...f, status: "deleted" as const }
+              : f,
+          ),
+        );
+      }
+    } else {
+      setTrackedAttachments((prev) =>
+        prev.filter((a) => a.id !== item.id),
+      );
+    }
+  };
+
+  const handleFileInputChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = e.target.files;
+    if (files) {
+      for (const file of Array.from(files)) {
+        await handleUploadFile(file);
+      }
+      e.target.value = "";
+    }
+  };
+
   return (
     <>
       <div
@@ -103,7 +149,10 @@ export default function EditMaterialDialog(props: PropTypes) {
             <X />
           </Button>
           <Book />
-          <div className="text-lg md:text-xl">Edit Materi</div>
+          <div>
+            <div className="text-lg md:text-xl font-bold">Edit Materi</div>
+            <div>Silahkan edit form di bawah ini</div>
+          </div>
           <Button
             disabled={isPending}
             type="button"
@@ -114,15 +163,15 @@ export default function EditMaterialDialog(props: PropTypes) {
             }
             className="ml-auto"
           >
-            Posting
+            Simpan
           </Button>
         </div>
         <Form {...materialForm}>
           <form
-            className="space-y-4 max-w-xl mx-auto mt-4"
+            className="space-y-4 max-w-3xl mx-auto mt-4"
             encType="multipart/form-data"
           >
-            <Card className="max-w-lg mx-auto">
+            <Card>
               <CardHeader>
                 <div className="font-bold">Detail Kelas</div>
               </CardHeader>
@@ -136,6 +185,7 @@ export default function EditMaterialDialog(props: PropTypes) {
                       <FormLabel>Judul</FormLabel>
                       <FormControl>
                         <Input
+                          className="w-full"
                           placeholder="Judul materi..."
                           {...field}
                           autoComplete="off"
@@ -153,6 +203,7 @@ export default function EditMaterialDialog(props: PropTypes) {
                       <FormLabel>Deskripsi (Optional)</FormLabel>
                       <FormControl>
                         <ContentEditor
+                          className="min-h-32"
                           placeholder="Masukkan deskripsi..."
                           defaultValue={material.description}
                           onChange={field.onChange}
@@ -163,135 +214,130 @@ export default function EditMaterialDialog(props: PropTypes) {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={materialForm.control}
-                  name="attachments"
-                  render={({ field: { value, onChange, ...fieldProps } }) => (
-                    <FormItem className="hidden">
-                      <FormControl>
-                        <Input
-                          {...fieldProps}
-                          ref={pdfMateriRef}
-                          type="file"
-                          id="material_file"
-                          accept="application/pdf"
-                          onChange={async (e) => {
-                            if (
-                              e.target &&
-                              e.target.files![0].type !== "application/pdf"
-                            ) {
-                              toast.error("File harus berupa pdf");
-                              e.target.value = "";
-                              return;
-                            }
-                            const file = e.target.files![0];
-                            await handleUploadFile(file);
-                            e.target.value = "";
-                          }}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
               </CardContent>
             </Card>
-            <Card className="max-w-xl mx-auto relative">
+            <Card className="relative">
               {isPendingUploadFile ? (
                 <div className="bg-slate-600/90 absolute top-0 left-0 right-0 bottom-0 rounded-lg flex justify-center items-center">
                   <Spinner variant="circle" className="text-white" size={60} />
                 </div>
               ) : null}
-              <CardHeader>
-                <div className="font-bold">Lampiran</div>
-              </CardHeader>
+
               <CardContent>
-                {currentFiles && currentFiles.length > 0 ? (
-                  <Card className="mb-4">
-                    <CardHeader>
-                      <div>File</div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-col gap-2">
-                        {currentFiles.map((item) => {
-                          const handleDeleteFileItem = async () => {
-                            if (item.status === "new") {
-                              try {
-                                await deleteFileMaterial(item.unique_name);
-                              } catch {
-                                throw new Error("Gagal menghapus file");
-                              }
-                              setTrackedAttachments((prev) =>
-                                prev.filter((f) => f.unique_name !== item.unique_name),
-                              );
-                            } else {
-                              setTrackedAttachments((prev) =>
-                                prev.map((f) =>
-                                  f.unique_name === item.unique_name
-                                    ? { ...f, status: "deleted" as const }
-                                    : f,
-                                ),
-                              );
-                            }
-                          };
-                          return (
-                            <FileItem
-                              key={item.unique_name}
-                              fileName={item.name}
-                              onDelete={handleDeleteFileItem}
-                              isPending={isPending || isPendingUploadFile}
-                              fileUrl={item.url}
-                              onClick={() => setPreviewFile(item)}
-                            />
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : null}
-                {trackedAttachments.filter((a) => a.type === "LINK").length > 0 ? (
-                  <Card className="mb-4">
-                    <CardHeader>
-                      <div>Link</div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-col gap-2 ">
-                        {trackedAttachments.filter((a) => a.type === "LINK").map((item, index) => {
-                          const handleDeleteLink = () => {
-                            const newArray = trackedAttachments.filter(
-                              (a) => a.id !== item.id,
-                            );
-                            setTrackedAttachments(newArray);
-                            materialForm.setValue("attachments", newArray);
-                          };
-                          return (
-                            <LinkItem
-                              key={item.id || index}
-                              linkName={item.name}
-                              onDelete={handleDeleteLink}
-                            />
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : null}
-                <div className="flex justify-center gap-4">
-                  <div className="flex flex-col gap-2 items-center font-semibold text-sm">
+                <div className="mb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="font-bold">Lampiran</div>
                     <Button
-                      onClick={() => pdfMateriRef.current?.click()}
+                      onClick={() => fileInputRef.current?.click()}
                       type="button"
                       size={"icon"}
+                      variant="outline"
                     >
-                      <Upload />
+                      <Plus />
                     </Button>
-                    Upload
                   </div>
-                  <AddLinkDialog
-                    attachments={trackedAttachments}
-                    setAttachments={setAttachments}
-                    setValue={materialForm.setValue}
-                  />
+                  <hr className="mt-4" />
                 </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/pdf,application/msword,application/vnd.ms-powerpoint,video/*"
+                  className="hidden"
+                  multiple
+                  onChange={handleFileInputChange}
+                />
+
+                {currentFiles.length === 0 && (
+                  <Dropzone
+                    accept={{
+                      "application/pdf": [".pdf"],
+                      "application/msword": [".doc", ".docx"],
+                      "application/vnd.ms-powerpoint": [".ppt", ".pptx"],
+                      "video/*": [".mp4", ".mov", ".avi"],
+                    }}
+                    maxFiles={5}
+                    onDrop={async (files) => {
+                      for (const file of files) {
+                        await handleUploadFile(file);
+                      }
+                    }}
+                    onError={(error) => toast.error(error.message)}
+                  >
+                    <DropzoneEmptyState>
+                      <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                        <UploadIcon size={16} />
+                      </div>
+                      <p className="my-2 w-full truncate font-medium text-sm">
+                        Unggah file
+                      </p>
+                      <p className="w-full truncate text-muted-foreground text-xs">
+                        Seret dan lepas atau klik untuk mengunggah
+                      </p>
+                    </DropzoneEmptyState>
+                  </Dropzone>
+                )}
+
+                {currentFiles.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 mt-4">
+                    {currentFiles.map((item) => (
+                      <FileItem
+                        key={item.unique_name}
+                        fileName={item.name}
+                        onDelete={() => handleDeleteAttachment(item)}
+                        isPending={isPending || isPendingUploadFile}
+                        fileUrl={item.url}
+                        onClick={() => setPreviewFile(item)}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-6 mb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="font-bold">Link Referensi</div>
+                    <Button
+                      onClick={() => setLinkDialogOpen(true)}
+                      type="button"
+                      size={"icon"}
+                      variant="outline"
+                    >
+                      <Plus />
+                    </Button>
+                  </div>
+                  <hr className="mt-4" />
+                </div>
+
+                {trackedAttachments.filter((a) => a.type === "LINK" && a.status !== "deleted").length === 0 && (
+                  <Button
+                    onClick={() => setLinkDialogOpen(true)}
+                    type="button"
+                    variant="outline"
+                    className="relative h-auto w-full flex-col overflow-hidden p-8"
+                  >
+                    <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                      <Link size={16} />
+                    </div>
+                    <p className="my-2 w-full truncate font-medium text-sm">
+                      Tambah Link
+                    </p>
+                  </Button>
+                )}
+
+                {trackedAttachments.filter((a) => a.type === "LINK" && a.status !== "deleted").length > 0 && (
+                  <div className="flex flex-col gap-2 mt-4">
+                    {trackedAttachments
+                      .filter((a) => a.type === "LINK" && a.status !== "deleted")
+                      .map((item) => (
+                        <LinkItem
+                          key={item.id}
+                          linkName={item.name}
+                          url={item.url}
+                          onDelete={() => handleDeleteAttachment(item)}
+                        />
+                      ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </form>
@@ -304,6 +350,13 @@ export default function EditMaterialDialog(props: PropTypes) {
           onClose={() => setPreviewFile(null)}
         />
       )}
+      <AddLinkDialog
+        open={linkDialogOpen}
+        setOpen={setLinkDialogOpen}
+        attachments={trackedAttachments}
+        setAttachments={setAttachments}
+        setValue={materialForm.setValue}
+      />
     </>
   );
 }
