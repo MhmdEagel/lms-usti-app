@@ -8,28 +8,24 @@ import (
 )
 
 type Submission struct {
-	ID              string           `gorm:"primaryKey"`
-	Status          string           `gorm:"not null"`
-	Score           *float64
-	SubmissionDate  sql.NullTime
-	StudentId       string           `gorm:"not null"`
-	AssignmentId    string           `gorm:"not null"`
-	Assignment      Assignment       `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
-	User            User             `gorm:"foreignKey:StudentId"`
-	SubmissionFiles []SubmissionFile `gorm:"foreignKey:SubmissionId;constraint:OnDelete:CASCADE;"`
-	SubmissionLinks []SubmissionLink `gorm:"foreignKey:SubmissionId;constraint:OnDelete:CASCADE;"`
+	ID             string                `gorm:"primaryKey"`
+	Status         string                `gorm:"not null"`
+	Score          *float64
+	SubmissionDate sql.NullTime
+	StudentId      string                `gorm:"not null"`
+	AssignmentId   string                `gorm:"not null"`
+	Assignment     Assignment            `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
+	User           User                  `gorm:"foreignKey:StudentId"`
+	Attachments    []SubmissionAttachment `gorm:"foreignKey:SubmissionId;constraint:OnDelete:CASCADE;"`
 }
-type SubmissionFile struct {
-	ID           string `gorm:"primaryKey"`
-	FileName     string `gorm:"not null"`
-	FileUrl      string `gorm:"not null"`
+
+type SubmissionAttachment struct {
+	ID           string         `gorm:"primaryKey"`
+	Name         string         `gorm:"not null"`
+	Type         AttachmentType `gorm:"not null"`
+	Url          string         `gorm:"not null"`
 	SubmissionId string
-}
-type SubmissionLink struct {
-	ID           string `gorm:"primaryKey"`
-	LinkName     string `gorm:"not null"`
-	LinkUrl      string `gorm:"not null"`
-	SubmissionId string
+	Submission   Submission `gorm:"foreignKey:SubmissionId"`
 }
 
 func (submission *Submission) BeforeCreate(tx *gorm.DB) error {
@@ -37,13 +33,8 @@ func (submission *Submission) BeforeCreate(tx *gorm.DB) error {
 	submission.ID = id.String()
 	return err
 }
-func (submissionFile *SubmissionFile) BeforeCreate(tx *gorm.DB) error {
+func (attachment *SubmissionAttachment) BeforeCreate(tx *gorm.DB) error {
 	id, err := uuid.NewRandom()
-	submissionFile.ID = id.String()
-	return err
-}
-func (submissionLink *SubmissionLink) BeforeCreate(tx *gorm.DB) error {
-	id, err := uuid.NewRandom()
-	submissionLink.ID = id.String()
+	attachment.ID = id.String()
 	return err
 }

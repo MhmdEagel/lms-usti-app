@@ -57,6 +57,7 @@ func (s *SubmissionService) FindAll(assignmentId string) (result []data.Submissi
 			Id:             v.ID,
 			Status:         v.Status,
 			SubmissionDate: submit_date,
+			Score:          v.Score,
 			Mahasiswa: data.MahasiswaResponse{
 				UserId:   v.User.ID,
 				Fullname: v.User.Fullname,
@@ -74,29 +75,21 @@ func (s *SubmissionService) FindById(req data.SubmissionDetailRequest) (result d
 	if err != nil {
 		return result, err
 	}
-	var files []data.SubmissionFileResponse
-	var links []data.SubmissionLinkResponse
-	for _, v := range submission.SubmissionFiles {
-		file := data.SubmissionFileResponse{
-			FileName: v.FileName,
-			FileUrl:  v.FileUrl,
+	var attachments []data.SubmissionAttachmentResponse
+	for _, v := range submission.Attachments {
+		attachment := data.SubmissionAttachmentResponse{
+			Name: v.Name,
+			Type: string(v.Type),
+			Url:  v.Url,
 		}
-		files = append(files, file)
-	}
-	for _, v := range submission.SubmissionLinks {
-		link := data.SubmissionLinkResponse{
-			LinkName: v.LinkName,
-			LinkUrl:  v.LinkUrl,
-		}
-		links = append(links, link)
+		attachments = append(attachments, attachment)
 	}
 	submissionResponse := data.SubmissionDetailResponse{
 		Mahasiswa: data.MahasiswaResponse{
 			UserId:   submission.User.ID,
 			Fullname: submission.User.Fullname,
 		},
-		Files: files,
-		Links: links,
+		Attachments: attachments,
 	}
 	result = submissionResponse
 	return result, nil
@@ -110,43 +103,24 @@ func (s *SubmissionService) Submit(submitReq data.SubmitRequest) error {
 	if err != nil {
 		return err
 	}
-	if len(submission.SubmissionFiles) > 0 {
-		if err := s.submissionRepository.DeleteFiles(submission.SubmissionFiles); err != nil {
+	if len(submission.Attachments) > 0 {
+		if err := s.submissionRepository.DeleteAttachments(submission.Attachments); err != nil {
 			return err
 		}
 	}
-	if len(submission.SubmissionLinks) > 0 {
-		if err := s.submissionRepository.DeleteLinks(submission.SubmissionLinks); err != nil {
-			return err
-		}
-	}
-	var submitFiles []model.SubmissionFile
-	for _, v := range submitReq.Files {
-		file := model.SubmissionFile{
-			FileName:     v.FileName,
-			FileUrl:      v.FileUrl,
+	var submitAttachments []model.SubmissionAttachment
+	for _, v := range submitReq.Attachments {
+		attachment := model.SubmissionAttachment{
+			Name:         v.Name,
+			Type:         model.AttachmentType(v.Type),
+			Url:          v.Url,
 			SubmissionId: submission.ID,
 		}
-		submitFiles = append(submitFiles, file)
+		submitAttachments = append(submitAttachments, attachment)
 	}
-	if len(submitFiles) > 0 {
-		err := s.submissionRepository.CreateSubmissionFiles(submitFiles)
+	if len(submitAttachments) > 0 {
+		err := s.submissionRepository.CreateAttachments(submitAttachments)
 		if err != nil {
-			return err
-		}
-	}
-	var submitLinks []model.SubmissionLink
-	for _, v := range submitReq.Links {
-		link := model.SubmissionLink{
-			LinkName:     v.LinkName,
-			LinkUrl:      v.LinkUrl,
-			SubmissionId: submission.ID,
-		}
-		submitLinks = append(submitLinks, link)
-	}
-
-	if len(submitLinks) > 0 {
-		if err := s.submissionRepository.CreateSubmissionLinks(submitLinks); err != nil {
 			return err
 		}
 	}

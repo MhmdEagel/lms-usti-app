@@ -1,7 +1,12 @@
-export default function PenilaianPage() {
+import AssignmentDetailGrading from "@/components/common/AssignmentDetail/AssignmentDetailGrading/AssignmentDetailGrading";
+
+export default async function PenilaianPage({
+  params,
+}: {
+  params: Promise<{ classroomId: string; assignmentId: string }>;
+}) {
+  const { classroomId, assignmentId } = await params;
   return (
-    <div className="h-64 flex items-center justify-center text-muted-foreground text-lg">
-      &lt;ini halaman penilaian&gt;
-    </div>
+    <AssignmentDetailGrading classroomId={classroomId} assignmentId={assignmentId} />
   );
 }

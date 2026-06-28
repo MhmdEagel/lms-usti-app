@@ -16,4 +16,8 @@ export const assignmentServices = {
     ),
   delete: (classroomId: string, assignmentId: string) =>
     instance.delete(`${endpoint.CLASSROOM}/${classroomId}/assignments/${assignmentId}`),
+  findSubmissions: (classroomId: string, assignmentId: string) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}/assignments/${assignmentId}/submissions`),
+  findSubmissionDetail: (classroomId: string, assignmentId: string, submissionId: string) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}/assignments/${assignmentId}/submissions/${submissionId}`),
 };
