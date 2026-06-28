@@ -73,9 +73,6 @@ func (a *AssignmentRepository) Update(assignment model.Assignment) error {
 	if res.Error != nil {
 		return res.Error
 	}
-	if res.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
 	return nil
 }
 func (a *AssignmentRepository) Delete(assignmentId, classroomId string) error {

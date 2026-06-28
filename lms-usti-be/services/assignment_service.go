@@ -215,8 +215,10 @@ func (a *AssignmentService) Update(assignmentRequest data.AssignmentUpdateReques
 				updatedRubrics = append(updatedRubrics, rubric)
 			}
 
-			if err := repo.DeleteRubrics(res.Rubrics); err != nil {
-				return err
+			if len(res.Rubrics) > 0 {
+				if err := repo.DeleteRubrics(res.Rubrics); err != nil {
+					return err
+				}
 			}
 			if len(updatedRubrics) > 0 {
 				if err := repo.CreateRubrics(updatedRubrics); err != nil {
@@ -259,7 +261,6 @@ func (a *AssignmentService) Update(assignmentRequest data.AssignmentUpdateReques
 			return nil
 		})
 }
-
 func (a *AssignmentService) Delete(assignmentId, classroomId string) error {
 	classroom, err := a.classroomRepository.FindById(classroomId)
 	if err != nil {

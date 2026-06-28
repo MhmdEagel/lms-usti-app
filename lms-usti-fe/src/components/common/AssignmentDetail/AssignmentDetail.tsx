@@ -1,5 +1,6 @@
 import {
   Card,
+  CardAction,
   CardContent,
   CardHeader,
 } from "@/components/ui/card";
@@ -19,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import AssignmentAttachmentSection from "./AssignmentAttachmentSection";
 import AssignmentRubricSection from "./AssignmentRubricSection";
+import LinkMaterialItem from "../MaterialDetail/LinkMaterialItem/LinkMaterialItem";
+import AssignmentAction from "./AssignmentAction";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -34,7 +37,10 @@ export default async function AssignmentDetail(props: PropTypes) {
 
   const classroomDetail = await classroomServices.getDetail(classroomId);
   const user = await getCurrentUser();
-  const res = await assignmentServices.findAssignmentById(classroomId, assignmentId);
+  const res = await assignmentServices.findAssignmentById(
+    classroomId,
+    assignmentId,
+  );
   const data: IAssignment = res.data?.data;
   const classroomData: IClassroom = classroomDetail.data?.data;
 
@@ -59,7 +65,11 @@ export default async function AssignmentDetail(props: PropTypes) {
   }
 
   const hasDeadline = data.deadline && !data.deadline.startsWith("0001");
-  const isOverdue = hasDeadline && dayjs(data.deadline).tz("Asia/Jakarta").isBefore(dayjs().tz("Asia/Jakarta"));
+  const isOverdue =
+    hasDeadline &&
+    dayjs(data.deadline)
+      .tz("Asia/Jakarta")
+      .isBefore(dayjs().tz("Asia/Jakarta"));
 
   return (
     <div className="p-4">
@@ -90,11 +100,24 @@ export default async function AssignmentDetail(props: PropTypes) {
                   {data.title}
                 </div>
                 {hasDeadline && (
-                  <div className={`text-sm ${isOverdue ? "text-red-500" : "text-gray-500"}`}>
-                    Batas pengumpulan: {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
+                  <div
+                    className={`text-sm ${isOverdue ? "text-red-500" : "text-gray-500"}`}
+                  >
+                    Batas pengumpulan:{" "}
+                    {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
                   </div>
                 )}
               </div>
+              {user?.role === "DOSEN" ? (
+                <div className="ml-auto">
+                  <CardAction>
+                    <AssignmentAction
+                      assignment={data}
+                      classroomId={classroomId}
+                    />
+                  </CardAction>
+                </div>
+              ) : null}
             </div>
           </CardHeader>
           <CardContent>
@@ -114,23 +137,42 @@ export default async function AssignmentDetail(props: PropTypes) {
           </CardContent>
         </Card>
       </div>
-      {data.attachments && data.attachments.length > 0 && (
-        <div className="p-4 w-full">
-          <Card>
-            <CardHeader className="border-b-2 pb-2">
-              <div className="text-base md:text-xl font-bold">LAMPIRAN</div>
-            </CardHeader>
-            <CardContent>
-              <AssignmentAttachmentSection attachments={data.attachments} />
-            </CardContent>
-          </Card>
-        </div>
-      )}
+
+      <div className="p-4 w-full">
+        <Card>
+          <CardHeader className="border-b-2 pb-2">
+            <div className="text-base md:text-xl font-bold">Lampiran</div>
+          </CardHeader>
+          <CardContent>
+            {data.attachments && data.attachments.filter((a) => a.type === "FILE" || a.type === "VIDEO").length > 0 ? (
+              <AssignmentAttachmentSection attachments={data.attachments.filter((a) => a.type === "FILE" || a.type === "VIDEO")} />
+            ): <div className="h-23 flex items-center justify-center">Tidak ada lampiran</div>}
+          </CardContent>
+        </Card>
+      </div>
+      <div className="p-4 w-full">
+        <Card>
+          <CardHeader className="border-b-2 pb-2">
+            <div className="text-base md:text-xl font-bold">Link Referensi</div>
+          </CardHeader>
+          <CardContent>
+            {data.attachments && data.attachments.filter((a) => a.type === "LINK").length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {data.attachments.filter((a) => a.type === "LINK").map((item) => (
+                  <LinkMaterialItem key={item.id} linkMateri={item} />
+                ))}
+              </div>
+            ): <div className="h-23 flex items-center justify-center">Tidak ada link referensi</div>}
+          </CardContent>
+        </Card>
+      </div>
       {data.rubrics && data.rubrics.length > 0 && (
         <div className="p-4 w-full">
           <Card>
             <CardHeader className="border-b-2 pb-2">
-              <div className="text-base md:text-xl font-bold">RUBRIK PENILAIAN</div>
+              <div className="text-base md:text-xl font-bold">
+                RUBRIK PENILAIAN
+              </div>
             </CardHeader>
             <CardContent>
               <AssignmentRubricSection rubrics={data.rubrics} />

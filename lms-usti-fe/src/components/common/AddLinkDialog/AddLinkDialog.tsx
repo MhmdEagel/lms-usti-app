@@ -24,14 +24,17 @@ export default function AddLinkDialog({
   setValue,
   attachments,
   setAttachments,
+  open,
+  setOpen,
 }: {
   setValue: UseFormSetValue<any>;
   attachments: IAttachment[];
   setAttachments: Dispatch<SetStateAction<IAttachment[]>>;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }) {
   const [linkName, setLinkName] = useState("");
   const [linkString, setLinkString] = useState("https://www.");
-  const [open, setOpen] = useState(false);
 
   const handleAddLink = () => {
     if (!isValidUrl(linkString)) {
@@ -55,14 +58,6 @@ export default function AddLinkDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <div className="flex flex-col gap-2 items-center font-semibold text-sm">
-          <Button type="button" size={"icon"}>
-            <Link />
-          </Button>
-          Link
-        </div>
-      </DialogTrigger>
       <DialogContent
         onOpenAutoFocus={(e) => {
           e.preventDefault();
@@ -89,6 +84,7 @@ export default function AddLinkDialog({
               id="link-string"
               type="text"
               value={linkName}
+              autoComplete="off"
               onChange={(e) => {
                 setLinkName(e.target.value);
               }}
