@@ -74,6 +74,10 @@ interface IMaterial {
   attachments: IAttachment[];
   created_at: string;
   updated_at: string
+  classroom_detail: {
+    classroom_id: string;
+    classroom_name: string;
+  }
 }
 
 interface INewMaterial {
@@ -91,6 +95,7 @@ interface IUpdateMaterial {
 interface IAssignment {
   id?: string?;
   title: string;
+  classroom_name: string;
   deadline?: string?;
   instruction?: string?;
   rubrics?: IRubrics[];
@@ -117,7 +122,6 @@ interface IRubrics {
   name: string;
   score: number;
 }
-
 interface IClassroomMemberDetail {
   class_name: string;
   member: {
@@ -128,6 +132,25 @@ interface IClassroomMemberDetail {
     role: string;
     nim?: string;
     nidn?: string;
+  };
+}
+
+interface ISubmissionDetail {
+  mahasiswa: {
+    userId: string;
+    fullname: string;
+  };
+  attachments: { name: string; type: string; url: string }[];
+}
+
+interface ISubmission {
+  id: string;
+  status: string;
+  submission_date: string | null;
+  score: number | null;
+  mahasiswa: {
+    userId: string;
+    fullname: string;
   };
 }
 
@@ -151,4 +174,6 @@ export type {
   IRubrics,
   SubmissionStats,
   IClassroomMemberDetail,
+  ISubmissionDetail,
+  ISubmission,
 };

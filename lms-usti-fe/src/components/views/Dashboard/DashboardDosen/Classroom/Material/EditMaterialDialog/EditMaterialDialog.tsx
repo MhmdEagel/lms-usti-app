@@ -332,6 +332,7 @@ export default function EditMaterialDialog(props: PropTypes) {
                         <LinkItem
                           key={item.id}
                           linkName={item.name}
+                          url={item.url}
                           onDelete={() => handleDeleteAttachment(item)}
                         />
                       ))}

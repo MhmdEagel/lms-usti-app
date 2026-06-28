@@ -12,28 +12,22 @@ type SubmissionRequest struct {
 }
 
 type SubmitRequest struct {
-	Files       []SubmissionFileRequest `json:"files"`
-	Links       []SubmissionLinkRequest `json:"links"`
+	Attachments []SubmissionAttachmentRequest `json:"attachments"`
 	AssigmentId string
 	UserId      string
 	ClassroomId string
 }
 
-type SubmissionFileRequest struct {
-	FileName string `json:"file_name" binding:"required"`
-	FileUrl  string `json:"file_url" binding:"required"`
+type SubmissionAttachmentRequest struct {
+	Name string `json:"name" binding:"required"`
+	Type string `json:"type" binding:"required,oneof=FILE VIDEO LINK"`
+	Url  string `json:"url" binding:"required"`
 }
-type SubmissionLinkRequest struct {
-	LinkName string `json:"link_name" binding:"required"`
-	LinkUrl  string `json:"link_url" binding:"required"`
-}
-type SubmissionFileResponse struct {
-	FileName string `json:"file_name"`
-	FileUrl  string `json:"file_url"`
-}
-type SubmissionLinkResponse struct {
-	LinkName string `json:"link_name"`
-	LinkUrl  string `json:"link_url"`
+
+type SubmissionAttachmentResponse struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+	Url  string `json:"url"`
 }
 
 type SubmissionStatsResponse struct {
@@ -46,6 +40,7 @@ type SubmissionResponse struct {
 	Id             string            `json:"id"`
 	Status         string            `json:"status"`
 	SubmissionDate *time.Time        `json:"submission_date"`
+	Score          *float64          `json:"score"`
 	Mahasiswa      MahasiswaResponse `json:"mahasiswa"`
 }
 
@@ -56,7 +51,6 @@ type SubmissionDetailRequest struct {
 }
 
 type SubmissionDetailResponse struct {
-	Mahasiswa MahasiswaResponse        `json:"mahasiswa"`
-	Files     []SubmissionFileResponse `json:"files"`
-	Links     []SubmissionLinkResponse `json:"links"`
+	Mahasiswa   MahasiswaResponse              `json:"mahasiswa"`
+	Attachments []SubmissionAttachmentResponse `json:"attachments"`
 }
