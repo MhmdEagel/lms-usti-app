@@ -238,6 +238,25 @@ func (c *ClassroomController) Enroll(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+func (c *ClassroomController) RemoveMember(ctx *gin.Context) {
+	classroomId := ctx.Param("id")
+	memberId := ctx.Param("memberId")
+	err := c.classroomService.RemoveMember(classroomId, memberId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			res := data.NewResponse(http.StatusNotFound, "anggota tidak ditemukan", nil)
+			ctx.JSON(http.StatusNotFound, res)
+			return
+		}
+		log.Printf("RemoveMember: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "anggota berhasil dikeluarkan", nil)
+	ctx.JSON(http.StatusOK, res)
+}
+
 func (c *ClassroomController) FindAllClassroomMember(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
 	classroomMembers, err := c.classroomService.FindAllClassroomMember(classroomId)

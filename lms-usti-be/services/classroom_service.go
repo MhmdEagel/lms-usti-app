@@ -24,6 +24,7 @@ type ClassroomServiceInterface interface {
 	FindClassroomMemberByMemberId(classroomId, memberId string) (classroomMember data.ClassroomMemberDetailResponse, err error)
 	FindById(classroomId string) (classroom data.ClassroomDetailResponse, err error)
 	EnrollMahasiswa(joinClassroomRequest data.JoinClassroomRequest, mahasiswaId string) error
+	RemoveMember(classroomId, memberId string) error
 	Update(classroomUpdateRequest data.UpdateClassroomRequest) error
 	Delete(classroomId string, userId string) error
 }
@@ -206,6 +207,19 @@ func (c *ClassroomService) EnrollMahasiswa(joinClassroomRequest data.JoinClassro
 	}
 	return nil
 }
+func (c *ClassroomService) RemoveMember(classroomId, memberId string) error {
+	if _, err := c.classroomRepository.FindById(classroomId); err != nil {
+		return err
+	}
+	if _, err := c.userRepository.FindById(memberId); err != nil {
+		return err
+	}
+	if err := c.classroomRepository.RemoveMember(classroomId, memberId); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *ClassroomService) Update(classroomUpdateRequest data.UpdateClassroomRequest) error {
 	classroom, err := c.classroomRepository.FindById(classroomUpdateRequest.Id)
 	if err != nil {

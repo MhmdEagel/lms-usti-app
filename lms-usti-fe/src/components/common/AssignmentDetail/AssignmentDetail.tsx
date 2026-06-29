@@ -155,13 +155,15 @@ export default async function AssignmentDetail(props: PropTypes) {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="font-bold text-gray-500 text-sm">NILAI</div>
             {type === "mahasiswa" && mySubmission?.score !== null && (
-              <div className="shrink-0">
-                <div className="text-xl font-bold text-primary">
-                  {mySubmission?.score} / 100
+              <>
+                <div className="font-bold text-gray-500 text-sm">NILAI</div>
+                <div className="shrink-0">
+                  <div className="text-xl font-bold text-primary">
+                    {mySubmission?.score} / 100
+                  </div>
                 </div>
-              </div>
+              </>
             )}
             {data.instruction ? (
               <>
