@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/services"
@@ -20,15 +21,22 @@ func NewSubmissionController(submissionService services.SubmissionServiceInterfa
 }
 
 func (s *SubmissionController) FindAll(ctx *gin.Context) {
+	classroomId := ctx.Param("id")
 	assignmentId := ctx.Param("assignmentId")
-	submissions, err := s.submissionService.FindAll(assignmentId)
+	limit, _ := strconv.Atoi(ctx.Query("limit"))
+	page, _ := strconv.Atoi(ctx.Query("page"))
+	search := ctx.Query("search")
+	filter := ctx.Query("filter")
+
+	pagination := data.Pagination{Limit: limit, Current: page}
+	paginatedResult, err := s.submissionService.FindAll(classroomId, assignmentId, search, filter, pagination)
 	if err != nil {
 		log.Printf("Submission FindAll: %v", err)
 		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	res := data.NewResponse(http.StatusOK, "successfully find all submissions", submissions)
+	res := data.NewPaginationResponse(http.StatusOK, "successfully find all submissions", paginatedResult.Pagination, paginatedResult.Data)
 	ctx.JSON(http.StatusOK, res)
 }
 
@@ -54,6 +62,20 @@ func (s *SubmissionController) FindById(ctx *gin.Context) {
 		return
 	}
 	res := data.NewResponse(http.StatusOK, "successfully find submission by id", submission)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (s *SubmissionController) FindMySubmission(ctx *gin.Context) {
+	assignmentId := ctx.Param("assignmentId")
+	val, _ := ctx.Get("user")
+	user := val.(data.MeResponse)
+	submission, err := s.submissionService.FindByAssignmentAndStudent(assignmentId, user.UserId)
+	if err != nil {
+		res := data.NewResponse(http.StatusOK, "no submission", nil)
+		ctx.JSON(http.StatusOK, res)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "success", submission)
 	ctx.JSON(http.StatusOK, res)
 }
 

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { IAssignment, ISubmission } from "@/types/Classroom";
-import { Search } from "lucide-react";
+import { SearchBar } from "@/components/ui/searchfield";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -18,7 +19,12 @@ interface PropTypes {
   onSelectSubmission: (submission: ISubmission) => void;
 }
 
-type FilterType = "semua" | "telat" | "belum_dinilai" | "sudah_mengirim" | "belum_mengirim";
+type FilterType =
+  | "semua"
+  | "telat"
+  | "belum_dinilai"
+  | "sudah_mengirim"
+  | "belum_mengirim";
 
 const FILTERS: { key: FilterType; label: string }[] = [
   { key: "semua", label: "Semua" },
@@ -34,8 +40,9 @@ export default function SubmissionListCard({
   selectedSubmission,
   onSelectSubmission,
 }: PropTypes) {
-  const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState<FilterType>("semua");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeFilter = (searchParams.get("filter") || "semua") as FilterType;
 
   const hasDeadline =
     assignment.deadline && !assignment.deadline.startsWith("0001");
@@ -43,36 +50,16 @@ export default function SubmissionListCard({
     ? dayjs(assignment.deadline).tz("Asia/Jakarta")
     : null;
 
-  const filteredSubmissions = useMemo(() => {
-    let result = submissions;
-
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter((s) =>
-        s.mahasiswa.fullname.toLowerCase().includes(q),
-      );
+  const handleFilterChange = (key: FilterType) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (key === "semua") {
+      params.delete("filter");
+    } else {
+      params.set("filter", key);
     }
-
-    if (activeFilter === "sudah_mengirim") {
-      result = result.filter((s) => s.status === "submitted");
-    } else if (activeFilter === "belum_dinilai") {
-      result = result.filter(
-        (s) => s.score === null && s.status === "submitted",
-      );
-    } else if (activeFilter === "telat") {
-      if (deadlineDate) {
-        result = result.filter((s) => {
-          if (!s.submission_date) return false;
-          const submitDate = dayjs(s.submission_date).tz("Asia/Jakarta");
-          return submitDate.isAfter(deadlineDate);
-        });
-      }
-    } else if (activeFilter === "belum_mengirim") {
-      result = [];
-    }
-
-    return result;
-  }, [submissions, search, activeFilter, deadlineDate]);
+    params.delete("page");
+    router.push(`?${params.toString()}`);
+  };
 
   const getStatusBadge = (submission: ISubmission) => {
     const submitDate = submission.submission_date
@@ -109,23 +96,14 @@ export default function SubmissionListCard({
           <div className="font-bold text-gray-500 text-sm mb-2">
             Cari Mahasiswa
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Nama mahasiswa..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+          <SearchBar placeholder="Cari mahasiswa..." />
         </div>
 
         <div className="flex flex-wrap gap-2">
           {FILTERS.map((filter) => (
             <button
               key={filter.key}
-              onClick={() => setActiveFilter(filter.key)}
+              onClick={() => handleFilterChange(filter.key)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 activeFilter === filter.key
                   ? "bg-primary text-white"
@@ -138,14 +116,14 @@ export default function SubmissionListCard({
         </div>
 
         <div className="space-y-2">
-          {filteredSubmissions.length === 0 ? (
+          {submissions.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
               {activeFilter === "belum_mengirim"
                 ? "Semua mahasiswa sudah mengirim"
                 : "Tidak ada pengumpulan"}
             </div>
           ) : (
-            filteredSubmissions.map((submission) => {
+            submissions.map((submission) => {
               const isSelected = selectedSubmission?.id === submission.id;
               const submitDate = submission.submission_date
                 ? dayjs(submission.submission_date).tz("Asia/Jakarta")
@@ -161,9 +139,17 @@ export default function SubmissionListCard({
                       : "hover:bg-gray-50 border border-transparent"
                   }`}
                 >
-                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary shrink-0">
-                    {submission.mahasiswa.fullname.charAt(0).toUpperCase()}
-                  </div>
+                  <Avatar className="h-12 w-12 rounded-full">
+                    <AvatarImage
+                      src={submission.mahasiswa.profile}
+                      alt={submission.mahasiswa.fullname}
+                    />
+                    <AvatarFallback className="rounded-lg">
+                      {submission.mahasiswa.fullname
+                        ?.charAt(0)
+                        ?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">
                       {submission.mahasiswa.fullname}

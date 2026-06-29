@@ -305,6 +305,7 @@ export default function CreateMaterialDialog({
                         <LinkItem
                           key={item.id}
                           linkName={item.name}
+                          url={item.url}
                           onDelete={() => handleDeleteAttachment(item)}
                         />
                       ))}

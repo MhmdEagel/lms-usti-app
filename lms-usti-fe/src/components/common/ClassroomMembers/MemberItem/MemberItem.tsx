@@ -34,6 +34,6 @@ export default function MemberItem({
       </div>
     </Card>
   );
-  if (isCurrentUser || viewerRole === "DOSEN") return card;
+  if (isCurrentUser || viewerRole !== "DOSEN") return card;
   return <Link href={href}>{card}</Link>;
 }

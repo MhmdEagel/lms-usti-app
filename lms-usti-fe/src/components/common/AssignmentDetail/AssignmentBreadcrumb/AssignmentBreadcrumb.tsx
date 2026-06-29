@@ -12,7 +12,7 @@ interface PropTypes {
   assignmentId: string;
   classroomName: string;
   assignmentTitle: string;
-  role: "DOSEN" | "MAHASISWA";
+  role: string;
 }
 
 export default function AssignmentBreadcrumb(props: PropTypes) {

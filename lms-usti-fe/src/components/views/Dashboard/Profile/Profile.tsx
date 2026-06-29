@@ -46,12 +46,11 @@ export default function Profile({ user }: ProfileProps) {
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white">
       <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
         <h1 className="text-2xl md:text-3xl font-bold text-primary">
           Profil Saya
         </h1>
-
         {/* Card 1 — Info Pengguna */}
         <Card className="shadow-sm rounded-xl">
           <CardContent className="p-6">
@@ -149,7 +148,6 @@ export default function Profile({ user }: ProfileProps) {
             </CardContent>
           </Card>
         )}
-
       </div>
     </div>
   );

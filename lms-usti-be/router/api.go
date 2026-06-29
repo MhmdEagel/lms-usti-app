@@ -123,6 +123,7 @@ func InitRouter() *gin.Engine {
 
 			classroom.GET("/:id/assignments/:assignmentId/submissions", aclMiddleware.Handle([]string{"DOSEN"}), submissionController.FindAll)
 			classroom.GET("/:id/assignments/:assignmentId/submissions/:submissionId", aclMiddleware.Handle([]string{"DOSEN"}), submissionController.FindById)
+			classroom.GET("/:id/assignments/:assignmentId/my-submission", aclMiddleware.Handle([]string{"MAHASISWA"}), submissionController.FindMySubmission)
 			classroom.POST("/:id/assignments/:assignmentId/submissions", aclMiddleware.Handle([]string{"MAHASISWA"}), submissionController.Submit)
 			// TODO: Create grading for dosen
 		}
