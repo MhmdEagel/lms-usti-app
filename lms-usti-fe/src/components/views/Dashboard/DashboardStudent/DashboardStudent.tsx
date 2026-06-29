@@ -1,5 +1,7 @@
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { CircleCheckBig, GraduationCap } from "lucide-react";
+import { Suspense } from "react";
+import WeeklySchedule from "@/components/common/WeeklySchedule/WeeklySchedule";
 
 export default async function DashboardStudent() {
   return (
@@ -38,6 +40,11 @@ export default async function DashboardStudent() {
           <CardHeader>
             <CardTitle className="text-lg md:text-xl">Jadwal Perkuliahan</CardTitle>
           </CardHeader>
+          <CardContent>
+            <Suspense fallback={<p>Loading...</p>}>
+              <WeeklySchedule />
+            </Suspense>
+          </CardContent>
         </Card>
       </section>
     </div>

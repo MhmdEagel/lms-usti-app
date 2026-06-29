@@ -1,7 +1,9 @@
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { GraduationCap } from "lucide-react";
 import { Suspense } from "react";
 import ClassroomCount from "./ClassroomCount";
+import WeeklySchedule from "@/components/common/WeeklySchedule/WeeklySchedule";
+
 export default function DashboardDosen() {
   return (
     <div className="p-4">
@@ -29,6 +31,11 @@ export default function DashboardDosen() {
           <CardHeader>
             <CardTitle className="text-lg md:text-xl">Jadwal Perkuliahan</CardTitle>
           </CardHeader>
+          <CardContent>
+            <Suspense fallback={<p>Loading...</p>}>
+              <WeeklySchedule />
+            </Suspense>
+          </CardContent>
         </Card>
       </section>
     </div>

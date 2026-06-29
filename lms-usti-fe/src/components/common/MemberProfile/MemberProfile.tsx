@@ -1,3 +1,6 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +18,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import MemberProfileBreadcrumb from "./MemberProfileBreadcrumb";
 import Link from "next/link";
+import { removeMember } from "@/actions/remove-member";
+import { useState } from "react";
 
 export default function MemberProfile({
   userId,
@@ -37,6 +42,19 @@ export default function MemberProfile({
   className: string;
   viewerRole: "DOSEN" | "MAHASISWA";
 }) {
+  const router = useRouter();
+  const [removing, setRemoving] = useState(false);
+
+  const handleRemove = async () => {
+    setRemoving(true);
+    try {
+      await removeMember(classroomId, userId);
+      router.push(`/${viewerRole.toLowerCase()}/kelas/${classroomId}/anggota`);
+    } catch {
+      setRemoving(false);
+    }
+  };
+
   return (
     <div className="p-4">
       <MemberProfileBreadcrumb
@@ -125,8 +143,12 @@ export default function MemberProfile({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Batal</AlertDialogCancel>
-                      <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        Keluarkan
+                      <AlertDialogAction
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        onClick={handleRemove}
+                        disabled={removing}
+                      >
+                        {removing ? "Mengeluarkan..." : "Keluarkan"}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

@@ -24,6 +24,7 @@ type ClassroomRepositoryInterface interface {
 	Enroll(classroomMahasiswa model.ClassroomMahasiswa) error
 	IsAlreadyEnroll(classroomMahasiswa model.ClassroomMahasiswa) bool
 	FindAllClassroomMahasiswa(classroomId string) (mahasiswa []model.ClassroomMahasiswa, err error)
+	RemoveMember(classroomId string, memberId string) error
 }
 
 func NewClassroomRepository(Db *gorm.DB) ClassroomRepositoryInterface {
@@ -165,6 +166,17 @@ func (c *ClassroomRepository) IsAlreadyEnroll(classroomMahasiswa model.Classroom
 	var count int64
 	c.Db.Model(&model.ClassroomMahasiswa{}).Where("user_id = ? AND classroom_id = ?", classroomMahasiswa.UserId, classroomMahasiswa.ClassroomId).Count(&count)
 	return count > 0
+}
+
+func (c *ClassroomRepository) RemoveMember(classroomId, memberId string) error {
+	res := c.Db.Where("user_id = ? AND classroom_id = ?", memberId, classroomId).Delete(model.ClassroomMahasiswa{})
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
 
 func (c *ClassroomRepository) Delete(classroomId string, dosenId string) error {

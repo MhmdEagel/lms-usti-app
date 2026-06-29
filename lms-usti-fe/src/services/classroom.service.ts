@@ -44,4 +44,6 @@ export const classroomServices = {
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/members`),
   getMemberDetail: (classroomId: string, memberId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/members/${memberId}`),
+  removeMember: (classroomId: string, memberId: string) =>
+    instance.delete(`${endpoint.CLASSROOM}/${classroomId}/members/${memberId}`),
 };
