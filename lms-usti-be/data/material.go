@@ -20,6 +20,7 @@ type MaterialDetailResponse struct {
 	Title       string               `json:"title"`
 	Description string               `json:"description"`
 	Attachments []AttachmentResponse `json:"attachments"`
+	Classroom   ClassroomMeta        `json:"classroom_detail"`
 }
 
 type MaterialUpdateRequest struct {
@@ -28,4 +29,9 @@ type MaterialUpdateRequest struct {
 	Description string              `json:"description"`
 	Attachments []AttachmentRequest `json:"attachments"`
 	ClassroomId string
+}
+
+type ClassroomMeta struct {
+	ClassroomId   string `json:"classroom_id"`
+	ClassroomName string `json:"classroom_name"`
 }

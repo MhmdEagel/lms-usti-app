@@ -333,6 +333,7 @@ export default function CreateAssignmentDialog({
                       .map((item) => (
                         <LinkItem
                           key={item.id}
+                          url={item.url}
                           linkName={item.name}
                           onDelete={() => handleDeleteAttachment(item)}
                         />

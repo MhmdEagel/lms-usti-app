@@ -4,6 +4,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function AssignmentDetailGradingSkeleton() {
   return (
     <div className="p-4">
+      <Skeleton className="h-9 w-28 rounded-full mb-2" />
+
+      <div className="flex gap-2 mb-4">
+        <Skeleton className="h-10 w-24 rounded-lg" />
+        <Skeleton className="h-10 w-24 rounded-lg" />
+        <Skeleton className="h-10 w-24 rounded-lg" />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
           <Card>

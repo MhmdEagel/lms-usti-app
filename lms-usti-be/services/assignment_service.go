@@ -155,10 +155,11 @@ func (a *AssignmentService) FindById(assignmentId, classroomId string) (assignme
 		return assignment, data.ErrAssignmentNotFound(err)
 	}
 	result := data.AssignmentDetailResponse{
-		ID:          res.ID,
-		Title:       res.Title,
-		Deadline:    res.Deadline,
-		Instruction: res.Instruction,
+		ID:            res.ID,
+		Title:         res.Title,
+		Deadline:      res.Deadline,
+		Instruction:   res.Instruction,
+		ClassroomName: classroom.ClassName,
 	}
 	for _, v := range res.Rubrics {
 		rubric := data.AssignmentRubricResponse{

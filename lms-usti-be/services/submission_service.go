@@ -17,8 +17,9 @@ type SubmissionService struct {
 }
 type SubmissionServiceInterface interface {
 	Create(submissionReq []data.SubmissionRequest) error
-	FindAll(assignmentId string) (result []data.SubmissionResponse, err error)
+	FindAll(classroomId string, assignmentId string, search string, filter string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error)
 	FindById(req data.SubmissionDetailRequest) (result data.SubmissionDetailResponse, err error)
+	FindByAssignmentAndStudent(assignmentId, studentId string) (result data.SubmissionResponse, err error)
 	Submit(submitReq data.SubmitRequest) error
 	GetSubmissionStats(assignmentId string) (data.SubmissionStatsResponse, error)
 	GetSubmissionStatsBatch(assignmentIds []string) (map[string]data.SubmissionStatsResponse, error)
@@ -46,12 +47,13 @@ func (s *SubmissionService) Create(submissionReq []data.SubmissionRequest) error
 	return nil
 }
 
-func (s *SubmissionService) FindAll(assignmentId string) (result []data.SubmissionResponse, err error) {
-	res, err := s.submissionRepository.FindAllByAssignmentId(assignmentId)
+func (s *SubmissionService) FindAll(classroomId string, assignmentId string, search string, filter string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error) {
+	paginatedResult, err = s.submissionRepository.FindAllByAssignmentId(classroomId, assignmentId, search, filter, pagination)
 	if err != nil {
-		return result, err
+		return nil, err
 	}
-	for _, v := range res {
+	var submissions []data.SubmissionResponse
+	for _, v := range paginatedResult.Data.([]model.Submission) {
 		submit_date := lib.FromNullTime(v.SubmissionDate)
 		submission := data.SubmissionResponse{
 			Id:             v.ID,
@@ -60,10 +62,30 @@ func (s *SubmissionService) FindAll(assignmentId string) (result []data.Submissi
 			Score:          v.Score,
 			Mahasiswa: data.MahasiswaResponse{
 				UserId:   v.User.ID,
+				Profile:  v.User.Image,
 				Fullname: v.User.Fullname,
 			},
 		}
-		result = append(result, submission)
+		submissions = append(submissions, submission)
+	}
+	paginatedResult.Data = submissions
+	return paginatedResult, nil
+}
+func (s *SubmissionService) FindByAssignmentAndStudent(assignmentId, studentId string) (result data.SubmissionResponse, err error) {
+	res, err := s.submissionRepository.FindByAssignmentIdAndStudentId(assignmentId, studentId)
+	if err != nil {
+		return result, err
+	}
+	submit_date := lib.FromNullTime(res.SubmissionDate)
+	result = data.SubmissionResponse{
+		Id:             res.ID,
+		Status:         res.Status,
+		SubmissionDate: submit_date,
+		Score:          res.Score,
+		Mahasiswa: data.MahasiswaResponse{
+			UserId:   res.User.ID,
+			Fullname: res.User.Fullname,
+		},
 	}
 	return result, nil
 }

@@ -150,8 +150,16 @@ interface ISubmission {
   score: number | null;
   mahasiswa: {
     userId: string;
+    profile: string;
     fullname: string;
   };
+}
+
+interface IMySubmission {
+  id: string;
+  status: string;
+  submission_date: string | null;
+  score: number | null;
 }
 
 export type {
@@ -176,4 +184,5 @@ export type {
   IClassroomMemberDetail,
   ISubmissionDetail,
   ISubmission,
+  IMySubmission,
 };

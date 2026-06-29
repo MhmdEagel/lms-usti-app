@@ -12,7 +12,7 @@ type Assignment struct {
 	Title       string    `gorm:"not null"`
 	Deadline    time.Time 
 	Instruction string    `gorm:"not null"`
-	ClassroomId string
+	ClassroomId string 
 	Rubrics     []AssignmentRubric      `gorm:"constraint:OnDelete:CASCADE;"`
 	Attachments []AssignmentAttachment `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
 }

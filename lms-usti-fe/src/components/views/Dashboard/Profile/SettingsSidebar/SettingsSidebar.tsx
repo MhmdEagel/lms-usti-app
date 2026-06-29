@@ -1,5 +1,4 @@
 import SettingsSidebarItem from "./SettingsSidebarItem";
-
 const SIDEBAR_ITEMS = [
   {
     lable: "Data Diri",
@@ -14,10 +13,9 @@ const SIDEBAR_ITEMS = [
     description: "Pengaturan notifikasi akun",
   },
 ];
-
 export default function SettingsSidebar({isActive, handleActiveBar} : {isActive: string; handleActiveBar: (identifier: string) => void}) {
   return (
-    <div className="mt-4 border-r-[3px] pr-4 space-y-2">
+    <div className="mt-4 border-r-[3px] pr-4 space-y-2 pl-4">
       {SIDEBAR_ITEMS.map((item) => (
         <SettingsSidebarItem
           key={item.lable}

@@ -12,10 +12,9 @@ import DOMPurify from "isomorphic-dompurify";
 import { getCurrentUser } from "@/lib/auth";
 import { ArrowLeft, Book } from "lucide-react";
 import { materialServices } from "@/services/material.service";
-import { IClassroom, IMaterial } from "@/types/Classroom";
+import { IMaterial } from "@/types/Classroom";
 import LinkMaterialItem from "./LinkMaterialItem";
 import MaterialAction from "./MaterialAction";
-import { classroomServices } from "@/services/classroom.service";
 import MaterialBreadcrumb from "./MaterialBreadcrumb";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -27,16 +26,14 @@ interface PropTypes {
 
 export default async function MaterialDetail(props: PropTypes) {
   const { classroomId, materiId } = props;
-
-  const classroomDetail = await classroomServices.getDetail(classroomId);
   const user = await getCurrentUser();
   const res = await materialServices.findMaterialById(classroomId, materiId);
   const data: IMaterial = res.data?.data;
-  const classroomData: IClassroom = classroomDetail.data?.data;
-
   dayjs.extend(localizedFormat);
   dayjs.locale("id");
   const role: string = user.role;
+
+  console.log(data)
   if (!data) {
     return (
       <div className="p-4 flex flex-col justify-center items-center h-128">
@@ -48,7 +45,7 @@ export default async function MaterialDetail(props: PropTypes) {
         />
         <div className="text-2xl md:text-4xl font-bold text-primary mb-1">
           404
-        <div className="text-base md:text-2xl">Materi tidak ditemukan</div>
+          <div className="text-base md:text-2xl">Materi tidak ditemukan</div>
         </div>
       </div>
     );
@@ -56,9 +53,9 @@ export default async function MaterialDetail(props: PropTypes) {
   return (
     <div className="p-4">
       <MaterialBreadcrumb
-        classroomId={classroomData.id!}
+        classroomId={data.classroom_detail.classroom_id}
         materialId={materiId}
-        classroomName={classroomData.class_name}
+        classroomName={data.classroom_detail.classroom_name}
         materialName={data.title}
         role={user.role}
       />
@@ -119,9 +116,14 @@ export default async function MaterialDetail(props: PropTypes) {
             <div className="text-base md:text-xl font-bold">LAMPIRAN</div>
           </CardHeader>
           <CardContent>
-            {data.attachments && data.attachments.filter((a) => a.type === "FILE" || a.type === "VIDEO").length > 0 ? (
+            {data.attachments &&
+            data.attachments.filter(
+              (a) => a.type === "FILE" || a.type === "VIDEO",
+            ).length > 0 ? (
               <FileAttachmentSection
-                attachments={data.attachments.filter((a) => a.type === "FILE" || a.type === "VIDEO")}
+                attachments={data.attachments.filter(
+                  (a) => a.type === "FILE" || a.type === "VIDEO",
+                )}
               />
             ) : (
               <div className="h-23 flex items-center justify-center">

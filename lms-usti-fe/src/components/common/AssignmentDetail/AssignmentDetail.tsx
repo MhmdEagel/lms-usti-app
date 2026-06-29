@@ -10,18 +10,17 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import "dayjs/locale/id";
 import DOMPurify from "isomorphic-dompurify";
-import { getCurrentUser } from "@/lib/auth";
 import { ArrowLeft, FileText } from "lucide-react";
 import { assignmentServices } from "@/services/assignment.service";
-import { classroomServices } from "@/services/classroom.service";
-import type { IAssignment, IClassroom } from "@/types/Classroom";
-import AssignmentBreadcrumb from "./AssignmentBreadcrumb";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import type { IAssignment, IMySubmission } from "@/types/Classroom";
 import AssignmentAttachmentSection from "./AssignmentAttachmentSection";
 import AssignmentRubricSection from "./AssignmentRubricSection";
 import LinkMaterialItem from "../MaterialDetail/LinkMaterialItem/LinkMaterialItem";
 import AssignmentAction from "./AssignmentAction";
+import AssignmentBreadcrumb from "./AssignmentBreadcrumb";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import AssignmentDetailTabNavbar from "./AssignmentDetailTabNavbar/AssignmentDetailTabNavbar";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -29,24 +28,19 @@ dayjs.extend(timezone);
 interface PropTypes {
   classroomId: string;
   assignmentId: string;
-  type?: "dosen" | "mahasiswa";
+  type: "dosen" | "mahasiswa";
 }
-
 export default async function AssignmentDetail(props: PropTypes) {
-  const { classroomId, assignmentId, type = "dosen" } = props;
-
-  const classroomDetail = await classroomServices.getDetail(classroomId);
-  const user = await getCurrentUser();
-  const res = await assignmentServices.findAssignmentById(
-    classroomId,
-    assignmentId,
-  );
-  const data: IAssignment = res.data?.data;
-  const classroomData: IClassroom = classroomDetail.data?.data;
-
+  const { classroomId, assignmentId, type } = props;
+  const [assignmentRes, mySubmissionRes] = await Promise.all([
+    assignmentServices.findAssignmentById(classroomId, assignmentId),
+    type === "mahasiswa"
+      ? assignmentServices.findMySubmission(classroomId, assignmentId).catch(() => null)
+      : Promise.resolve(null),
+  ]);
+  const data: IAssignment = assignmentRes.data?.data;
+  const mySubmission: IMySubmission | null = mySubmissionRes?.data?.data || null;
   dayjs.locale("id");
-  const role = user.role as "DOSEN" | "MAHASISWA";
-
   if (!data) {
     return (
       <div className="p-4 flex flex-col justify-center items-center h-128">
@@ -63,7 +57,6 @@ export default async function AssignmentDetail(props: PropTypes) {
       </div>
     );
   }
-
   const hasDeadline = data.deadline && !data.deadline.startsWith("0001");
   const isOverdue =
     hasDeadline &&
@@ -71,44 +64,79 @@ export default async function AssignmentDetail(props: PropTypes) {
       .tz("Asia/Jakarta")
       .isBefore(dayjs().tz("Asia/Jakarta"));
 
+  const maxScore = data.rubrics
+    ? data.rubrics.reduce((sum, r) => sum + r.score, 0)
+    : 0;
+  const submissionStatus = !mySubmission || mySubmission.status !== "submitted"
+    ? "not_submitted"
+    : mySubmission.score !== null
+      ? "graded"
+      : "submitted";
+  const statusConfig = {
+    not_submitted: { label: "Belum Dikerjakan", className: "bg-gray-100 text-gray-500" },
+    submitted: { label: "Belum Dinilai", className: "bg-yellow-100 text-yellow-700" },
+    graded: { label: "Sudah Dinilai", className: "bg-green-100 text-green-700" },
+  } as const;
+
   return (
     <div className="p-4">
       <AssignmentBreadcrumb
-        classroomId={classroomData.id!}
+        classroomId={classroomId}
         assignmentId={assignmentId}
-        classroomName={classroomData.class_name}
+        classroomName={data.classroom_name}
         assignmentTitle={data.title}
-        role={role}
+        role={type}
       />
-      <Link
-        className="mb-2"
-        href={`/${role.toLowerCase()}/kelas/${classroomId}/tugas`}
-      >
+      <Link className="mb-2" href={`/${type}/kelas/${classroomId}/tugas`}>
         <Button className="rounded-full" variant="ghost">
           <ArrowLeft /> Kembali
         </Button>
       </Link>
+      {type === "dosen" && (
+        <AssignmentDetailTabNavbar
+          classroomId={classroomId}
+          assignmentId={assignmentId}
+          type={type}
+        />
+      )}
       <div className="p-4 w-full max-w-4xl mx-auto">
         <Card>
-          <CardHeader>
-            <div className="flex gap-4 items-center w-full">
-              <div className="bg-primary p-4 border rounded-full">
-                <FileText color="white" />
+      <CardHeader>
+        <div className="flex gap-4 items-start w-full">
+          <div className="bg-primary p-4 border rounded-full shrink-0">
+            <FileText color="white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-base md:text-xl font-bold">
+              {data.title}
+            </div>
+            {hasDeadline && (
+              <div
+                className={`text-lg ${isOverdue ? "text-red-500" : "text-gray-500"}`}
+              >
+                Batas pengumpulan:{" "}
+                {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
               </div>
-              <div>
-                <div className="text-base md:text-xl font-bold">
-                  {data.title}
-                </div>
-                {hasDeadline && (
-                  <div
-                    className={`text-sm ${isOverdue ? "text-red-500" : "text-gray-500"}`}
-                  >
-                    Batas pengumpulan:{" "}
-                    {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
-                  </div>
-                )}
+            )}
+            {type === "mahasiswa" && (
+              <div className="mt-2">
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${statusConfig[submissionStatus].className}`}
+                >
+                  {statusConfig[submissionStatus].label}
+                </span>
               </div>
-              {user?.role === "DOSEN" ? (
+            )}
+          </div>
+          {type === "mahasiswa" && mySubmission?.score !== null && (
+            <div className="text-right shrink-0">
+              <div className="text-2xl font-bold text-primary">
+                {mySubmission?.score}
+                {maxScore > 0 && <span className="text-gray-400 text-lg">/{maxScore}</span>}
+              </div>
+            </div>
+          )}
+          {type === "dosen" ? (
                 <div className="ml-auto">
                   <CardAction>
                     <AssignmentAction
@@ -144,9 +172,20 @@ export default async function AssignmentDetail(props: PropTypes) {
             <div className="text-base md:text-xl font-bold">Lampiran</div>
           </CardHeader>
           <CardContent>
-            {data.attachments && data.attachments.filter((a) => a.type === "FILE" || a.type === "VIDEO").length > 0 ? (
-              <AssignmentAttachmentSection attachments={data.attachments.filter((a) => a.type === "FILE" || a.type === "VIDEO")} />
-            ): <div className="h-23 flex items-center justify-center">Tidak ada lampiran</div>}
+            {data.attachments &&
+            data.attachments.filter(
+              (a) => a.type === "FILE" || a.type === "VIDEO",
+            ).length > 0 ? (
+              <AssignmentAttachmentSection
+                attachments={data.attachments.filter(
+                  (a) => a.type === "FILE" || a.type === "VIDEO",
+                )}
+              />
+            ) : (
+              <div className="h-23 flex items-center justify-center">
+                Tidak ada lampiran
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -156,13 +195,20 @@ export default async function AssignmentDetail(props: PropTypes) {
             <div className="text-base md:text-xl font-bold">Link Referensi</div>
           </CardHeader>
           <CardContent>
-            {data.attachments && data.attachments.filter((a) => a.type === "LINK").length > 0 ? (
+            {data.attachments &&
+            data.attachments.filter((a) => a.type === "LINK").length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {data.attachments.filter((a) => a.type === "LINK").map((item) => (
-                  <LinkMaterialItem key={item.id} linkMateri={item} />
-                ))}
+                {data.attachments
+                  .filter((a) => a.type === "LINK")
+                  .map((item) => (
+                    <LinkMaterialItem key={item.id} linkMateri={item} />
+                  ))}
               </div>
-            ): <div className="h-23 flex items-center justify-center">Tidak ada link referensi</div>}
+            ) : (
+              <div className="h-23 flex items-center justify-center">
+                Tidak ada link referensi
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

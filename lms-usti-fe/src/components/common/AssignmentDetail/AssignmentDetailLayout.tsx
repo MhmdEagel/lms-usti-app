@@ -25,41 +25,12 @@ export default async function AssignmentDetailLayout({
   children: React.ReactNode;
   classroomId: string;
   assignmentId: string;
-  type?: "dosen" | "mahasiswa";
 }) {
-  const classroomDetail = await classroomServices.getDetail(classroomId);
-  const user = await getCurrentUser();
-  const res = await assignmentServices.findAssignmentById(
-    classroomId,
-    assignmentId,
-  );
-  const data: IAssignment = res.data?.data;
-  const classroomData: IClassroom = classroomDetail.data?.data;
-
-  dayjs.locale("id");
-  const role = user.role as "DOSEN" | "MAHASISWA";
-
-  if (!data) {
-    return (
-      <div className="p-4 flex flex-col justify-center items-center h-128">
-        <Image
-          width={300}
-          height={300}
-          src={"/images/ilustration/404.svg"}
-          alt="Not Found Image"
-        />
-        <div className="text-2xl md:text-4xl font-bold text-primary mb-1">
-          404
-          <div className="text-base md:text-2xl">Tugas tidak ditemukan</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-4">
       <AssignmentBreadcrumb
-        classroomId={classroomData.id!}
+        classroomId={classroomId}
         assignmentId={assignmentId}
         classroomName={classroomData.class_name}
         assignmentTitle={data.title}

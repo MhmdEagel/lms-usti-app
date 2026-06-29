@@ -7,12 +7,21 @@ import SubmissionListCard from "./SubmissionListCard";
 import AttachmentCard from "./AttachmentCard";
 import InstructionCard from "./InstructionCard";
 import GradingCard from "./GradingCard";
+import PaginationControls from "@/components/common/PaginationControls/PaginationControls";
+import PaginationNav from "@/components/common/PaginationControls/PaginationNav";
+interface PaginationInfo {
+  limit: number;
+  total_pages: number;
+  total: number;
+  current: number;
+}
 
 interface PropTypes {
   classroomId: string;
   assignmentId: string;
   assignment: IAssignment;
   submissions: ISubmission[];
+  pagination?: PaginationInfo;
 }
 
 export default function GradingContent({
@@ -20,6 +29,7 @@ export default function GradingContent({
   assignmentId,
   assignment,
   submissions,
+  pagination,
 }: PropTypes) {
   const [selectedSubmission, setSelectedSubmission] = useState<ISubmission | null>(null);
   const [submissionDetail, setSubmissionDetail] = useState<ISubmissionDetail | null>(null);
@@ -57,6 +67,17 @@ export default function GradingContent({
           selectedSubmission={selectedSubmission}
           onSelectSubmission={setSelectedSubmission}
         />
+        {pagination && (
+          <div className="flex items-center justify-between mt-4">
+            <PaginationControls current={pagination.current} limit={pagination.limit} />
+            <PaginationNav
+              current={pagination.current}
+              totalPages={pagination.total_pages}
+              total={pagination.total}
+              limit={pagination.limit}
+            />
+          </div>
+        )}
       </div>
       <div className="space-y-4">
         <AttachmentCard

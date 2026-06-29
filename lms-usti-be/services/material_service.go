@@ -20,6 +20,7 @@ type MaterialServiceInterface interface {
 	Update(materialUpdateRequest data.MaterialUpdateRequest) error
 	Delete(materialId, classroomId string) error
 }
+
 func NewMaterialService(materialRepository repositories.MaterialRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface) MaterialServiceInterface {
 	return &MaterialService{materialRepository: materialRepository, classroomRepository: classroomRepository}
 }
@@ -53,11 +54,11 @@ func (m *MaterialService) Create(materialRequest data.MaterialRequest) error {
 			}
 		}
 		attachment := model.MaterialAttachment{
-			Name:        v.Name,
-			Type:        attType,
-			Url:         v.Url,
-			UniqueName:  v.UniqueName,
-			MaterialId:  material.ID,
+			Name:       v.Name,
+			Type:       attType,
+			Url:        v.Url,
+			UniqueName: v.UniqueName,
+			MaterialId: material.ID,
 		}
 		attachments = append(attachments, attachment)
 	}
@@ -92,20 +93,22 @@ func (m *MaterialService) FindAll(classroomId string, search string, pagination 
 	return paginatedResult, nil
 }
 func (m *MaterialService) FindById(materialId, classroomId string) (material data.MaterialDetailResponse, err error) {
-	if _, err := m.classroomRepository.FindById(classroomId); err != nil {
+	classroom, err := m.classroomRepository.FindById(classroomId)
+	if err != nil {
 		return material, data.ErrClassroomNotFound(err)
 	}
 	res, err := m.materialRepository.FindById(materialId)
 	if err != nil {
 		return material, data.ErrMaterialNotFound(err)
 	}
-	if res.ClassroomId != classroomId {
-		return material, data.ErrMaterialNotFound(nil)
-	}
 	material = data.MaterialDetailResponse{
 		Id:          res.ID,
 		Title:       res.Title,
 		Description: res.Description,
+		Classroom: data.ClassroomMeta{
+			ClassroomId: classroom.ID,
+			ClassroomName: classroom.ClassName,
+		},
 	}
 	for _, v := range res.Attachments {
 		attachment := data.AttachmentResponse{
@@ -181,4 +184,3 @@ func (m *MaterialService) Delete(materialId, classroomId string) error {
 	}
 	return nil
 }
-

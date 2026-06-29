@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"github.com/MhmdEagel/lms-usti-be/data"
+	"github.com/MhmdEagel/lms-usti-be/lib"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"gorm.io/gorm"
 )
@@ -13,7 +14,7 @@ type SubmissionRepository struct {
 type SubmissionRepositoryInterface interface {
 	Create(submission []model.Submission) error
 	CreateAttachments(attachments []model.SubmissionAttachment) error
-	FindAllByAssignmentId(assignmentId string) (submissions []model.Submission, err error)
+	FindAllByAssignmentId(classroomId string, assignmentId string, search string, filter string, pagination data.Pagination) (result *data.PaginationWithData, err error)
 	FindById(submissionId string) (submission model.Submission, err error)
 	DeleteAttachments(attachments []model.SubmissionAttachment) error
 	FindByAssignmentId(assignmentId string) (submission model.Submission, err error)
@@ -35,9 +36,46 @@ func (s *SubmissionRepository) Create(submission []model.Submission) error {
 	}
 	return nil
 }
-func (s *SubmissionRepository) FindAllByAssignmentId(assignmentId string) (submissions []model.Submission, err error) {
-	s.Db.Preload("User").Preload("Attachments").Where("assignment_id = ?", assignmentId).Find(&submissions)
-	return submissions, nil
+func (s *SubmissionRepository) FindAllByAssignmentId(classroomId string, assignmentId string, search string, filter string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
+	result = &data.PaginationWithData{Pagination: pagination}
+
+	if filter == "belum_mengirim" {
+		var submissions []model.Submission
+		query := s.Db.Preload("User").Where("submissions.assignment_id = ? AND submissions.status = ?", assignmentId, "not_submitted")
+		if search != "" {
+			query = query.Where("submissions.student_id IN (?)",
+				s.Db.Model(&model.User{}).Select("id").Where("fullname LIKE ?", "%"+search+"%"),
+			)
+		}
+		if err := query.Scopes(lib.Paginate(submissions, &pagination, query)).Find(&submissions).Error; err != nil {
+			return nil, err
+		}
+		result.Data = submissions
+		result.Pagination = pagination
+		return result, nil
+	}
+
+	var submissions []model.Submission
+	query := s.Db.Preload("User").Where("submissions.assignment_id = ?", assignmentId)
+	if search != "" {
+		query = query.Where("submissions.student_id IN (?)",
+			s.Db.Model(&model.User{}).Select("id").Where("fullname LIKE ?", "%"+search+"%"),
+		)
+	}
+	if filter == "sudah_mengirim" {
+		query = query.Where("submissions.status = ?", "submitted")
+	} else if filter == "belum_dinilai" {
+		query = query.Where("submissions.status = ? AND submissions.score IS NULL", "submitted")
+	} else if filter == "telat" {
+		query = query.Joins("JOIN assignments ON assignments.id = submissions.assignment_id").
+			Where("submissions.submission_date IS NOT NULL AND submissions.submission_date > assignments.deadline")
+	}
+	if err := query.Scopes(lib.Paginate(submissions, &pagination, query)).Find(&submissions).Error; err != nil {
+		return nil, err
+	}
+	result.Data = submissions
+	result.Pagination = pagination
+	return result, nil
 }
 func (s *SubmissionRepository) CreateAttachments(attachments []model.SubmissionAttachment) error {
 	result := s.Db.Create(&attachments)
