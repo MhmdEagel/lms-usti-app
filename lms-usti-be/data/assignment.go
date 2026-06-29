@@ -39,11 +39,14 @@ type AssignmentDetailResponse struct {
 	Attachments   []AttachmentResponse       `json:"attachments"`
 }
 type AssignmentResponse struct {
-	ID          string                   `json:"id"`
-	Title       string                   `json:"title"`
-	Deadline    time.Time                `json:"deadline"`
-	Instruction string                   `json:"instruction"`
-	Stats       *SubmissionStatsResponse `json:"stats"`
+	ID                 string                   `json:"id"`
+	Title              string                   `json:"title"`
+	Deadline           time.Time                `json:"deadline"`
+	Instruction        string                   `json:"instruction"`
+	Stats              *SubmissionStatsResponse `json:"stats"`
+	MySubmissionStatus string                   `json:"my_submission_status"`
+	MyScore            *float64                 `json:"my_score"`
+	MySubmissionDate   *time.Time               `json:"my_submission_date"`
 }
 
 type AssignmentRubricResponse struct {

@@ -45,7 +45,6 @@ export default async function Assignment({
               assignmentId={item.id!}
               title={item.title}
               deadline={item.deadline}
-              stats={item.stats}
             />
           ))
         ) : (

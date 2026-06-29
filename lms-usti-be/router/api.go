@@ -125,7 +125,7 @@ func InitRouter() *gin.Engine {
 			classroom.GET("/:id/assignments/:assignmentId/submissions/:submissionId", aclMiddleware.Handle([]string{"DOSEN"}), submissionController.FindById)
 			classroom.GET("/:id/assignments/:assignmentId/my-submission", aclMiddleware.Handle([]string{"MAHASISWA"}), submissionController.FindMySubmission)
 			classroom.POST("/:id/assignments/:assignmentId/submissions", aclMiddleware.Handle([]string{"MAHASISWA"}), submissionController.Submit)
-			// TODO: Create grading for dosen
+			classroom.PUT("/:id/assignments/:assignmentId/submissions/:submissionId/grade", aclMiddleware.Handle([]string{"DOSEN"}), submissionController.Grade)
 		}
 		media := api.Group("/media")
 		{
@@ -149,6 +149,13 @@ func InitRouter() *gin.Engine {
 				profiles.POST("", mediaController.UploadProfilePicture)
 				profiles.GET("/:name", mediaController.FindProfilePicture)
 				profiles.DELETE("/:name", mediaController.RemoveProfilePicture)
+			}
+			submissions := media.Group("/submissions")
+			{
+				submissions.GET("/:name", mediaController.FindSubmissionFile)
+				submissions.POST("", authMiddleware.Handle(), aclMiddleware.Handle([]string{"MAHASISWA"}), mediaController.UploadSubmission)
+				submissions.POST("/delete-batch", authMiddleware.Handle(), mediaController.RemoveSubmissionBatch)
+				submissions.DELETE("/:name", authMiddleware.Handle(), mediaController.RemoveSubmission)
 			}
 		}
 	}

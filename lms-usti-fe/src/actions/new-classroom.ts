@@ -48,7 +48,6 @@ export const createNewClassroom = async (data: z.infer<typeof newClassroomSchema
     revalidatePath("/dosen/kelas");
     return { success: "Kelas berhasil dibuat" };
   } catch (e) {
-    console.log(e);
     throw new Error((e as Error).message);
   }
 };

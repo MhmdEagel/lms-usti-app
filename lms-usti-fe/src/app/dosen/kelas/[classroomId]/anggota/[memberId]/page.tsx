@@ -10,7 +10,6 @@ export default async function MemberProfilePage({
   const { classroomId, memberId } = await params;
   const res = await classroomServices.getMemberDetail(classroomId, memberId);
   const data: IClassroomMemberDetail = res.data.data;
-  console.log(res.data.data)
 
   const { member, class_name } = data;
 

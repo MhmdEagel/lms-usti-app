@@ -106,6 +106,30 @@ func (m *MediaController) UploadAssignment(ctx *gin.Context) {
 	m.uploadMedia(ctx, services.MediaKindAssignment, "file berhasil diupload")
 }
 
+func (m *MediaController) FindSubmissionFile(ctx *gin.Context) {
+	fileName := filepath.Base(ctx.Param("name"))
+	root := filepath.Join(env.BASE_STORAGE_PATH, "submissions")
+	fullPath := filepath.Join(root, fileName)
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		res := data.NewResponse(http.StatusNotFound, "file not found", nil)
+		ctx.JSON(http.StatusNotFound, res)
+		return
+	}
+	ctx.File(fullPath)
+}
+
+func (m *MediaController) UploadSubmission(ctx *gin.Context) {
+	m.uploadMedia(ctx, services.MediaKindSubmission, "file berhasil diupload")
+}
+
+func (m *MediaController) RemoveSubmission(ctx *gin.Context) {
+	m.removeMedia(ctx, services.MediaKindSubmission, "submission berhasil dihapus")
+}
+
+func (m *MediaController) RemoveSubmissionBatch(ctx *gin.Context) {
+	m.removeMediaBatch(ctx, services.MediaKindSubmission, "berhasil menghapus submission secara batch")
+}
+
 func (m *MediaController) UploadProfilePicture(ctx *gin.Context) {
 	m.uploadMedia(ctx, services.MediaKindProfile, "profile picture berhasil diupload")
 }

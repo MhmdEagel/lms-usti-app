@@ -2,6 +2,10 @@ import { assignmentServices } from "@/services/assignment.service";
 import type { IAssignment, ISubmission } from "@/types/Classroom";
 import AssignmentBreadcrumb from "../AssignmentBreadcrumb";
 import GradingContent from "./GradingContent";
+import AssignmentDetailTabNavbar from "../AssignmentDetailTabNavbar/AssignmentDetailTabNavbar";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 interface PropTypes {
   classroomId: string;
@@ -9,7 +13,6 @@ interface PropTypes {
   page: number;
   limit: number;
   search: string;
-  filter: string;
 }
 
 export default async function PenilaianData({
@@ -18,9 +21,8 @@ export default async function PenilaianData({
   page,
   limit,
   search,
-  filter,
 }: PropTypes) {
-  const params = { page, limit, ...(search ? { search } : {}), ...(filter !== "semua" ? { filter } : {}) };
+  const params = { page, limit, ...(search ? { search } : {}) };
   const [assignmentRes, submissionsRes] = await Promise.all([
     assignmentServices.findAssignmentById(classroomId, assignmentId),
     assignmentServices.findSubmissions(classroomId, assignmentId, params),
@@ -49,6 +51,16 @@ export default async function PenilaianData({
         classroomName={assignment.classroom_name}
         assignmentTitle={assignment.title}
         role="dosen"
+      />
+      <Link className="mb-2" href={`/dosen/kelas/${classroomId}/tugas`}>
+        <Button className="rounded-full" variant="ghost">
+          <ArrowLeft /> Kembali
+        </Button>
+      </Link>
+      <AssignmentDetailTabNavbar
+        classroomId={classroomId}
+        assignmentId={assignmentId}
+        type="dosen"
       />
       <GradingContent
         classroomId={classroomId}

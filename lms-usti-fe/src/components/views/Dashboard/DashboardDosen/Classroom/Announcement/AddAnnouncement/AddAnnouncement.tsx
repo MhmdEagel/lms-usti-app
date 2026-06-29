@@ -30,7 +30,6 @@ export default function AddAnnouncement({
   const { form, open, handleOpen, handleAddAnnouncement } =
     useAddAnnouncement();
 
-  console.log(userRole);
   return (
     <>
       <div className="pb-4 border-b-2 flex items-center">

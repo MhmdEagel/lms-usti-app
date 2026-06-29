@@ -20,6 +20,7 @@ type SubmissionRepositoryInterface interface {
 	FindByAssignmentId(assignmentId string) (submission model.Submission, err error)
 	FindByAssignmentIdAndStudentId(assignmentId, studentId string) (submission model.Submission, err error)
 	Update(submission model.Submission) error
+	Grade(submissionId string, score *float64, feedback *string) error
 	Delete(submissionId string) error
 	GetSubmissionStats(assignmentId string) (totalStudents, totalSubmitted, totalGraded int64, err error)
 	GetSubmissionStatsBatch(assignmentIds []string) (map[string]data.SubmissionStatsResponse, error)
@@ -62,14 +63,6 @@ func (s *SubmissionRepository) FindAllByAssignmentId(classroomId string, assignm
 			s.Db.Model(&model.User{}).Select("id").Where("fullname LIKE ?", "%"+search+"%"),
 		)
 	}
-	if filter == "sudah_mengirim" {
-		query = query.Where("submissions.status = ?", "submitted")
-	} else if filter == "belum_dinilai" {
-		query = query.Where("submissions.status = ? AND submissions.score IS NULL", "submitted")
-	} else if filter == "telat" {
-		query = query.Joins("JOIN assignments ON assignments.id = submissions.assignment_id").
-			Where("submissions.submission_date IS NOT NULL AND submissions.submission_date > assignments.deadline")
-	}
 	if err := query.Scopes(lib.Paginate(submissions, &pagination, query)).Find(&submissions).Error; err != nil {
 		return nil, err
 	}
@@ -86,6 +79,16 @@ func (s *SubmissionRepository) CreateAttachments(attachments []model.SubmissionA
 }
 func (s *SubmissionRepository) Update(submission model.Submission) error {
 	res := s.Db.Where("id = ?", submission.ID).Updates(submission)
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil
+}
+func (s *SubmissionRepository) Grade(submissionId string, score *float64, feedback *string) error {
+	res := s.Db.Model(&model.Submission{}).Where("id = ?", submissionId).Updates(map[string]any{
+		"score":    score,
+		"feedback": feedback,
+	})
 	if res.Error != nil {
 		return res.Error
 	}
@@ -112,7 +115,6 @@ func (s *SubmissionRepository) FindByAssignmentIdAndStudentId(assignmentId, stud
 	}
 	return submission, nil
 }
-
 
 func (s *SubmissionRepository) GetSubmissionStats(assignmentId string) (totalStudents, totalSubmitted, totalGraded int64, err error) {
 	if err := s.Db.Model(&model.Submission{}).Where("assignment_id = ?", assignmentId).Count(&totalStudents).Error; err != nil {

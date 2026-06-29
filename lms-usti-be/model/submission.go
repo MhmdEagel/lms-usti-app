@@ -11,6 +11,7 @@ type Submission struct {
 	ID             string                `gorm:"primaryKey"`
 	Status         string                `gorm:"not null"`
 	Score          *float64
+	Feedback       *string
 	SubmissionDate sql.NullTime
 	StudentId      string                `gorm:"not null"`
 	AssignmentId   string                `gorm:"not null"`
@@ -24,6 +25,7 @@ type SubmissionAttachment struct {
 	Name         string         `gorm:"not null"`
 	Type         AttachmentType `gorm:"not null"`
 	Url          string         `gorm:"not null"`
+	UniqueName   string
 	SubmissionId string
 	Submission   Submission `gorm:"foreignKey:SubmissionId"`
 }

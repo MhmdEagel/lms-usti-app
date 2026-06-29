@@ -39,8 +39,12 @@ func (a *AssignmentController) FindAll(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
 
+	val, _ := ctx.Get("user")
+	user := val.(data.MeResponse)
+	userId := user.UserId
+
 	pagination := data.Pagination{Limit: limit, Current: page}
-	paginatedResult, err := a.assignmentService.FindAll(classroomId, search, pagination)
+	paginatedResult, err := a.assignmentService.FindAll(classroomId, search, pagination, userId)
 	if err != nil {
 		if appErr, ok := err.(*data.AppError); ok {
 			res := data.NewResponseFromError(appErr)

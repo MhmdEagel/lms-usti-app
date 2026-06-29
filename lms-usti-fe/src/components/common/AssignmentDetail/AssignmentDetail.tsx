@@ -17,6 +17,7 @@ import AssignmentAttachmentSection from "./AssignmentAttachmentSection";
 import AssignmentRubricSection from "./AssignmentRubricSection";
 import LinkMaterialItem from "../MaterialDetail/LinkMaterialItem/LinkMaterialItem";
 import AssignmentAction from "./AssignmentAction";
+import SubmitAssignmentDialog from "./SubmitAssignmentDialog/SubmitAssignmentDialog";
 import AssignmentBreadcrumb from "./AssignmentBreadcrumb";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -35,11 +36,14 @@ export default async function AssignmentDetail(props: PropTypes) {
   const [assignmentRes, mySubmissionRes] = await Promise.all([
     assignmentServices.findAssignmentById(classroomId, assignmentId),
     type === "mahasiswa"
-      ? assignmentServices.findMySubmission(classroomId, assignmentId).catch(() => null)
+      ? assignmentServices
+          .findMySubmission(classroomId, assignmentId)
+          .catch(() => null)
       : Promise.resolve(null),
   ]);
   const data: IAssignment = assignmentRes.data?.data;
-  const mySubmission: IMySubmission | null = mySubmissionRes?.data?.data || null;
+  const mySubmission: IMySubmission | null =
+    mySubmissionRes?.data?.data || null;
   dayjs.locale("id");
   if (!data) {
     return (
@@ -67,15 +71,25 @@ export default async function AssignmentDetail(props: PropTypes) {
   const maxScore = data.rubrics
     ? data.rubrics.reduce((sum, r) => sum + r.score, 0)
     : 0;
-  const submissionStatus = !mySubmission || mySubmission.status !== "submitted"
-    ? "not_submitted"
-    : mySubmission.score !== null
-      ? "graded"
-      : "submitted";
+  const submissionStatus =
+    !mySubmission || mySubmission.status !== "submitted"
+      ? "not_submitted"
+      : mySubmission.score !== null
+        ? "graded"
+        : "submitted";
   const statusConfig = {
-    not_submitted: { label: "Belum Dikerjakan", className: "bg-gray-100 text-gray-500" },
-    submitted: { label: "Belum Dinilai", className: "bg-yellow-100 text-yellow-700" },
-    graded: { label: "Sudah Dinilai", className: "bg-green-100 text-green-700" },
+    not_submitted: {
+      label: "Belum Dikerjakan",
+      className: "bg-gray-100 text-gray-500",
+    },
+    submitted: {
+      label: "Belum Dinilai",
+      className: "bg-yellow-100 text-yellow-700",
+    },
+    graded: {
+      label: "Sudah Dinilai",
+      className: "bg-green-100 text-green-700",
+    },
   } as const;
 
   return (
@@ -101,42 +115,34 @@ export default async function AssignmentDetail(props: PropTypes) {
       )}
       <div className="p-4 w-full max-w-4xl mx-auto">
         <Card>
-      <CardHeader>
-        <div className="flex gap-4 items-start w-full">
-          <div className="bg-primary p-4 border rounded-full shrink-0">
-            <FileText color="white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-base md:text-xl font-bold">
-              {data.title}
-            </div>
-            {hasDeadline && (
-              <div
-                className={`text-lg ${isOverdue ? "text-red-500" : "text-gray-500"}`}
-              >
-                Batas pengumpulan:{" "}
-                {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
+          <CardHeader>
+            <div className="flex gap-4 items-start w-full">
+              <div className="bg-primary p-4 border rounded-full shrink-0">
+                <FileText color="white" />
               </div>
-            )}
-            {type === "mahasiswa" && (
-              <div className="mt-2">
-                <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${statusConfig[submissionStatus].className}`}
-                >
-                  {statusConfig[submissionStatus].label}
-                </span>
+              <div className="flex-1 min-w-0">
+                <div className="text-base md:text-xl font-bold">
+                  {data.title}
+                </div>
+                {hasDeadline && (
+                  <div
+                    className={`text-lg ${isOverdue ? "text-red-500" : "text-gray-500"}`}
+                  >
+                    Batas pengumpulan:{" "}
+                    {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
+                  </div>
+                )}
+                {type === "mahasiswa" && (
+                  <div className="mt-2">
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${statusConfig[submissionStatus].className}`}
+                    >
+                      {statusConfig[submissionStatus].label}
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          {type === "mahasiswa" && mySubmission?.score !== null && (
-            <div className="text-right shrink-0">
-              <div className="text-2xl font-bold text-primary">
-                {mySubmission?.score}
-                {maxScore > 0 && <span className="text-gray-400 text-lg">/{maxScore}</span>}
-              </div>
-            </div>
-          )}
-          {type === "dosen" ? (
+              {type === "dosen" && (
                 <div className="ml-auto">
                   <CardAction>
                     <AssignmentAction
@@ -145,13 +151,23 @@ export default async function AssignmentDetail(props: PropTypes) {
                     />
                   </CardAction>
                 </div>
-              ) : null}
+              )}
             </div>
           </CardHeader>
           <CardContent>
+            <div className="font-bold text-gray-500 text-sm">NILAI</div>
+            {type === "mahasiswa" && mySubmission?.score !== null && (
+              <div className="shrink-0">
+                <div className="text-xl font-bold text-primary">
+                  {mySubmission?.score} / 100
+                </div>
+              </div>
+            )}
             {data.instruction ? (
               <>
-                <div className="font-bold text-gray-500 text-sm">INSTRUKSI</div>
+                <div className="font-bold text-gray-500 text-sm mt-2">
+                  INSTRUKSI
+                </div>
                 <div
                   className="prose max-w-none"
                   dangerouslySetInnerHTML={{
@@ -161,6 +177,19 @@ export default async function AssignmentDetail(props: PropTypes) {
               </>
             ) : (
               <div className="text-gray-500">Tidak ada instruksi</div>
+            )}
+
+            {type === "mahasiswa" && (
+              <>
+                <div className="font-bold text-gray-500 text-sm mt-2 mb-1">
+                  AKSI
+                </div>
+                <SubmitAssignmentDialog
+                  classroomId={classroomId}
+                  assignmentId={assignmentId}
+                  mySubmission={mySubmission}
+                />
+              </>
             )}
           </CardContent>
         </Card>

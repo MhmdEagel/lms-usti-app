@@ -101,6 +101,9 @@ interface IAssignment {
   rubrics?: IRubrics[];
   attachments?: IAttachment[];
   stats?: SubmissionStats | null;
+  my_submission_status?: string;
+  my_score?: number | null;
+  my_submission_date?: string | null;
 }
 
 interface SubmissionStats {
@@ -140,7 +143,8 @@ interface ISubmissionDetail {
     userId: string;
     fullname: string;
   };
-  attachments: { name: string; type: string; url: string }[];
+  attachments: { name: string; type: string; url: string; unique_name: string }[];
+  feedback: string | null;
 }
 
 interface ISubmission {
@@ -148,6 +152,7 @@ interface ISubmission {
   status: string;
   submission_date: string | null;
   score: number | null;
+  feedback: string | null;
   mahasiswa: {
     userId: string;
     profile: string;
@@ -160,6 +165,8 @@ interface IMySubmission {
   status: string;
   submission_date: string | null;
   score: number | null;
+  feedback: string | null;
+  attachments?: { name: string; type: string; url: string; unique_name: string }[];
 }
 
 export type {

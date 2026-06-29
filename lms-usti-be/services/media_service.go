@@ -20,6 +20,7 @@ const (
 	MediaKindMaterial   MediaKind = "materials"
 	MediaKindProfile    MediaKind = "profiles"
 	MediaKindAssignment MediaKind = "assignments"
+	MediaKindSubmission MediaKind = "submissions"
 )
 
 type MediaServiceInterface interface {

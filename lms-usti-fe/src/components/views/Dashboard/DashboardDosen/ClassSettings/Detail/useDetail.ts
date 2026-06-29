@@ -15,7 +15,6 @@ export const useDetail = () => {
     resolver: zodResolver(editClassroomSchema),
   });
   const { setValue: setDetailValue } = editForm;
-  console.log(editForm.formState.errors)
   const handleEdit = async (classroomId: string, payload: z.infer<typeof editClassroomSchema>) => {
     try {
       setIsPending(true)

@@ -22,4 +22,8 @@ export const assignmentServices = {
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/assignments/${assignmentId}/submissions/${submissionId}`),
   findMySubmission: (classroomId: string, assignmentId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/assignments/${assignmentId}/my-submission`),
+  createSubmission: (classroomId: string, assignmentId: string, payload: { attachments: { name: string; type: string; url: string; unique_name?: string }[] }) =>
+    instance.post(`${endpoint.CLASSROOM}/${classroomId}/assignments/${assignmentId}/submissions`, payload),
+  gradeSubmission: (classroomId: string, assignmentId: string, submissionId: string, payload: { score: number | null; feedback: string | null }) =>
+    instance.put(`${endpoint.CLASSROOM}/${classroomId}/assignments/${assignmentId}/submissions/${submissionId}/grade`, payload),
 };

@@ -21,6 +21,7 @@ type SubmissionServiceInterface interface {
 	FindById(req data.SubmissionDetailRequest) (result data.SubmissionDetailResponse, err error)
 	FindByAssignmentAndStudent(assignmentId, studentId string) (result data.SubmissionResponse, err error)
 	Submit(submitReq data.SubmitRequest) error
+	Grade(classroomId, assignmentId, submissionId string, req data.GradeRequest) error
 	GetSubmissionStats(assignmentId string) (data.SubmissionStatsResponse, error)
 	GetSubmissionStatsBatch(assignmentIds []string) (map[string]data.SubmissionStatsResponse, error)
 	IsAlreadyCreated(studentId string, classroomId string) bool
@@ -60,6 +61,7 @@ func (s *SubmissionService) FindAll(classroomId string, assignmentId string, sea
 			Status:         v.Status,
 			SubmissionDate: submit_date,
 			Score:          v.Score,
+			Feedback:       v.Feedback,
 			Mahasiswa: data.MahasiswaResponse{
 				UserId:   v.User.ID,
 				Profile:  v.User.Image,
@@ -77,11 +79,22 @@ func (s *SubmissionService) FindByAssignmentAndStudent(assignmentId, studentId s
 		return result, err
 	}
 	submit_date := lib.FromNullTime(res.SubmissionDate)
+	var attachments []data.SubmissionAttachmentResponse
+	for _, v := range res.Attachments {
+		attachments = append(attachments, data.SubmissionAttachmentResponse{
+			Name:       v.Name,
+			Type:       string(v.Type),
+			Url:        v.Url,
+			UniqueName: v.UniqueName,
+		})
+	}
 	result = data.SubmissionResponse{
 		Id:             res.ID,
 		Status:         res.Status,
 		SubmissionDate: submit_date,
 		Score:          res.Score,
+		Feedback:       res.Feedback,
+		Attachments:    attachments,
 		Mahasiswa: data.MahasiswaResponse{
 			UserId:   res.User.ID,
 			Fullname: res.User.Fullname,
@@ -100,9 +113,10 @@ func (s *SubmissionService) FindById(req data.SubmissionDetailRequest) (result d
 	var attachments []data.SubmissionAttachmentResponse
 	for _, v := range submission.Attachments {
 		attachment := data.SubmissionAttachmentResponse{
-			Name: v.Name,
-			Type: string(v.Type),
-			Url:  v.Url,
+			Name:       v.Name,
+			Type:       string(v.Type),
+			Url:        v.Url,
+			UniqueName: v.UniqueName,
 		}
 		attachments = append(attachments, attachment)
 	}
@@ -112,6 +126,7 @@ func (s *SubmissionService) FindById(req data.SubmissionDetailRequest) (result d
 			Fullname: submission.User.Fullname,
 		},
 		Attachments: attachments,
+		Feedback:    submission.Feedback,
 	}
 	result = submissionResponse
 	return result, nil
@@ -136,6 +151,7 @@ func (s *SubmissionService) Submit(submitReq data.SubmitRequest) error {
 			Name:         v.Name,
 			Type:         model.AttachmentType(v.Type),
 			Url:          v.Url,
+			UniqueName:   v.UniqueName,
 			SubmissionId: submission.ID,
 		}
 		submitAttachments = append(submitAttachments, attachment)
@@ -155,6 +171,16 @@ func (s *SubmissionService) Submit(submitReq data.SubmitRequest) error {
 		Status:         submitStatus,
 	}
 	if err := s.submissionRepository.Update(updatedSubmission); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *SubmissionService) Grade(classroomId, assignmentId, submissionId string, req data.GradeRequest) error {
+	if _, err := s.assignmentRepository.FindById(assignmentId, classroomId); err != nil {
+		return err
+	}
+	if err := s.submissionRepository.Grade(submissionId, req.Score, req.Feedback); err != nil {
 		return err
 	}
 	return nil
