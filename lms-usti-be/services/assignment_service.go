@@ -22,6 +22,7 @@ type AssignmentServiceInterface interface {
 	FindById(assignmentId, classroomId string) (assignment data.AssignmentDetailResponse, err error)
 	Update(assignmentRequest data.AssignmentUpdateRequest) error
 	Delete(assignmentId, classroomId string) error
+	FindWaitingGrade(dosenId string) ([]data.AssignmentWaitingGradeResponse, error)
 }
 
 func NewAssignmentService(assignmentRepository repositories.AssignmentRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, submissionService SubmissionServiceInterface) AssignmentServiceInterface {
@@ -282,4 +283,8 @@ func (a *AssignmentService) Delete(assignmentId, classroomId string) error {
 		return data.ErrAssignmentNotFound(err)
 	}
 	return nil
+}
+
+func (a *AssignmentService) FindWaitingGrade(dosenId string) ([]data.AssignmentWaitingGradeResponse, error) {
+	return a.assignmentRepository.FindWaitingGrade(dosenId)
 }

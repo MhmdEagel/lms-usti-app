@@ -1,9 +1,17 @@
+"use client";
+
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { ISubmission, ISubmissionDetail } from "@/types/Classroom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { File, LinkIcon } from "lucide-react";
 import { getFileExtension, getFileName } from "@/lib/utils";
 import Link from "next/link";
+
+const ViewPdf = dynamic(() => import("@/components/common/ViewPdf/ViewPdf"), {
+  ssr: false,
+});
 
 interface PropTypes {
   selectedSubmission: ISubmission | null;
@@ -16,6 +24,8 @@ export default function AttachmentCard({
   submissionDetail,
   loadingDetail,
 }: PropTypes) {
+  const [previewFile, setPreviewFile] = useState<{ url: string; name: string } | null>(null);
+
   if (!selectedSubmission) {
     return (
       <Card>
@@ -68,63 +78,72 @@ export default function AttachmentCard({
   }
 
   return (
-    <Card>
-      <CardHeader className="border-b-2 pb-2">
-        <div className="text-base md:text-xl font-bold">Unggahan</div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {fileAttachments.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {fileAttachments.map((attachment, idx) => (
-              <Link
-                key={idx}
-                href={attachment.url}
-                target="_blank"
-                className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
-              >
-                <div className="p-2 bg-accent rounded-full">
-                  <File className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium truncate">
-                    {getFileName(attachment.name)}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {getFileExtension(attachment.url).toUpperCase()}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-        {linkAttachments.length > 0 && (
-          <div>
-            <div className="font-bold text-gray-500 text-xs mb-2">LINK</div>
+    <>
+      <Card>
+        <CardHeader className="border-b-2 pb-2">
+          <div className="text-base md:text-xl font-bold">Unggahan</div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {fileAttachments.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {linkAttachments.map((attachment, idx) => (
-                <Link
+              {fileAttachments.map((attachment, idx) => (
+                <button
                   key={idx}
-                  href={attachment.url}
-                  target="_blank"
-                  className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
+                  type="button"
+                  onClick={() => setPreviewFile({ url: attachment.url, name: attachment.name })}
+                  className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors text-left w-full"
                 >
                   <div className="p-2 bg-accent rounded-full">
-                    <LinkIcon className="h-4 w-4" />
+                    <File className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium truncate">
-                      {attachment.name}
+                      {getFileName(attachment.name)}
                     </div>
-                    <div className="text-xs text-gray-500 truncate">
-                      {attachment.url}
+                    <div className="text-xs text-gray-500">
+                      {getFileExtension(attachment.url).toUpperCase()}
                     </div>
                   </div>
-                </Link>
+                </button>
               ))}
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+          {linkAttachments.length > 0 && (
+            <div>
+              <div className="font-bold text-gray-500 text-xs mb-2">LINK</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {linkAttachments.map((attachment, idx) => (
+                  <Link
+                    key={idx}
+                    href={attachment.url}
+                    target="_blank"
+                    className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="p-2 bg-accent rounded-full">
+                      <LinkIcon className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium truncate">
+                        {attachment.name}
+                      </div>
+                      <div className="text-xs text-gray-500 truncate">
+                        {attachment.url}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      {previewFile && (
+        <ViewPdf
+          fileUrl={previewFile.url}
+          fileName={previewFile.name}
+          onClose={() => setPreviewFile(null)}
+        />
+      )}
+    </>
   );
 }

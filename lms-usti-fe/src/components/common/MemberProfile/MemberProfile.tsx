@@ -127,7 +127,7 @@ export default function MemberProfile({
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="outline"
-                      className="flex-1 text-destructive border-destructive hover:bg-destructive/10"
+                      className="flex-1 text-destructive border-destructive hover:bg-destructive/10 hover:text-destructive"
                     >
                       <ExternalLink className="size-4" />
                       Keluarkan dari Kelas

@@ -26,4 +26,6 @@ export const assignmentServices = {
     instance.post(`${endpoint.CLASSROOM}/${classroomId}/assignments/${assignmentId}/submissions`, payload),
   gradeSubmission: (classroomId: string, assignmentId: string, submissionId: string, payload: { score: number | null; feedback: string | null }) =>
     instance.put(`${endpoint.CLASSROOM}/${classroomId}/assignments/${assignmentId}/submissions/${submissionId}/grade`, payload),
+  findWaitingGrade: () =>
+    instance.get(`${endpoint.CLASSROOM}/dosen/waiting-grade`),
 };

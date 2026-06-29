@@ -94,6 +94,8 @@ func InitRouter() *gin.Engine {
 			assignmentController := controllers.NewAssignmentController(assignmentService)
 			submissionController := controllers.NewSubmissionController(submissionService)
 
+			classroom.GET("/dosen/dashboard-stats", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.GetDashboardStats)
+			classroom.GET("/dosen/waiting-grade", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.FindWaitingGrade)
 			classroom.GET("/dosen/classrooms", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.FindAllByDosenId)
 			classroom.GET("/mahasiswa/classrooms", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.FindAllByMahasiswaId)
 			classroom.POST("/create", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), classroomController.Create)

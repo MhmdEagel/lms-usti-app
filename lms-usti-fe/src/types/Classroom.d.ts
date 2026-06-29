@@ -169,6 +169,24 @@ interface IMySubmission {
   attachments?: { name: string; type: string; url: string; unique_name: string }[];
 }
 
+interface IDashboardStats {
+  total_classrooms: number;
+  total_students: number;
+  total_assignments: number;
+}
+
+interface IAssignmentWaitingGrade {
+  submission_id: string;
+  assignment_id: string;
+  classroom_id: string;
+  classroom_name: string;
+  assignment_title: string;
+  mahasiswa_id: string;
+  mahasiswa_name: string;
+  mahasiswa_profile: string;
+  submission_date: string;
+}
+
 export type {
   IJoinClassroom,
   ICreateClassroom,
@@ -192,4 +210,6 @@ export type {
   ISubmissionDetail,
   ISubmission,
   IMySubmission,
+  IDashboardStats,
+  IAssignmentWaitingGrade,
 };
