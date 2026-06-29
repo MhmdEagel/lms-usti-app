@@ -107,7 +107,7 @@ export default function Login() {
                 >
                   Lupa Password?
                 </Link>
-                <Button className="w-full mb-4" type="submit">
+                <Button disabled={isPending} className="w-full mb-4" type="submit">
                   {isPending ? (
                     <Spinner variant="circle" color="white" />
                   ) : (

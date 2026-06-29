@@ -28,4 +28,14 @@ export const mediaServices = {
         "Content-Type": "multipart/form-data",
       },
     }),
+  uploadSubmission: (payload: FormData) =>
+    instance.post(`${endpoint.MEDIA}/submissions`, payload, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
+  deleteSubmission: (fileName: string) =>
+    instance.delete(`${endpoint.MEDIA}/submissions/${fileName}`),
+  deleteSubmissionBatch: (payload: { files: string[] }) =>
+    instance.post(`${endpoint.MEDIA}/submissions/delete-batch`, payload),
 };

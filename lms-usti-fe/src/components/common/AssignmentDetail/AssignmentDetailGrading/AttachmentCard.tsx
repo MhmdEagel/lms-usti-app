@@ -24,7 +24,7 @@ export default function AttachmentCard({
         </CardHeader>
         <CardContent>
           <div className="text-center text-gray-500 py-4">
-            Silahkan pilih anggota
+            Silahkan pilih mahasiswa
           </div>
         </CardContent>
       </Card>
@@ -46,6 +46,7 @@ export default function AttachmentCard({
   }
 
   const attachments = submissionDetail?.attachments || [];
+
   const fileAttachments = attachments.filter(
     (a) => a.type === "FILE" || a.type === "VIDEO",
   );
@@ -69,11 +70,11 @@ export default function AttachmentCard({
   return (
     <Card>
       <CardHeader className="border-b-2 pb-2">
-        <div className="text-base md:text-xl font-bold">Lampiran</div>
+        <div className="text-base md:text-xl font-bold">Unggahan</div>
       </CardHeader>
       <CardContent className="space-y-4">
         {fileAttachments.length > 0 && (
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {fileAttachments.map((attachment, idx) => (
               <Link
                 key={idx}
@@ -99,7 +100,7 @@ export default function AttachmentCard({
         {linkAttachments.length > 0 && (
           <div>
             <div className="font-bold text-gray-500 text-xs mb-2">LINK</div>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {linkAttachments.map((attachment, idx) => (
                 <Link
                   key={idx}

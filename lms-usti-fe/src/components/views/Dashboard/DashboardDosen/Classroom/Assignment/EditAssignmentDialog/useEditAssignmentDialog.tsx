@@ -96,7 +96,6 @@ const useEditAssignmentDialog = () => {
       toast.success("Berhasil mengubah tugas");
       handleClose(setOpen);
     } catch (e) {
-      console.log((e as AxiosError).response?.data)
       toast.error("Gagal mengubah tugas");
     } finally {
       setIsPending(false);

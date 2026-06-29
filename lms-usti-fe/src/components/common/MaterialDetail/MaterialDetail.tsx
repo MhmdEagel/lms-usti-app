@@ -33,7 +33,6 @@ export default async function MaterialDetail(props: PropTypes) {
   dayjs.locale("id");
   const role: string = user.role;
 
-  console.log(data)
   if (!data) {
     return (
       <div className="p-4 flex flex-col justify-center items-center h-128">

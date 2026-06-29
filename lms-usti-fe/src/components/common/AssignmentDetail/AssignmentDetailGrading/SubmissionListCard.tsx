@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { IAssignment, ISubmission } from "@/types/Classroom";
 import { SearchBar } from "@/components/ui/searchfield";
@@ -19,18 +19,13 @@ interface PropTypes {
   onSelectSubmission: (submission: ISubmission) => void;
 }
 
-type FilterType =
-  | "semua"
-  | "telat"
-  | "belum_dinilai"
-  | "sudah_mengirim"
-  | "belum_mengirim";
+type FilterType = "semua" | "telat" | "belum_dinilai" | "belum_mengirim" | "sudah_dinilai";
 
 const FILTERS: { key: FilterType; label: string }[] = [
   { key: "semua", label: "Semua" },
   { key: "telat", label: "Telat" },
+  { key: "sudah_dinilai", label: "Sudah dinilai" },
   { key: "belum_dinilai", label: "Belum dinilai" },
-  { key: "sudah_mengirim", label: "Sudah mengirim" },
   { key: "belum_mengirim", label: "Belum Mengirim" },
 ];
 
@@ -40,9 +35,7 @@ export default function SubmissionListCard({
   selectedSubmission,
   onSelectSubmission,
 }: PropTypes) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const activeFilter = (searchParams.get("filter") || "semua") as FilterType;
+  const [activeFilter, setActiveFilter] = useState<FilterType>("semua");
 
   const hasDeadline =
     assignment.deadline && !assignment.deadline.startsWith("0001");
@@ -50,16 +43,37 @@ export default function SubmissionListCard({
     ? dayjs(assignment.deadline).tz("Asia/Jakarta")
     : null;
 
-  const handleFilterChange = (key: FilterType) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (key === "semua") {
-      params.delete("filter");
-    } else {
-      params.set("filter", key);
-    }
-    params.delete("page");
-    router.push(`?${params.toString()}`);
-  };
+  const filteredSubmissions = useMemo(() => {
+    return submissions.filter((submission) => {
+      if (activeFilter === "semua") return true;
+
+      const submitDate = submission.submission_date
+        ? dayjs(submission.submission_date).tz("Asia/Jakarta")
+        : null;
+      const isOverdue =
+        deadlineDate && submitDate ? submitDate.isAfter(deadlineDate) : false;
+
+      switch (activeFilter) {
+        case "telat":
+          return submission.status === "submitted" && isOverdue;
+        case "sudah_dinilai":
+          return (
+            submission.status === "submitted" &&
+            submission.score !== null &&
+            submission.score > 0
+          );
+        case "belum_dinilai":
+          return (
+            submission.status === "submitted" &&
+            (submission.score === null || submission.score === 0)
+          );
+        case "belum_mengirim":
+          return submission.status !== "submitted";
+        default:
+          return true;
+      }
+    });
+  }, [submissions, activeFilter, deadlineDate]);
 
   const getStatusBadge = (submission: ISubmission) => {
     const submitDate = submission.submission_date
@@ -72,12 +86,15 @@ export default function SubmissionListCard({
       if (isOverdue) {
         return { label: "Telat", className: "bg-red-100 text-red-600" };
       }
-      if (submission.score !== null) {
-        return { label: "Dinilai", className: "bg-green-100 text-green-600" };
+      if (submission.score && submission.score > 0) {
+        return {
+          label: "Sudah dinilai",
+          className: "bg-green-100 text-green-600",
+        };
       }
       return {
-        label: "Sudah mengirim",
-        className: "bg-blue-100 text-blue-600",
+        label: "Belum dinilai",
+        className: "bg-yellow-100 text-yellow-600",
       };
     }
     return {
@@ -103,7 +120,7 @@ export default function SubmissionListCard({
           {FILTERS.map((filter) => (
             <button
               key={filter.key}
-              onClick={() => handleFilterChange(filter.key)}
+              onClick={() => setActiveFilter(filter.key)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 activeFilter === filter.key
                   ? "bg-primary text-white"
@@ -116,14 +133,14 @@ export default function SubmissionListCard({
         </div>
 
         <div className="space-y-2">
-          {submissions.length === 0 ? (
+          {filteredSubmissions.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
               {activeFilter === "belum_mengirim"
                 ? "Semua mahasiswa sudah mengirim"
                 : "Tidak ada pengumpulan"}
             </div>
           ) : (
-            submissions.map((submission) => {
+            filteredSubmissions.map((submission) => {
               const isSelected = selectedSubmission?.id === submission.id;
               const submitDate = submission.submission_date
                 ? dayjs(submission.submission_date).tz("Asia/Jakarta")

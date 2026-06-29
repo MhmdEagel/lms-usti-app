@@ -13,7 +13,6 @@ export default async function ClassroomAnnouncement({
   const res = await classroomServices.getAnnouncement(classroomId);
   const listPengumuman: IAnnouncement[] = res.data.data;
 
-  console.log(classroomId)
 
 
   if (listPengumuman && listPengumuman?.length > 0) {

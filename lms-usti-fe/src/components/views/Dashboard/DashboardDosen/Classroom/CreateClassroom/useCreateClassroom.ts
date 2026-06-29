@@ -21,7 +21,6 @@ const useCreateClassroom = () => {
   };
 
   const handleCreateClassroom = async (data: z.infer<typeof newClassroomSchema>) => {
-    // console.log(data)
     try {
       setIsPending(true);
       const res = await createNewClassroom(data);

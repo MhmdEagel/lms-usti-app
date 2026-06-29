@@ -79,6 +79,25 @@ func (s *SubmissionController) FindMySubmission(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+func (s *SubmissionController) Grade(ctx *gin.Context) {
+	classroomId := ctx.Param("id")
+	assignmentId := ctx.Param("assignmentId")
+	submissionId := ctx.Param("submissionId")
+	var req data.GradeRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		bindJSONError(ctx, err)
+		return
+	}
+	if err := s.submissionService.Grade(classroomId, assignmentId, submissionId, req); err != nil {
+		log.Printf("Submission Grade: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "successfully grade submission", nil)
+	ctx.JSON(http.StatusOK, res)
+}
+
 func (s *SubmissionController) Submit(ctx *gin.Context) {
 	var req data.SubmitRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {

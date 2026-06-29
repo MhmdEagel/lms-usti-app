@@ -19,15 +19,22 @@ type SubmitRequest struct {
 }
 
 type SubmissionAttachmentRequest struct {
-	Name string `json:"name" binding:"required"`
-	Type string `json:"type" binding:"required,oneof=FILE VIDEO LINK"`
-	Url  string `json:"url" binding:"required"`
+	Name       string `json:"name" binding:"required"`
+	Type       string `json:"type" binding:"required,oneof=FILE VIDEO LINK"`
+	Url        string `json:"url" binding:"required"`
+	UniqueName string `json:"unique_name"`
+}
+
+type GradeRequest struct {
+	Score    *float64 `json:"score"`
+	Feedback *string  `json:"feedback"`
 }
 
 type SubmissionAttachmentResponse struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
-	Url  string `json:"url"`
+	Name       string `json:"name"`
+	Type       string `json:"type"`
+	Url        string `json:"url"`
+	UniqueName string `json:"unique_name"`
 }
 
 type SubmissionStatsResponse struct {
@@ -37,11 +44,13 @@ type SubmissionStatsResponse struct {
 }
 
 type SubmissionResponse struct {
-	Id             string            `json:"id"`
-	Status         string            `json:"status"`
-	SubmissionDate *time.Time        `json:"submission_date"`
-	Score          *float64          `json:"score"`
-	Mahasiswa      MahasiswaResponse `json:"mahasiswa"`
+	Id             string                      `json:"id"`
+	Status         string                      `json:"status"`
+	SubmissionDate *time.Time                  `json:"submission_date"`
+	Score          *float64                    `json:"score"`
+	Feedback       *string                     `json:"feedback"`
+	Attachments    []SubmissionAttachmentResponse `json:"attachments,omitempty"`
+	Mahasiswa      MahasiswaResponse           `json:"mahasiswa"`
 }
 
 type SubmissionDetailRequest struct {
@@ -53,4 +62,5 @@ type SubmissionDetailRequest struct {
 type SubmissionDetailResponse struct {
 	Mahasiswa   MahasiswaResponse              `json:"mahasiswa"`
 	Attachments []SubmissionAttachmentResponse `json:"attachments"`
+	Feedback    *string                        `json:"feedback"`
 }

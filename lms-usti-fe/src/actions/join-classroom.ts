@@ -16,7 +16,6 @@ export const joinClassroom = async (classCode: string) => {
     revalidatePath("/mahasiswa/kelas");
     return { success: "Berhasil gabung kelas", error: null };
   } catch (e) {
-    console.log((e as Error).message);
     return { success: null, error: (e as Error).message };
   }
 };
