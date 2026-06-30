@@ -5,12 +5,17 @@ import { revalidatePath } from "next/cache";
 
 export async function createComment(
   classroomId: string,
-  materialId: string,
+  resourceId: string,
   payload: { content: string },
   revalidatePathname: string,
+  type: "material" | "assignment" = "material",
 ) {
   try {
-    await commentServices.createComment(classroomId, materialId, payload);
+    if (type === "assignment") {
+      await commentServices.createAssignmentComment(classroomId, resourceId, payload);
+    } else {
+      await commentServices.createComment(classroomId, resourceId, payload);
+    }
     revalidatePath(revalidatePathname);
     return { success: "Komentar berhasil dibuat", error: null };
   } catch (e) {

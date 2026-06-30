@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { createComment } from "@/actions/create-comment";
 import { deleteComment } from "@/actions/delete-comment";
 import ContentEditor from "@/components/ui/content-editor";
-import CommentItem from "./CommentItem";
+import CommentItem from "@/components/common/MaterialDetail/Comment/CommentItem";
 import type { IComment } from "@/types/Classroom";
 
 interface PropTypes {
@@ -25,7 +25,7 @@ export default function CommentSection({
   const params = useParams();
   const pathname = usePathname();
   const classroomId = params.classroomId as string;
-  const materiId = params.materiId as string;
+  const assignmentId = params.assignmentId as string;
 
   const [comments, setComments] = useState<IComment[]>(initialComments);
   const [content, setContent] = useState("");
@@ -41,10 +41,10 @@ export default function CommentSection({
     setSubmitting(true);
     const res = await createComment(
       classroomId,
-      materiId,
+      assignmentId,
       { content },
       pathname,
-      "material",
+      "assignment",
     );
     setContent("");
     setSubmitting(false);
@@ -59,10 +59,10 @@ export default function CommentSection({
     setDeletingId(commentId);
     const res = await deleteComment(
       classroomId,
-      materiId,
+      assignmentId,
       commentId,
       pathname,
-      "material",
+      "assignment",
     );
     setDeletingId(null);
     if (res.success) {
