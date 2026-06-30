@@ -30,11 +30,12 @@ type AssignmentRubricUpdateRequest struct {
 	Score int    `json:"score"`
 }
 type AssignmentDetailResponse struct {
-	ID            string                     `json:"id"`
-	Title         string                     `json:"title"`
-	ClassroomName string                     `json:"classroom_name"`
-	Deadline      time.Time                  `json:"deadline"`
-	Instruction   string                     `json:"instruction"`
+	ID            string    `json:"id"`
+	Title         string    `json:"title"`
+	ClassroomName string    `json:"classroom_name"`
+	Deadline      time.Time `json:"deadline"`
+	Instruction   string    `json:"instruction"`
+	Stats         *SubmissionStatsResponse `json:"stats"`
 	Rubrics       []AssignmentRubricResponse `json:"rubrics"`
 	Attachments   []AttachmentResponse       `json:"attachments"`
 }

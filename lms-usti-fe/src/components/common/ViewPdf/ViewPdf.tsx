@@ -43,8 +43,8 @@ export default function ViewPdf({
     setPageNumber(1);
   }
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black/90" onClick={onClose}>
-      <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 bg-black/50" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[100] flex flex-col bg-black/70" onClick={onClose}>
+      <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 bg-black" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-white text-sm md:text-lg font-semibold truncate max-w-[60%]">
           {fileName}
         </h2>
@@ -79,7 +79,7 @@ export default function ViewPdf({
         </Document>
       </div>
 
-      <div className="flex items-center justify-center gap-2 md:gap-4 px-4 md:px-6 py-3 md:py-4 bg-black/50" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center justify-center gap-2 md:gap-4 px-4 md:px-6 py-3 md:py-4 bg-black" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-1 md:gap-2">
           <Button
             type="button"

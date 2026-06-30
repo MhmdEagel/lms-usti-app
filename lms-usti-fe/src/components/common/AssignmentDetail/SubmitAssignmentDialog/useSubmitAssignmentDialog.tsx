@@ -22,7 +22,7 @@ export default function useSubmitAssignmentDialog(mySubmission?: IMySubmission |
   const initializeAttachments = useCallback((existing: IMySubmission | null | undefined) => {
     const tracked: TrackedAttachment[] = (existing?.attachments || []).map((att) => ({
       name: att.name,
-      type: att.type as "FILE" | "VIDEO" | "LINK",
+      type: att.type as "FILE" | "LINK",
       url: att.url,
       unique_name: att.unique_name,
       status: "original" as TrackStatus,
@@ -39,7 +39,7 @@ export default function useSubmitAssignmentDialog(mySubmission?: IMySubmission |
   const currentAttachments = trackedAttachments.filter((a) => a.status !== "deleted");
 
   const handleDeleteAttachment = async (item: TrackedAttachment) => {
-    if (item.type === "FILE" || item.type === "VIDEO") {
+    if (item.type === "FILE") {
       if (item.status === "new") {
         setIsPendingUploadFile(true);
         try {
@@ -105,7 +105,7 @@ export default function useSubmitAssignmentDialog(mySubmission?: IMySubmission |
     setIsPending(true);
     try {
       const filesToDelete = trackedAttachments.filter(
-        (a) => a.status === "new" && (a.type === "FILE" || a.type === "VIDEO"),
+        (a) => a.status === "new" && a.type === "FILE",
       );
       if (filesToDelete.length > 0) {
         await Promise.all(

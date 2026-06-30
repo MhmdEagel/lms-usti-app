@@ -61,7 +61,7 @@ interface IClassroomMembers {
 interface IAttachment {
   id?: string;
   name: string;
-  type: "FILE" | "VIDEO" | "LINK";
+  type: "FILE" | "LINK";
   url: string;
   unique_name: string;
   status?: "original" | "new" | "deleted";

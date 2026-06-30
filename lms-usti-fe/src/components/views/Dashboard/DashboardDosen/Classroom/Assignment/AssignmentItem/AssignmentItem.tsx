@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import "dayjs/locale/id";
-import { FileText } from "lucide-react";
+import { FileText, Clock } from "lucide-react";
 import type { SubmissionStats } from "@/types/Classroom";
 
 dayjs.extend(utc);
@@ -58,9 +58,12 @@ export default function AssignmentItem({ assignmentId, title, deadline, type = "
         <div className="space-y-1 flex-1">
           <div className="font-bold text-base md:text-lg">{title}</div>
           {hasDeadline && (
-            <div className={`text-sm ${isOverdue ? "text-red-500" : "text-gray-500"}`}>
-              Batas pengumpulan: {dayjs(deadline).format("DD MMMM YYYY, HH:mm")}
-            </div>
+            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-sm font-medium ${
+              isOverdue ? "bg-red-50 text-red-600" : "bg-gray-100 text-gray-600"
+            }`}>
+              <Clock className="h-3 w-3" />
+              {dayjs(deadline).format("DD MMMM YYYY, HH:mm")}
+            </span>
           )}
           {type === "dosen" && stats && (
             <div className="text-sm text-gray-500">

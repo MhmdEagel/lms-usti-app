@@ -51,7 +51,7 @@ const useCreateMaterialDialog = () => {
     try {
       setIsPending(true);
       const filesToDelete = attachments.filter(
-        (a) => a.type === "FILE" || a.type === "VIDEO",
+        (a) => a.type === "FILE",
       );
       if (filesToDelete.length > 0) {
         await deleteMaterialBatch(filesToDelete);

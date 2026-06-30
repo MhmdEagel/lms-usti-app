@@ -24,7 +24,6 @@ import { Spinner } from "@/components/ui/spinner";
 import type { IAttachment, IAssignment } from "@/types/Classroom";
 import { Dispatch, SetStateAction, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { deleteFileAssignment } from "@/actions/delete-file-assignment";
 import { Label } from "@/components/ui/label";
 import { DatePickerTime } from "@/components/ui/calendar-time-picker";
 import { Dropzone, DropzoneEmptyState } from "@/components/ui/dropzone";
@@ -49,6 +48,7 @@ export default function EditAssignmentDialog(props: PropTypes) {
     handleAssignmentForm,
     assignmentForm,
     handleUploadFile,
+    handleDeleteFile,
     handleClose,
     initializeAttachments,
     hasDeadline,
@@ -101,26 +101,8 @@ export default function EditAssignmentDialog(props: PropTypes) {
   );
 
   const handleDeleteAttachment = async (item: IAttachment) => {
-    if (item.type === "FILE" || item.type === "VIDEO") {
-      const tracked = item as TrackedAttachment;
-      if (tracked.status === "new") {
-        try {
-          await deleteFileAssignment(item.unique_name);
-        } catch {
-          throw new Error("Gagal menghapus file");
-        }
-        setTrackedAttachments((prev) =>
-          prev.filter((f) => f.unique_name !== item.unique_name),
-        );
-      } else {
-        setTrackedAttachments((prev) =>
-          prev.map((f) =>
-            f.unique_name === item.unique_name
-              ? { ...f, status: "deleted" as const }
-              : f,
-          ),
-        );
-      }
+    if (item.type === "FILE") {
+      handleDeleteFile(item.unique_name);
     } else {
       setTrackedAttachments((prev) =>
         prev.filter((a) => a.id !== item.id),

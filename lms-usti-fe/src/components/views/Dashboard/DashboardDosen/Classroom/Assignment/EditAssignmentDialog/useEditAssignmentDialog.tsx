@@ -69,6 +69,16 @@ const useEditAssignmentDialog = () => {
     setRubricValue("");
   };
 
+  const orphanedNewFilesRef = useRef<Set<string>>(new Set());
+
+  const resetState = (setOpen: Dispatch<SetStateAction<string>>) => {
+    setTrackedAttachments([]);
+    setArrayOfRubrics([]);
+    setHasDeadline(false);
+    setIsPending(false);
+    setOpen("closed");
+  };
+
   const handleAssignmentForm = async (
     data: z.infer<typeof createAssignmentSchema>,
     classroomId: string,
@@ -93,8 +103,16 @@ const useEditAssignmentDialog = () => {
       if (deletedFiles.length > 0) {
         await deleteAssignmentBatch(deletedFiles);
       }
+      for (const uniqueName of orphanedNewFilesRef.current) {
+        try {
+          await deleteFileAssignment(uniqueName);
+        } catch {
+          console.error("Failed to delete orphaned file:", uniqueName);
+        }
+      }
+      orphanedNewFilesRef.current.clear();
       toast.success("Berhasil mengubah tugas");
-      handleClose(setOpen);
+      resetState(setOpen);
     } catch (e) {
       toast.error("Gagal mengubah tugas");
     } finally {
@@ -106,20 +124,23 @@ const useEditAssignmentDialog = () => {
     const newFiles = trackedAttachments.filter(
       (f) => f.status === "new" && f.type !== "LINK",
     );
-    if (newFiles.length > 0) {
+    const allOrphans = [
+      ...newFiles,
+      ...Array.from(orphanedNewFilesRef.current).map((name) => ({
+        unique_name: name,
+      })),
+    ];
+    if (allOrphans.length > 0) {
       try {
-        for (const file of newFiles) {
+        for (const file of allOrphans) {
           await deleteFileAssignment(file.unique_name);
         }
       } catch {
         console.error("Failed to delete new files");
       }
     }
-    setTrackedAttachments([]);
-    setArrayOfRubrics([]);
-    setHasDeadline(false);
-    setIsPending(false);
-    setOpen("closed");
+    orphanedNewFilesRef.current.clear();
+    resetState(setOpen);
   };
 
   const handleUploadFile = async (file: File) => {
@@ -146,6 +167,27 @@ const useEditAssignmentDialog = () => {
     }
   };
 
+  const handleDeleteFile = (uniqueFileName: string) => {
+    const file = trackedAttachments.find(
+      (f) => f.unique_name === uniqueFileName,
+    );
+    if (!file) return;
+    if (file.status === "new") {
+      orphanedNewFilesRef.current.add(uniqueFileName);
+      setTrackedAttachments((prevValue) =>
+        prevValue.filter((f) => f.unique_name !== uniqueFileName),
+      );
+    } else {
+      setTrackedAttachments((prevValue) =>
+        prevValue.map((f) =>
+          f.unique_name === uniqueFileName
+            ? { ...f, status: "deleted" }
+            : f,
+        ),
+      );
+    }
+  };
+
   return {
     trackedAttachments,
     setTrackedAttachments,
@@ -154,6 +196,7 @@ const useEditAssignmentDialog = () => {
     handleAssignmentForm,
     assignmentForm,
     handleUploadFile,
+    handleDeleteFile,
     handleClose,
     initializeAttachments,
     hasDeadline,

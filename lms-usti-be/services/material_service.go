@@ -40,10 +40,10 @@ func (m *MaterialService) Create(materialRequest data.MaterialRequest) error {
 	var attachments []model.MaterialAttachment
 	for _, v := range materialRequest.Attachments {
 		attType := model.AttachmentType(v.Type)
-		if attType != model.AttachmentTypeFile && attType != model.AttachmentTypeVideo && attType != model.AttachmentTypeLink {
+		if attType != model.AttachmentTypeFile && attType != model.AttachmentTypeLink {
 			return data.ErrBadRequest(nil)
 		}
-		if attType == model.AttachmentTypeFile || attType == model.AttachmentTypeVideo {
+		if attType == model.AttachmentTypeFile {
 			if v.UniqueName == "" {
 				return data.ErrBadRequest(nil)
 			}
@@ -140,10 +140,10 @@ func (m *MaterialService) Update(materialUpdateRequest data.MaterialUpdateReques
 		var updatedAttachments []model.MaterialAttachment
 		for _, v := range materialUpdateRequest.Attachments {
 			attType := model.AttachmentType(v.Type)
-			if attType != model.AttachmentTypeFile && attType != model.AttachmentTypeVideo && attType != model.AttachmentTypeLink {
+			if attType != model.AttachmentTypeFile && attType != model.AttachmentTypeLink {
 				return data.ErrBadRequest(nil)
 			}
-			if attType == model.AttachmentTypeFile || attType == model.AttachmentTypeVideo {
+			if attType == model.AttachmentTypeFile {
 				if v.UniqueName == "" {
 					return data.ErrBadRequest(nil)
 				}

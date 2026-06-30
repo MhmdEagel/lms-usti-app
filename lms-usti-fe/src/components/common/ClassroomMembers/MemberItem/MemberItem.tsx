@@ -13,14 +13,14 @@ export default function MemberItem({
   fullname: string | undefined;
   profile?: string;
   userId: string | undefined;
-  viewerRole: string | undefined;
+  viewerRole: string | undefined; 
   classroomId: string;
   isCurrentUser?: boolean;
 }) {
   const href = `/${viewerRole === "DOSEN" ? "dosen" : "mahasiswa"}/kelas/${classroomId}/anggota/${userId}`;
 
   const card = (
-    <Card className="py-3 px-4 cursor-pointer">
+    <Card className="py-3 px-4 cursor-pointer hover:bg-primary/10">
       <div className="flex gap-3 items-center">
         <Avatar className="size-11">
           <AvatarImage src={profile || ""} alt={fullname} />

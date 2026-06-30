@@ -21,7 +21,6 @@ export default function FileItem({
   const handleDelete = async () => {
     try {
       await onDelete();
-      toast.success("File berhasil dihapus");
     } catch {
       toast.error("File gagal dihapus");
     }

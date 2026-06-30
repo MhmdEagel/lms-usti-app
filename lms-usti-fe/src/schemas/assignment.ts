@@ -7,7 +7,7 @@ const RubricSchema = z.object({
 
 const AttachmentSchema = z.object({
   name: z.string(),
-  type: z.enum(["FILE", "VIDEO", "LINK"]),
+  type: z.enum(["FILE", "LINK"]),
   url: z.string(),
   unique_name: z.string(),
 });
