@@ -1,6 +1,5 @@
 import {
   Card,
-  CardAction,
   CardContent,
   CardHeader,
 } from "@/components/ui/card";
@@ -106,14 +105,12 @@ export default async function AssignmentDetail(props: PropTypes) {
           <ArrowLeft /> Kembali
         </Button>
       </Link>
-      {type === "dosen" && (
-        <AssignmentDetailTabNavbar
-          classroomId={classroomId}
-          assignmentId={assignmentId}
-          type={type}
-        />
-      )}
-      <div className="p-4 w-full max-w-4xl mx-auto">
+      <AssignmentDetailTabNavbar
+        classroomId={classroomId}
+        assignmentId={assignmentId}
+        type={type}
+      />
+      <div className="p-4 w-full">
         <Card>
           <CardHeader>
             <div className="flex gap-4 items-start w-full">
@@ -142,16 +139,6 @@ export default async function AssignmentDetail(props: PropTypes) {
                   </div>
                 )}
               </div>
-              {type === "dosen" && (
-                <div className="ml-auto">
-                  <CardAction>
-                    <AssignmentAction
-                      assignment={data}
-                      classroomId={classroomId}
-                    />
-                  </CardAction>
-                </div>
-              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -181,6 +168,17 @@ export default async function AssignmentDetail(props: PropTypes) {
               <div className="text-gray-500">Tidak ada instruksi</div>
             )}
 
+            {type === "dosen" && (
+              <>
+                <div className="font-bold text-gray-500 text-sm mt-4 mb-2">
+                  AKSI
+                </div>
+                <AssignmentAction
+                  assignment={data}
+                  classroomId={classroomId}
+                />
+              </>
+            )}
             {type === "mahasiswa" && (
               <>
                 <div className="font-bold text-gray-500 text-sm mt-2 mb-1">
