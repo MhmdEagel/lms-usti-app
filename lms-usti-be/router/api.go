@@ -53,6 +53,9 @@ func InitRouter() *gin.Engine {
 
 		materialService := services.NewMaterialService(materialRepository, classroomRepository)
 
+		commentRepository := repositories.NewCommentRepository(Db)
+		commentService := services.NewCommentService(commentRepository, classroomRepository, materialRepository, assignmentRepository, announcementRepository)
+
 		api.GET("", controllers.Test)
 		auth := api.Group("/auth")
 		{
@@ -93,7 +96,10 @@ func InitRouter() *gin.Engine {
 			materialController := controllers.NewMaterialController(materialService)
 			assignmentController := controllers.NewAssignmentController(assignmentService)
 			submissionController := controllers.NewSubmissionController(submissionService)
+			commentController := controllers.NewCommentController(commentService)
 
+			classroom.GET("/dosen/dashboard-stats", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.GetDashboardStats)
+			classroom.GET("/dosen/waiting-grade", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.FindWaitingGrade)
 			classroom.GET("/dosen/classrooms", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.FindAllByDosenId)
 			classroom.GET("/mahasiswa/classrooms", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.FindAllByMahasiswaId)
 			classroom.POST("/create", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), classroomController.Create)
@@ -127,6 +133,18 @@ func InitRouter() *gin.Engine {
 			classroom.GET("/:id/assignments/:assignmentId/my-submission", aclMiddleware.Handle([]string{"MAHASISWA"}), submissionController.FindMySubmission)
 			classroom.POST("/:id/assignments/:assignmentId/submissions", aclMiddleware.Handle([]string{"MAHASISWA"}), submissionController.Submit)
 			classroom.PUT("/:id/assignments/:assignmentId/submissions/:submissionId/grade", aclMiddleware.Handle([]string{"DOSEN"}), submissionController.Grade)
+
+			classroom.GET("/:id/materials/:materialId/comments", commentController.FindAll)
+			classroom.POST("/:id/materials/:materialId/comments", commentController.Create)
+			classroom.DELETE("/:id/materials/:materialId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA"}), commentController.Delete)
+
+			classroom.GET("/:id/assignments/:assignmentId/comments", commentController.FindAll)
+			classroom.POST("/:id/assignments/:assignmentId/comments", commentController.Create)
+			classroom.DELETE("/:id/assignments/:assignmentId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA"}), commentController.Delete)
+
+			classroom.GET("/:id/announcements/:announcementId/comments", commentController.FindAll)
+			classroom.POST("/:id/announcements/:announcementId/comments", commentController.Create)
+			classroom.DELETE("/:id/announcements/:announcementId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA"}), commentController.Delete)
 		}
 		media := api.Group("/media")
 		{

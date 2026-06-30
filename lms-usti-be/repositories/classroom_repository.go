@@ -25,6 +25,7 @@ type ClassroomRepositoryInterface interface {
 	IsAlreadyEnroll(classroomMahasiswa model.ClassroomMahasiswa) bool
 	FindAllClassroomMahasiswa(classroomId string) (mahasiswa []model.ClassroomMahasiswa, err error)
 	RemoveMember(classroomId string, memberId string) error
+	GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error)
 }
 
 func NewClassroomRepository(Db *gorm.DB) ClassroomRepositoryInterface {
@@ -169,14 +170,19 @@ func (c *ClassroomRepository) IsAlreadyEnroll(classroomMahasiswa model.Classroom
 }
 
 func (c *ClassroomRepository) RemoveMember(classroomId, memberId string) error {
-	res := c.Db.Where("user_id = ? AND classroom_id = ?", memberId, classroomId).Delete(model.ClassroomMahasiswa{})
-	if res.Error != nil {
-		return res.Error
-	}
-	if res.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
-	}
-	return nil
+	return c.Db.Transaction(func(tx *gorm.DB) error {
+		res := tx.Where("user_id = ? AND classroom_id = ?", memberId, classroomId).Delete(model.ClassroomMahasiswa{})
+		if res.Error != nil {
+			return res.Error
+		}
+		if res.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+		if err := tx.Where("student_id = ? AND assignment_id IN (SELECT id FROM assignments WHERE classroom_id = ?)", memberId, classroomId).Delete(model.Submission{}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (c *ClassroomRepository) Delete(classroomId string, dosenId string) error {
@@ -192,4 +198,29 @@ func (c *ClassroomRepository) Delete(classroomId string, dosenId string) error {
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+func (c *ClassroomRepository) GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error) {
+	var stats data.DashboardStatsResponse
+
+	if err := c.Db.Model(&model.Classroom{}).Where("dosen_id = ?", dosenId).Count(&stats.TotalClassrooms).Error; err != nil {
+		return stats, err
+	}
+
+	if err := c.Db.Model(&model.ClassroomMahasiswa{}).
+		Joins("JOIN classrooms ON classrooms.id = classroom_mahasiswas.classroom_id").
+		Where("classrooms.dosen_id = ?", dosenId).
+		Distinct("classroom_mahasiswas.user_id").
+		Count(&stats.TotalStudents).Error; err != nil {
+		return stats, err
+	}
+
+	if err := c.Db.Model(&model.Assignment{}).
+		Joins("JOIN classrooms ON classrooms.id = assignments.classroom_id").
+		Where("classrooms.dosen_id = ?", dosenId).
+		Count(&stats.TotalAssignments).Error; err != nil {
+		return stats, err
+	}
+
+	return stats, nil
 }

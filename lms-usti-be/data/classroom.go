@@ -91,6 +91,12 @@ type ClassroomDetailResponse struct {
 	Dosen       model.User `json:"dosen"`
 }
 
+type DashboardStatsResponse struct {
+	TotalClassrooms  int64 `json:"total_classrooms"`
+	TotalStudents    int64 `json:"total_students"`
+	TotalAssignments int64 `json:"total_assignments"`
+}
+
 type ClassroomMembersReponse struct {
 	Dosen     model.User   `json:"dosen"`
 	Mahasiswa []model.User `json:"mahasiswa"`

@@ -88,6 +88,31 @@ func (a *AssignmentController) Update(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+func (a *AssignmentController) FindWaitingGrade(ctx *gin.Context) {
+	val, exist := ctx.Get("user")
+	if !exist {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	waitingGrades, err := a.assignmentService.FindWaitingGrade(user.UserId)
+	if err != nil {
+		handleError(ctx, err)
+		return
+	}
+	if waitingGrades == nil {
+		waitingGrades = []data.AssignmentWaitingGradeResponse{}
+	}
+	res := data.NewResponse(http.StatusOK, "berhasil mengambil tugas menunggu penilaian", waitingGrades)
+	ctx.JSON(http.StatusOK, res)
+}
+
 func (a *AssignmentController) Delete(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
 	assignmentId := ctx.Param("assignmentId")

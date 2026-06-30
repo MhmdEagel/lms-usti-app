@@ -257,6 +257,30 @@ func (c *ClassroomController) RemoveMember(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+func (c *ClassroomController) GetDashboardStats(ctx *gin.Context) {
+	val, exist := ctx.Get("user")
+	if !exist {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	stats, err := c.classroomService.GetDashboardStats(user.UserId)
+	if err != nil {
+		log.Printf("GetDashboardStats: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "berhasil mengambil dashboard stats", stats)
+	ctx.JSON(http.StatusOK, res)
+}
+
 func (c *ClassroomController) FindAllClassroomMember(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
 	classroomMembers, err := c.classroomService.FindAllClassroomMember(classroomId)

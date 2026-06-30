@@ -1,6 +1,5 @@
 import {
   Card,
-  CardAction,
   CardContent,
   CardHeader,
 } from "@/components/ui/card";
@@ -19,6 +18,7 @@ import MaterialBreadcrumb from "./MaterialBreadcrumb";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import FileAttachmentSection from "./FileAttachmentSection/FileAttachmentSection";
+import MaterialTabNavigation from "./MaterialTabNavigation";
 interface PropTypes {
   classroomId: string;
   materiId: string;
@@ -66,7 +66,8 @@ export default async function MaterialDetail(props: PropTypes) {
           <ArrowLeft /> Kembali
         </Button>
       </Link>
-      <div className="p-4 w-full max-w-4xl mx-auto">
+      <div className="p-4 w-full">
+        <MaterialTabNavigation />
         <Card>
           <CardHeader>
             <div className="flex gap-4 items-center w-full">
@@ -81,13 +82,6 @@ export default async function MaterialDetail(props: PropTypes) {
                   {dayjs(data.created_at).format("lll")}
                 </div>
               </div>
-              {user?.role === "DOSEN" ? (
-                <div className="ml-auto">
-                  <CardAction>
-                    <MaterialAction material={data} classroomId={classroomId} />
-                  </CardAction>
-                </div>
-              ) : null}
             </div>
           </CardHeader>
           <CardContent>
@@ -104,6 +98,17 @@ export default async function MaterialDetail(props: PropTypes) {
                     ),
                   }}
                 ></div>
+              </>
+            ) : null}
+            {user?.role === "DOSEN" ? (
+              <>
+                <div className="font-bold text-gray-500 text-sm mt-4 mb-2">
+                  AKSI
+                </div>
+                <MaterialAction
+                  material={data}
+                  classroomId={classroomId}
+                />
               </>
             ) : null}
           </CardContent>

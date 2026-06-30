@@ -46,4 +46,6 @@ export const classroomServices = {
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/members/${memberId}`),
   removeMember: (classroomId: string, memberId: string) =>
     instance.delete(`${endpoint.CLASSROOM}/${classroomId}/members/${memberId}`),
+  getDashboardStats: () =>
+    instance.get(`${endpoint.CLASSROOM}/dosen/dashboard-stats`),
 };

@@ -131,11 +131,14 @@ export default function WeeklyCalendar({ events, role }: PropTypes) {
                       <div className="font-semibold text-base text-foreground leading-tight truncate">
                         {ev.title}
                       </div>
+                      {ev.extendedProps.roomNumber ? (
+                        <div className="text-sm text-muted-foreground leading-tight truncate">
+                          R. {ev.extendedProps.roomNumber}
+                        </div>
+                      ) : null}
                       <div className="text-xs text-muted-foreground/70 leading-tight mt-auto truncate">
                         {ev.startTime} - {ev.endTime}
                       </div>
-
-
                     </div>
                   );
                 })}

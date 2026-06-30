@@ -1,43 +1,35 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { GraduationCap } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Suspense } from "react";
-import ClassroomCount from "./ClassroomCount";
+
+import DashboardStatsCards from "./ClassroomCount";
+import DashboardStatsSkeleton from "./DashboardStatsSkeleton";
+import WaitingGradeList from "./WaitingGradeList";
+import WaitingGradeListSkeleton from "./WaitingGradeListSkeleton";
+import ScheduleSkeleton from "./ScheduleSkeleton";
 import WeeklySchedule from "@/components/common/WeeklySchedule/WeeklySchedule";
 
-export default function DashboardDosen() {
+export default async function DashboardDosen() {
   return (
-    <div className="p-4">
-      <h2 className="mb-8 text-lg md:text-xl font-bold">Selamat datang!</h2>
-      <section className="flex gap-4 mt-4">
-        <Card className="min-w-[240px] bg-green-100">
-          <CardHeader className="flex-row items-center gap-4">
-            <div className="p-2 text-white bg-green-500 border rounded-full h-fit w-fit">
-              <GraduationCap size={30} />
-            </div>
-            <CardTitle className="text-lg md:text-xl">
-              <div>
-                <h3 className="font-bold">Jumlah Kelas</h3>
-                <Suspense fallback={<p>Loading...</p>}>
-                  <ClassroomCount />
-                </Suspense>
-              </div>
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        
-      </section>
-      <section className="mt-8">
+    <div className="p-4"> 
+      <section>
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl">Jadwal Perkuliahan</CardTitle>
-          </CardHeader>
           <CardContent>
-            <Suspense fallback={<p>Loading...</p>}>
-              <WeeklySchedule />
+            <Suspense fallback={<DashboardStatsSkeleton />}>
+              <DashboardStatsCards />
             </Suspense>
           </CardContent>
         </Card>
       </section>
+      <section className="mt-8">
+        <Suspense fallback={<WaitingGradeListSkeleton />}>
+          <WaitingGradeList />
+        </Suspense>
+      </section>
+      <section className="mt-8">
+        <Suspense fallback={<ScheduleSkeleton />}>
+          <WeeklySchedule />
+        </Suspense>
+      </section>
     </div>
-  )
+  );
 }

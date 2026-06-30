@@ -54,3 +54,15 @@ type AssignmentRubricResponse struct {
 	Name  string `json:"name"`
 	Score int    `json:"score"`
 }
+
+type AssignmentWaitingGradeResponse struct {
+	SubmissionId     string    `json:"submission_id"`
+	AssignmentId     string    `json:"assignment_id"`
+	ClassroomId      string    `json:"classroom_id"`
+	ClassroomName    string    `json:"classroom_name"`
+	AssignmentTitle  string    `json:"assignment_title"`
+	MahasiswaId      string    `json:"mahasiswa_id"`
+	MahasiswaName    string    `json:"mahasiswa_name"`
+	MahasiswaProfile string    `json:"mahasiswa_profile"`
+	SubmissionDate   time.Time `json:"submission_date"`
+}

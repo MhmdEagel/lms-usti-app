@@ -13,6 +13,7 @@ func ErrMaterialNotFound(err error) *AppError      { return NewAppError(404, "ma
 func ErrAnnouncementNotFound(err error) *AppError  { return NewAppError(404, "announcement tidak ditemukan", err) }
 func ErrInternalServer(err error) *AppError      { return NewAppError(500, "terjadi kesalahan", err) }
 func ErrBadRequest(err error) *AppError           { return NewAppError(400, "invalid request", err) }
+func ErrCommentNotFound(err error) *AppError      { return NewAppError(404, "komentar tidak ditemukan", err) }
 
 type AppError struct {
 	Code    int

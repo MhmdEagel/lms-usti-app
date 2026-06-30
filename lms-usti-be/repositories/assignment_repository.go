@@ -24,6 +24,7 @@ type AssignmentRepositoryInterface interface {
 	DeleteRubrics(assignmentRubrics []model.AssignmentRubric) error
 	DeleteAttachments(assignmentId string) error
 	Transaction(fn func(repo AssignmentRepositoryInterface) error) error
+	FindWaitingGrade(dosenId string) ([]data.AssignmentWaitingGradeResponse, error)
 }
 
 func NewAssignmentRepository(Db *gorm.DB) AssignmentRepositoryInterface {
@@ -114,6 +115,26 @@ func (a *AssignmentRepository) CreateAttachments(attachments []model.AssignmentA
 
 func (a *AssignmentRepository) DeleteAttachments(assignmentId string) error {
 	return a.Db.Where("assignment_id = ?", assignmentId).Delete(&model.AssignmentAttachment{}).Error
+}
+
+func (a *AssignmentRepository) FindWaitingGrade(dosenId string) ([]data.AssignmentWaitingGradeResponse, error) {
+	var result []data.AssignmentWaitingGradeResponse
+	err := a.Db.Model(&model.Submission{}).
+		Select(`submissions.id as submission_id, submissions.assignment_id,
+			classrooms.id as classroom_id, classrooms.class_name as classroom_name,
+			assignments.title as assignment_title,
+			submissions.student_id as mahasiswa_id, users.fullname as mahasiswa_name,
+			users.image as mahasiswa_profile, submissions.submission_date`).
+		Joins("JOIN assignments ON assignments.id = submissions.assignment_id").
+		Joins("JOIN classrooms ON classrooms.id = assignments.classroom_id").
+		Joins("JOIN users ON users.id = submissions.student_id").
+		Where("classrooms.dosen_id = ? AND submissions.status = ? AND submissions.score IS NULL", dosenId, "submitted").
+		Order("submissions.submission_date DESC").
+		Scan(&result).Error
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (a *AssignmentRepository) withTx(tx *gorm.DB) AssignmentRepositoryInterface {
