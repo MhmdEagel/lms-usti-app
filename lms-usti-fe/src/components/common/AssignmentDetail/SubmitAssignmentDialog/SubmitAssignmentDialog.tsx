@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Link, Plus, UploadIcon, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -14,6 +16,10 @@ import { submitAssignment } from "@/actions/submit-assignment";
 import useSubmitAssignmentDialog from "./useSubmitAssignmentDialog";
 import type { IMySubmission } from "@/types/Classroom";
 
+const ViewPdf = dynamic(() => import("@/components/common/ViewPdf/ViewPdf"), {
+  ssr: false,
+});
+
 interface PropTypes {
   classroomId: string;
   assignmentId: string;
@@ -26,6 +32,7 @@ export default function SubmitAssignmentDialog({
   mySubmission,
 }: PropTypes) {
   const router = useRouter();
+  const [previewFile, setPreviewFile] = useState<{ url: string; name: string } | null>(null);
   const {
     open,
     setOpen,
@@ -173,6 +180,7 @@ export default function SubmitAssignmentDialog({
                       onDelete={() => handleDeleteAttachment(item)}
                       isPending={isPending || isPendingUploadFile}
                       fileUrl={item.url}
+                      onClick={() => setPreviewFile({ url: item.url, name: item.name })}
                     />
                   ))}
               </div>
@@ -234,6 +242,13 @@ export default function SubmitAssignmentDialog({
           setValue={() => {}}
         />
       </div>
+      {previewFile && (
+        <ViewPdf
+          fileUrl={previewFile.url}
+          fileName={previewFile.name}
+          onClose={() => setPreviewFile(null)}
+        />
+      )}
     </>
   );
 }

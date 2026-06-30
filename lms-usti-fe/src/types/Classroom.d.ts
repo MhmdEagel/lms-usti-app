@@ -187,6 +187,14 @@ interface IAssignmentWaitingGrade {
   submission_date: string;
 }
 
+interface IComment {
+  id: string;
+  content: string;
+  created_by: string;
+  user: { fullname: string; profile: string };
+  created_at: string;
+}
+
 export type {
   IJoinClassroom,
   ICreateClassroom,
@@ -212,4 +220,5 @@ export type {
   IMySubmission,
   IDashboardStats,
   IAssignmentWaitingGrade,
+  IComment,
 };
