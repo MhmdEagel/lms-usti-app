@@ -54,7 +54,8 @@ func InitRouter() *gin.Engine {
 		materialService := services.NewMaterialService(materialRepository, classroomRepository)
 
 		commentRepository := repositories.NewCommentRepository(Db)
-		commentService := services.NewCommentService(commentRepository, classroomRepository, materialRepository, assignmentRepository, announcementRepository)
+		forumRepository := repositories.NewForumRepository(Db)
+		commentService := services.NewCommentService(commentRepository, classroomRepository, materialRepository, assignmentRepository, announcementRepository, forumRepository)
 
 		api.GET("", controllers.Test)
 		auth := api.Group("/auth")
@@ -87,6 +88,7 @@ func InitRouter() *gin.Engine {
 			adminAudit.GET("", auditController.FindAllLogs)
 		}
 
+		commentController := controllers.NewCommentController(commentService)
 		classroom := api.Group("/classroom")
 		classroom.Use(authMiddleware.Handle())
 		{
@@ -96,7 +98,6 @@ func InitRouter() *gin.Engine {
 			materialController := controllers.NewMaterialController(materialService)
 			assignmentController := controllers.NewAssignmentController(assignmentService)
 			submissionController := controllers.NewSubmissionController(submissionService)
-			commentController := controllers.NewCommentController(commentService)
 
 			classroom.GET("/dosen/dashboard-stats", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.GetDashboardStats)
 			classroom.GET("/dosen/waiting-grade", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.FindWaitingGrade)
@@ -147,6 +148,22 @@ func InitRouter() *gin.Engine {
 			classroom.POST("/:id/announcements/:announcementId/comments", commentController.Create)
 			classroom.DELETE("/:id/announcements/:announcementId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA"}), commentController.Delete)
 		}
+		forumService := services.NewForumService(forumRepository, commentRepository)
+		forumController := controllers.NewForumController(forumService)
+
+		forum := api.Group("/forum")
+		forum.Use(authMiddleware.Handle())
+		{
+			forum.GET("/posts", forumController.FindAllPosts)
+			forum.POST("/posts", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), forumController.CreatePost)
+			forum.GET("/posts/:postId", forumController.FindPostById)
+			forum.DELETE("/posts/:postId", forumController.DeletePost)
+
+			forum.GET("/posts/:postId/comments", commentController.FindAll)
+			forum.POST("/posts/:postId/comments", commentController.Create)
+			forum.DELETE("/posts/:postId/comments/:commentId", commentController.Delete)
+		}
+
 		media := api.Group("/media")
 		{
 			mediaController := controllers.NewMediaController(mediaService)

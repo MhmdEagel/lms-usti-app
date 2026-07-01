@@ -12,6 +12,7 @@ type CommentService struct {
 	materialRepository      repositories.MaterialRepositoryInterface
 	assignmentRepository    repositories.AssignmentRepositoryInterface
 	announcementRepository  repositories.AnnouncementRepositoryInterface
+	forumRepository         repositories.ForumRepositoryInterface
 }
 
 type CommentServiceInterface interface {
@@ -21,8 +22,8 @@ type CommentServiceInterface interface {
 	DeleteByID(commentId string) error
 }
 
-func NewCommentService(commentRepository repositories.CommentRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, materialRepository repositories.MaterialRepositoryInterface, assignmentRepository repositories.AssignmentRepositoryInterface, announcementRepository repositories.AnnouncementRepositoryInterface) CommentServiceInterface {
-	return &CommentService{commentRepository: commentRepository, classroomRepository: classroomRepository, materialRepository: materialRepository, assignmentRepository: assignmentRepository, announcementRepository: announcementRepository}
+func NewCommentService(commentRepository repositories.CommentRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, materialRepository repositories.MaterialRepositoryInterface, assignmentRepository repositories.AssignmentRepositoryInterface, announcementRepository repositories.AnnouncementRepositoryInterface, forumRepository repositories.ForumRepositoryInterface) CommentServiceInterface {
+	return &CommentService{commentRepository: commentRepository, classroomRepository: classroomRepository, materialRepository: materialRepository, assignmentRepository: assignmentRepository, announcementRepository: announcementRepository, forumRepository: forumRepository}
 }
 
 func (c *CommentService) FindAll(commentableType, commentableId string) ([]data.CommentResponse, error) {
@@ -60,11 +61,17 @@ func (c *CommentService) Create(req data.CommentRequest, commentableType, commen
 		if _, err := c.announcementRepository.FindById(commentableId); err != nil {
 			return data.ErrAnnouncementNotFound(err)
 		}
+	case model.CommentableTypeForumPost:
+		if _, err := c.forumRepository.FindById(commentableId); err != nil {
+			return data.ErrForumPostNotFound(err)
+		}
 	default:
 		return data.ErrBadRequest(nil)
 	}
-	if _, err := c.classroomRepository.FindById(classroomId); err != nil {
-		return data.ErrClassroomNotFound(err)
+	if commentableType != model.CommentableTypeForumPost {
+		if _, err := c.classroomRepository.FindById(classroomId); err != nil {
+			return data.ErrClassroomNotFound(err)
+		}
 	}
 	comment := model.Comment{
 		Content:         req.Content,

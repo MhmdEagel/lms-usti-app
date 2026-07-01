@@ -11,6 +11,7 @@ const (
 	CommentableTypeMaterial     = "material"
 	CommentableTypeAssignment   = "assignment"
 	CommentableTypeAnnouncement = "announcement"
+	CommentableTypeForumPost    = "forum_post"
 )
 
 type Comment struct {

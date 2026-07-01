@@ -5,6 +5,7 @@ import {
   DASHBOARD_TITLE_DOSEN,
   DASHBOARD_TITLE_MAHASISWA,
   DASHBOARD_TITLE_ADMIN,
+  DASHBOARD_TITLE_PRODI,
 } from "./DashboardTitle.constant";
 
 export default function DashboardTitle() {
@@ -13,9 +14,11 @@ export default function DashboardTitle() {
   const dashboard_title = (
     pathName.startsWith("/admin")
       ? DASHBOARD_TITLE_ADMIN
-      : pathName.startsWith("/dosen")
-        ? DASHBOARD_TITLE_DOSEN
-        : DASHBOARD_TITLE_MAHASISWA
+      : pathName.startsWith("/prodi")
+        ? DASHBOARD_TITLE_PRODI
+        : pathName.startsWith("/dosen")
+          ? DASHBOARD_TITLE_DOSEN
+          : DASHBOARD_TITLE_MAHASISWA
   ).find((item) => url === item.path);
 
   return <h1 className="text-base font-medium">{dashboard_title?.title}</h1>;

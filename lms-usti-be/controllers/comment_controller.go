@@ -27,6 +27,9 @@ func (c *CommentController) detectCommentableType(ctx *gin.Context) (string, str
 	if ctx.Param("announcementId") != "" {
 		return model.CommentableTypeAnnouncement, ctx.Param("announcementId")
 	}
+	if ctx.Param("postId") != "" {
+		return model.CommentableTypeForumPost, ctx.Param("postId")
+	}
 	return "", ""
 }
 
