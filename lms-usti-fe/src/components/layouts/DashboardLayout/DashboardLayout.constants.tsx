@@ -1,4 +1,4 @@
-import { Grid2x2, ListTodo, School, Settings, Users, ScrollText } from "lucide-react";
+import { Grid2x2, ListTodo, School, Settings, Users, ScrollText, MessageSquare, Calendar } from "lucide-react";
 
 const SIDEBAR_MAHASISWA = [
   {
@@ -69,4 +69,11 @@ const SIDEBAR_ADMIN = [
   },
 ];
 
-export { SIDEBAR_MAHASISWA, SIDEBAR_DOSEN, SIDEBAR_ADMIN };
+const SIDEBAR_PRODI = [
+  { key: "dashboard", label: "Dashboard", href: "/prodi", icon: <Grid2x2 /> },
+  { key: "forum", label: "Forum", href: "/prodi/forum", icon: <MessageSquare /> },
+  { key: "penjadwalan", label: "Penjadwalan", href: "/prodi/penjadwalan", icon: <Calendar /> },
+  { key: "pengaturan", label: "Pengaturan", href: "/prodi/pengaturan", icon: <Settings /> },
+];
+
+export { SIDEBAR_MAHASISWA, SIDEBAR_DOSEN, SIDEBAR_ADMIN, SIDEBAR_PRODI };

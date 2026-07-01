@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import DashboardSidebar from "./DashboardSidebar/DashboardSidebar";
-import { SIDEBAR_DOSEN, SIDEBAR_MAHASISWA, SIDEBAR_ADMIN } from "./DashboardLayout.constants";
+import { SIDEBAR_DOSEN, SIDEBAR_MAHASISWA, SIDEBAR_ADMIN, SIDEBAR_PRODI } from "./DashboardLayout.constants";
 import DashboardHeader from "./DashboardHeader/DashboardHeader";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -10,7 +10,7 @@ interface PropTypes {
   user?: {
     id: string;
     email: string;
-    role: "MAHASISWA" | "DOSEN" | "ADMIN";
+    role: "MAHASISWA" | "DOSEN" | "ADMIN" | "PRODI";
     fullname?: string;
     profile?: string;
   };
@@ -25,7 +25,9 @@ export default function DashboardLayout(props: PropTypes) {
       ? SIDEBAR_MAHASISWA
       : type === "admin"
         ? SIDEBAR_ADMIN
-        : SIDEBAR_DOSEN;
+        : type === "prodi"
+          ? SIDEBAR_PRODI
+          : SIDEBAR_DOSEN;
 
   return (
     <SidebarProvider

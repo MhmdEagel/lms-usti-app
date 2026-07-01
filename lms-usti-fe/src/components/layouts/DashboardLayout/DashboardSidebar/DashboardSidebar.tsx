@@ -20,7 +20,7 @@ interface PropTypes {
   user?: {
     id: string;
     email: string;
-    role: "MAHASISWA" | "DOSEN" | "ADMIN";
+    role: "MAHASISWA" | "DOSEN" | "ADMIN" | "PRODI";
     fullname?: string;
     profile?: string;
   };

@@ -28,38 +28,27 @@ export async function middleware(request: NextRequest) {
     const me = await authServices.me();
     const user = me.data.data;
 
+    const rolePaths: Record<string, string> = {
+      MAHASISWA: "/mahasiswa",
+      DOSEN: "/dosen",
+      ADMIN: "/admin",
+      PRODI: "/prodi",
+    };
+    const userRole = user.role;
+    const userPath = rolePaths[userRole] || "/dosen";
+
     if (isAuthRoute) {
-      if (user.role === "MAHASISWA") {
-        return NextResponse.redirect(new URL("/mahasiswa", nextUrl));
-      }
-      if (user.role === "ADMIN") {
-        return NextResponse.redirect(new URL("/admin", nextUrl));
-      }
-      return NextResponse.redirect(new URL("/dosen", nextUrl));
+      return NextResponse.redirect(new URL(userPath, nextUrl));
     }
 
     if (!user && !isPublicRoute) {
       return NextResponse.redirect(loginUrl(nextUrl.pathname));
     }
 
-    const userRole = user.role;
-    if (nextUrl.pathname.startsWith("/mahasiswa") && userRole !== "MAHASISWA") {
-      if (userRole === "ADMIN") {
-        return NextResponse.redirect(new URL("/admin", nextUrl));
+    for (const [role, prefix] of Object.entries(rolePaths)) {
+      if (nextUrl.pathname.startsWith(prefix) && userRole !== role) {
+        return NextResponse.redirect(new URL(userPath, nextUrl));
       }
-      return NextResponse.redirect(new URL("/dosen", nextUrl));
-    }
-    if (nextUrl.pathname.startsWith("/dosen") && userRole !== "DOSEN") {
-      if (userRole === "ADMIN") {
-        return NextResponse.redirect(new URL("/admin", nextUrl));
-      }
-      return NextResponse.redirect(new URL("/mahasiswa", nextUrl));
-    }
-    if (nextUrl.pathname.startsWith("/admin") && userRole !== "ADMIN") {
-      if (userRole === "MAHASISWA") {
-        return NextResponse.redirect(new URL("/mahasiswa", nextUrl));
-      }
-      return NextResponse.redirect(new URL("/dosen", nextUrl));
     }
   } catch {
     return NextResponse.redirect(loginUrl(nextUrl.pathname));

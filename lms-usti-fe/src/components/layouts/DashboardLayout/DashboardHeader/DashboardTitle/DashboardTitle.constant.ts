@@ -40,3 +40,21 @@ export const DASHBOARD_TITLE_ADMIN = [
         title: "Pengaturan",
     },
 ]
+export const DASHBOARD_TITLE_PRODI = [
+    {
+        path: "/prodi",
+        title: "Dashboard",
+    },
+    {
+        path: "/prodi/forum",
+        title: "Forum",
+    },
+    {
+        path: "/prodi/penjadwalan",
+        title: "Penjadwalan",
+    },
+    {
+        path: "/prodi/pengaturan",
+        title: "Pengaturan",
+    },
+]

@@ -14,6 +14,8 @@ func ErrAnnouncementNotFound(err error) *AppError  { return NewAppError(404, "an
 func ErrInternalServer(err error) *AppError      { return NewAppError(500, "terjadi kesalahan", err) }
 func ErrBadRequest(err error) *AppError           { return NewAppError(400, "invalid request", err) }
 func ErrCommentNotFound(err error) *AppError      { return NewAppError(404, "komentar tidak ditemukan", err) }
+func ErrForumPostNotFound(err error) *AppError    { return NewAppError(404, "postingan forum tidak ditemukan", err) }
+func ErrUnauthorized(err error) *AppError         { return NewAppError(401, "tidak memiliki akses", err) }
 
 type AppError struct {
 	Code    int
