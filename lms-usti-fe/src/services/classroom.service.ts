@@ -48,4 +48,6 @@ export const classroomServices = {
     instance.delete(`${endpoint.CLASSROOM}/${classroomId}/members/${memberId}`),
   getDashboardStats: () =>
     instance.get(`${endpoint.CLASSROOM}/dosen/dashboard-stats`),
+  getMahasiswaDashboardStats: () =>
+    instance.get(`${endpoint.CLASSROOM}/mahasiswa/dashboard-stats`),
 };

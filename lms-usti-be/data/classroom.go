@@ -106,3 +106,16 @@ type ClassroomMemberDetailResponse struct {
 	ClassName string `json:"class_name"`
 	Member    model.User `json:"member"`
 }
+
+type MahasiswaAssignmentItem struct {
+	AssignmentID    string  `json:"assignment_id"`
+	AssignmentTitle string  `json:"assignment_title"`
+	ClassroomID     string  `json:"classroom_id"`
+	ClassroomName   string  `json:"classroom_name"`
+	Deadline        *string `json:"deadline"`
+	DaysRemaining   *int    `json:"days_remaining"`
+}
+
+type MahasiswaDashboardStatsResponse struct {
+	UpcomingAssignments []MahasiswaAssignmentItem `json:"upcoming_assignments"`
+}

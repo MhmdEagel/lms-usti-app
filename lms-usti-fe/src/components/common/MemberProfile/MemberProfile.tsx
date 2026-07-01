@@ -114,14 +114,13 @@ export default function MemberProfile({
             <div className="font-bold text-sm mb-1">AKSI</div>
             <hr className="mb-3" />
 
-            <div className="flex gap-2">
+            <div className="space-x-2">
               <Button variant="outline" asChild className="flex-1">
                 <a href={`mailto:${email}`}>
                   <Mail className="size-4" />
                   Kirim Email
                 </a>
               </Button>
-
               {viewerRole === "DOSEN" && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>

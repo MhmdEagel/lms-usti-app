@@ -3,56 +3,38 @@ package data
 import "time"
 
 type AssignmentRequest struct {
-	Title       string                    `json:"title" binding:"required"`
-	Deadline    *time.Time                `json:"deadline"`
-	Instruction string                    `json:"instruction"`
-	Rubrics     []AssignmentRubricRequest `json:"rubrics"`
-	Attachments []AttachmentRequest       `json:"attachments"`
+	Title       string              `json:"title" binding:"required"`
+	Deadline    *time.Time          `json:"deadline"`
+	Instruction string              `json:"instruction"`
+	Attachments []AttachmentRequest `json:"attachments"`
 	ClassroomId string
 }
 type AssignmentUpdateRequest struct {
 	ID          string
-	Title       *string                         `json:"title"`
-	Deadline    *time.Time                      `json:"deadline"`
-	Instruction *string                         `json:"instruction"`
-	Rubrics     []AssignmentRubricUpdateRequest `json:"rubrics"`
-	Attachments []AttachmentRequest             `json:"attachments"`
+	Title       *string             `json:"title"`
+	Deadline    *time.Time          `json:"deadline"`
+	Instruction *string             `json:"instruction"`
+	Attachments []AttachmentRequest `json:"attachments"`
 	ClassroomId string
 }
-
-type AssignmentRubricRequest struct {
-	Name  string `json:"name"`
-	Score int    `json:"score"`
-}
-
-type AssignmentRubricUpdateRequest struct {
-	Name  string `json:"name"`
-	Score int    `json:"score"`
-}
 type AssignmentDetailResponse struct {
-	ID            string                     `json:"id"`
-	Title         string                     `json:"title"`
-	ClassroomName string                     `json:"classroom_name"`
-	Deadline      time.Time                  `json:"deadline"`
-	Instruction   string                     `json:"instruction"`
-	Rubrics       []AssignmentRubricResponse `json:"rubrics"`
+	ID            string    `json:"id"`
+	Title         string    `json:"title"`
+	ClassroomName string    `json:"classroom_name"`
+	Deadline      *time.Time `json:"deadline"`
+	Instruction   string    `json:"instruction"`
+	Stats         *SubmissionStatsResponse `json:"stats"`
 	Attachments   []AttachmentResponse       `json:"attachments"`
 }
 type AssignmentResponse struct {
 	ID                 string                   `json:"id"`
 	Title              string                   `json:"title"`
-	Deadline           time.Time                `json:"deadline"`
+	Deadline           *time.Time               `json:"deadline"`
 	Instruction        string                   `json:"instruction"`
 	Stats              *SubmissionStatsResponse `json:"stats"`
 	MySubmissionStatus string                   `json:"my_submission_status"`
 	MyScore            *float64                 `json:"my_score"`
 	MySubmissionDate   *time.Time               `json:"my_submission_date"`
-}
-
-type AssignmentRubricResponse struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Score int    `json:"score"`
 }
 
 type AssignmentWaitingGradeResponse struct {

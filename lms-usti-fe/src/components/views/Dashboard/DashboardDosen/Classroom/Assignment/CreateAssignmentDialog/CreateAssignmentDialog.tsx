@@ -16,9 +16,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import ContentEditor from "@/components/ui/content-editor";
-import RubrikItem from "../RubrikItem/RubrikItem";
 import useCreateAssignmentDialog from "./useCreateAssignmentDialog";
-import { Label } from "@/components/ui/label";
 import FileItem from "@/components/common/FileItem/FileItem";
 import LinkItem from "@/components/common/LinkItem/LinkItem";
 import AddLinkDialog from "@/components/common/AddLinkDialog/AddLinkDialog";
@@ -40,20 +38,11 @@ export default function CreateAssignmentDialog({
     setHasDeadline,
     attachments,
     setAttachments,
-    arrayOfRubrics,
-    setArrayOfRubrics,
     isPending,
     setIsPending,
-    handleAddRubric,
     handleAssignmentForm,
     assignmentForm,
     handleClose,
-    rubricName,
-    rubricValue,
-    setRubricName,
-    setRubricValue,
-    totalScore,
-    canAddRubric,
     handleUploadFile,
     isPendingUploadFile,
     setIsPendingUploadFile,
@@ -62,7 +51,7 @@ export default function CreateAssignmentDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDeleteAttachment = async (item: IAttachment) => {
-    if (item.type === "FILE" || item.type === "VIDEO") {
+    if (item.type === "FILE") {
       setIsPending(true);
       setIsPendingUploadFile(true);
       try {
@@ -204,7 +193,7 @@ export default function CreateAssignmentDialog({
                       <FormItem>
                         <FormControl>
                           <DatePickerTime
-                            value={field.value}
+                            value={field.value ?? ""}
                             onChange={field.onChange}
                           />
                         </FormControl>
@@ -215,6 +204,7 @@ export default function CreateAssignmentDialog({
                 )}
               </CardContent>
             </Card>
+
             <Card className="relative">
               {isPendingUploadFile ? (
                 <div className="bg-slate-600/90 absolute top-0 left-0 right-0 bottom-0 rounded-lg flex justify-center items-center">
@@ -248,7 +238,7 @@ export default function CreateAssignmentDialog({
                 />
 
                 {attachments.filter(
-                  (a) => a.type === "FILE" || a.type === "VIDEO",
+                  (a) => a.type === "FILE",
                 ).length === 0 && (
                   <Dropzone
                     accept={{
@@ -280,11 +270,11 @@ export default function CreateAssignmentDialog({
                 )}
 
                 {attachments.filter(
-                  (a) => a.type === "FILE" || a.type === "VIDEO",
+                  (a) => a.type === "FILE",
                 ).length > 0 && (
                   <div className="grid grid-cols-3 gap-2 mt-4">
                     {attachments
-                      .filter((a) => a.type === "FILE" || a.type === "VIDEO")
+                      .filter((a) => a.type === "FILE")
                       .map((item) => (
                         <FileItem
                           key={item.unique_name}
@@ -340,57 +330,6 @@ export default function CreateAssignmentDialog({
                       ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-            <Card className="mx-auto p-2 rounded-xl">
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div className="font-bold">Rubrik Penilaian</div>
-                  <div className="text-sm text-gray-500">
-                    Total: {totalScore}/100
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex gap-4 items-end">
-                  <div className="grid gap-2">
-                    <Label>Nama</Label>
-                    <Input
-                      value={rubricName}
-                      onChange={(e) => setRubricName(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Nilai</Label>
-                    <Input
-                      value={rubricValue}
-                      onChange={(e) => setRubricValue(e.target.value)}
-                      inputMode="numeric"
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => handleAddRubric(rubricName, rubricValue)}
-                    disabled={!canAddRubric || !rubricName || !rubricValue}
-                  >
-                    Tambah Rubrik
-                  </Button>
-                </div>
-                {arrayOfRubrics.length > 0 ? (
-                  <div className="grid grid-cols-3">
-                    {arrayOfRubrics.map((rubric, index) => (
-                      <RubrikItem
-                        key={index}
-                        index={index}
-                        name={rubric.name}
-                        score={rubric.score}
-                        arrayOfRubrics={arrayOfRubrics}
-                        setArrayOfRubrics={setArrayOfRubrics}
-                      />
-                    ))}
-                  </div>
-                ) : null}
               </CardContent>
             </Card>
           </form>

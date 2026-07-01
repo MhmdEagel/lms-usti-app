@@ -19,7 +19,7 @@ export default function AssignmentAction(props: PropTypes) {
 
   return (
     <>
-      <div className="flex gap-2">
+      <div className="flex flex-col items-start gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -34,7 +34,7 @@ export default function AssignmentAction(props: PropTypes) {
           size="sm"
           onClick={() => setOpenDeleteDialog(true)}
           type="button"
-          className="text-red-500 border-red-200 hover:bg-red-50"
+          className="text-red-500 border-red-200 hover:text-red-500"
         >
           <Trash2 className="h-4 w-4" />
           Hapus

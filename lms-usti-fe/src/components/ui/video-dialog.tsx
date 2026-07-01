@@ -67,7 +67,7 @@ const VideoModalTitle = React.forwardRef<
    <DialogPrimitive.Title
       ref={ref}
       className={cn(
-         'mb-4 text-4xl font-bold text-gray-950 dark:text-gray-50',
+         'mb-4 text-4xl font-bold text-gray-950',
          className,
       )}
       {...props}

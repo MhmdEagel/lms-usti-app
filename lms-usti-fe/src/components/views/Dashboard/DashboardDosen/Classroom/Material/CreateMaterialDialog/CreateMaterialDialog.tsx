@@ -53,7 +53,7 @@ export default function CreateMaterialDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDeleteAttachment = async (item: IAttachment) => {
-    if (item.type === "FILE" || item.type === "VIDEO") {
+    if (item.type === "FILE") {
       setIsPending(true);
       setIsPendingUploadFile(true);
       try {
@@ -218,7 +218,7 @@ export default function CreateMaterialDialog({
                 />
 
                 {attachments.filter(
-                  (a) => a.type === "FILE" || a.type === "VIDEO",
+                  (a) => a.type === "FILE",
                 ).length === 0 && (
                   <Dropzone
                     accept={{
@@ -250,11 +250,11 @@ export default function CreateMaterialDialog({
                 )}
 
                 {attachments.filter(
-                  (a) => a.type === "FILE" || a.type === "VIDEO",
+                  (a) => a.type === "FILE",
                 ).length > 0 && (
                   <div className="grid grid-cols-3 gap-2 mt-4">
                     {attachments
-                      .filter((a) => a.type === "FILE" || a.type === "VIDEO")
+                      .filter((a) => a.type === "FILE")
                       .map((item) => (
                         <FileItem
                           key={item.unique_name}

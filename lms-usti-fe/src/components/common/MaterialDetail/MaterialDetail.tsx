@@ -20,8 +20,8 @@ import Link from "next/link";
 import FileAttachmentSection from "./FileAttachmentSection/FileAttachmentSection";
 import MaterialTabNavigation from "./MaterialTabNavigation";
 interface PropTypes {
-  classroomId: string;
-  materiId: string;
+classroomId: string;
+materiId: string;
 }
 
 export default async function MaterialDetail(props: PropTypes) {
@@ -32,6 +32,7 @@ export default async function MaterialDetail(props: PropTypes) {
   dayjs.extend(localizedFormat);
   dayjs.locale("id");
   const role: string = user.role;
+  console.log(data)
 
   if (!data) {
     return (
@@ -122,11 +123,11 @@ export default async function MaterialDetail(props: PropTypes) {
           <CardContent>
             {data.attachments &&
             data.attachments.filter(
-              (a) => a.type === "FILE" || a.type === "VIDEO",
+              (a) => a.type === "FILE",
             ).length > 0 ? (
               <FileAttachmentSection
                 attachments={data.attachments.filter(
-                  (a) => a.type === "FILE" || a.type === "VIDEO",
+                  (a) => a.type === "FILE",
                 )}
               />
             ) : (

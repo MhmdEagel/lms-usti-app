@@ -23,11 +23,6 @@ const useEditAssignmentDialog = () => {
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
   const [hasDeadline, setHasDeadline] = useState(false);
-  const [arrayOfRubrics, setArrayOfRubrics] = useState<
-    { name: string; score: string }[]
-  >([]);
-  const [rubricName, setRubricName] = useState("");
-  const [rubricValue, setRubricValue] = useState("");
 
   const assignmentForm = useForm({
     defaultValues: {
@@ -49,24 +44,13 @@ const useEditAssignmentDialog = () => {
     assignmentForm.setValue("attachments", nonDeleted as IAttachment[]);
   }, [trackedAttachments]);
 
-  const totalScore = arrayOfRubrics.reduce(
-    (sum, r) => sum + (parseInt(r.score) || 0),
-    0,
-  );
-  const canAddRubric = totalScore < 100;
+  const orphanedNewFilesRef = useRef<Set<string>>(new Set());
 
-  useEffect(() => {
-    assignmentForm.setValue("rubrics", arrayOfRubrics);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [arrayOfRubrics]);
-
-  const handleAddRubric = (rubricName: string, rubricScore: string) => {
-    setArrayOfRubrics((prev) => [
-      ...prev,
-      { name: rubricName, score: rubricScore },
-    ]);
-    setRubricName("");
-    setRubricValue("");
+  const resetState = (setOpen: Dispatch<SetStateAction<string>>) => {
+    setTrackedAttachments([]);
+    setHasDeadline(false);
+    setIsPending(false);
+    setOpen("closed");
   };
 
   const handleAssignmentForm = async (
@@ -75,15 +59,13 @@ const useEditAssignmentDialog = () => {
     assignmentId: string,
     setOpen: Dispatch<SetStateAction<string>>,
   ) => {
+    console.log(data)
     try {
       setIsPending(true);
       const payload = {
         title: data.title,
-        deadline: data.deadline || undefined,
+        deadline: hasDeadline ? data.deadline : null,
         instruction: data.instruction || undefined,
-        rubrics: data.rubrics
-          ?.filter((r) => r.name && r.score)
-          .map((r) => ({ name: r.name, score: parseInt(r.score) || 0 })) || [],
         attachments: trackedAttachments.filter((f) => f.status !== "deleted"),
       };
       await editAssignment(payload, classroomId, assignmentId);
@@ -93,8 +75,16 @@ const useEditAssignmentDialog = () => {
       if (deletedFiles.length > 0) {
         await deleteAssignmentBatch(deletedFiles);
       }
+      for (const uniqueName of orphanedNewFilesRef.current) {
+        try {
+          await deleteFileAssignment(uniqueName);
+        } catch {
+          console.error("Failed to delete orphaned file:", uniqueName);
+        }
+      }
+      orphanedNewFilesRef.current.clear();
       toast.success("Berhasil mengubah tugas");
-      handleClose(setOpen);
+      resetState(setOpen);
     } catch (e) {
       toast.error("Gagal mengubah tugas");
     } finally {
@@ -106,20 +96,23 @@ const useEditAssignmentDialog = () => {
     const newFiles = trackedAttachments.filter(
       (f) => f.status === "new" && f.type !== "LINK",
     );
-    if (newFiles.length > 0) {
+    const allOrphans = [
+      ...newFiles,
+      ...Array.from(orphanedNewFilesRef.current).map((name) => ({
+        unique_name: name,
+      })),
+    ];
+    if (allOrphans.length > 0) {
       try {
-        for (const file of newFiles) {
+        for (const file of allOrphans) {
           await deleteFileAssignment(file.unique_name);
         }
       } catch {
         console.error("Failed to delete new files");
       }
     }
-    setTrackedAttachments([]);
-    setArrayOfRubrics([]);
-    setHasDeadline(false);
-    setIsPending(false);
-    setOpen("closed");
+    orphanedNewFilesRef.current.clear();
+    resetState(setOpen);
   };
 
   const handleUploadFile = async (file: File) => {
@@ -146,6 +139,27 @@ const useEditAssignmentDialog = () => {
     }
   };
 
+  const handleDeleteFile = (uniqueFileName: string) => {
+    const file = trackedAttachments.find(
+      (f) => f.unique_name === uniqueFileName,
+    );
+    if (!file) return;
+    if (file.status === "new") {
+      orphanedNewFilesRef.current.add(uniqueFileName);
+      setTrackedAttachments((prevValue) =>
+        prevValue.filter((f) => f.unique_name !== uniqueFileName),
+      );
+    } else {
+      setTrackedAttachments((prevValue) =>
+        prevValue.map((f) =>
+          f.unique_name === uniqueFileName
+            ? { ...f, status: "deleted" }
+            : f,
+        ),
+      );
+    }
+  };
+
   return {
     trackedAttachments,
     setTrackedAttachments,
@@ -154,19 +168,11 @@ const useEditAssignmentDialog = () => {
     handleAssignmentForm,
     assignmentForm,
     handleUploadFile,
+    handleDeleteFile,
     handleClose,
     initializeAttachments,
     hasDeadline,
     setHasDeadline,
-    arrayOfRubrics,
-    setArrayOfRubrics,
-    handleAddRubric,
-    rubricName,
-    rubricValue,
-    setRubricName,
-    setRubricValue,
-    totalScore,
-    canAddRubric,
   };
 };
 

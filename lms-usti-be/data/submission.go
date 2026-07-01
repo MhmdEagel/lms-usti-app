@@ -20,7 +20,7 @@ type SubmitRequest struct {
 
 type SubmissionAttachmentRequest struct {
 	Name       string `json:"name" binding:"required"`
-	Type       string `json:"type" binding:"required,oneof=FILE VIDEO LINK"`
+	Type       string `json:"type" binding:"required,oneof=FILE LINK"`
 	Url        string `json:"url" binding:"required"`
 	UniqueName string `json:"unique_name"`
 }

@@ -28,6 +28,8 @@ const useEditMaterialDialog = () => {
     resolver: zodResolver(createMaterialSchema),
   });
 
+  const orphanedNewFilesRef = useRef<Set<string>>(new Set());
+
   const initializeAttachments = (attachments: IAttachment[]) => {
     const tracked: TrackedAttachment[] = attachments.map((att) => ({
       ...att,
@@ -42,6 +44,13 @@ const useEditMaterialDialog = () => {
   }, [trackedAttachments]);
 
   const pdfMateriRef = useRef<HTMLInputElement>(null);
+
+  const resetState = (setOpen: Dispatch<SetStateAction<string>>) => {
+    orphanedNewFilesRef.current.clear();
+    setTrackedAttachments([]);
+    setIsPending(false);
+    setOpen("closed");
+  };
 
   const handleMaterialForm = async (
     data: z.infer<typeof newMaterialSchema>,
@@ -62,8 +71,16 @@ const useEditMaterialDialog = () => {
       if (deletedFiles.length > 0) {
         await deleteMaterialBatch(deletedFiles);
       }
+      for (const uniqueName of orphanedNewFilesRef.current) {
+        try {
+          await deleteFileMaterial(uniqueName);
+        } catch {
+          console.error("Failed to delete orphaned file:", uniqueName);
+        }
+      }
+      orphanedNewFilesRef.current.clear();
       toast.success("Berhasil mengubah materi");
-      handleClose(setOpen);
+      resetState(setOpen);
     } catch (e) {
       toast.error("Gagal mengubah materi");
     } finally {
@@ -75,18 +92,22 @@ const useEditMaterialDialog = () => {
     const newFiles = trackedAttachments.filter(
       (f) => f.status === "new" && f.type !== "LINK",
     );
-    if (newFiles.length > 0) {
+    const allOrphans = [
+      ...newFiles,
+      ...Array.from(orphanedNewFilesRef.current).map((name) => ({
+        unique_name: name,
+      })),
+    ];
+    if (allOrphans.length > 0) {
       try {
-        for (const file of newFiles) {
+        for (const file of allOrphans) {
           await deleteFileMaterial(file.unique_name);
         }
       } catch {
         console.error("Failed to delete new files");
       }
     }
-    setTrackedAttachments([]);
-    setIsPending(false);
-    setOpen("closed");
+    resetState(setOpen);
   };
 
   const handleUploadFile = async (file: File) => {
@@ -112,17 +133,13 @@ const useEditMaterialDialog = () => {
     }
   };
 
-  const handleDeleteFile = async (uniqueFileName: string) => {
+  const handleDeleteFile = (uniqueFileName: string) => {
     const file = trackedAttachments.find(
       (f) => f.unique_name === uniqueFileName,
     );
     if (!file) return;
     if (file.status === "new") {
-      try {
-        await deleteFileMaterial(uniqueFileName);
-      } catch {
-        toast.error("Gagal menghapus file")
-      }
+      orphanedNewFilesRef.current.add(uniqueFileName);
       setTrackedAttachments((prevValue) =>
         prevValue.filter((f) => f.unique_name !== uniqueFileName),
       );

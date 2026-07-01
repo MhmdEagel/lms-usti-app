@@ -63,3 +63,10 @@ export const generateUuid = () => {
   const id = uuidv4()
   return id
 }
+
+const VIDEO_EXTENSIONS = ["mp4", "mov", "avi", "webm", "mkv"];
+
+export function isVideoFile(filename: string): boolean {
+  const ext = filename.split(".").pop()?.toLowerCase() ?? "";
+  return VIDEO_EXTENSIONS.includes(ext);
+}

@@ -1,28 +1,20 @@
 package model
 
 import (
-	"time"
+	"database/sql"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Assignment struct {
-	ID          string    `gorm:"not null"`
-	Title       string    `gorm:"not null"`
-	Deadline    time.Time 
-	Instruction string    `gorm:"not null"`
-	ClassroomId string 
-	Rubrics     []AssignmentRubric      `gorm:"constraint:OnDelete:CASCADE;"`
+	ID          string `gorm:"not null"`
+	Title       string `gorm:"not null"`
+	Deadline    sql.NullTime
+	Instruction string `gorm:"not null"`
+	ClassroomId string
 	Attachments []AssignmentAttachment `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
-}
-
-type AssignmentRubric struct {
-	ID           string `gorm:"not null"`
-	Name         string
-	Score        int
-	AssignmentId string
-	Assignment   Assignment `gorm:"foreignKey:AssignmentId"`
+	Submissions []Submission           `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
 }
 
 func (assignment *Assignment) BeforeCreate(tx *gorm.DB) error {
@@ -34,15 +26,6 @@ func (assignment *Assignment) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-func (assignmentRubric *AssignmentRubric) BeforeCreate(tx *gorm.DB) error {
-	assignmentRubricId, err := uuid.NewRandom()
-	if err != nil {
-		return err
-	}
-	assignmentRubric.ID = assignmentRubricId.String()
-	return nil
-}
-
 type AssignmentAttachment struct {
 	ID           string         `gorm:"primaryKey"`
 	Name         string         `gorm:"not null"`
@@ -50,7 +33,7 @@ type AssignmentAttachment struct {
 	Url          string         `gorm:"not null"`
 	UniqueName   string
 	AssignmentId string
-	Assignment   Assignment `gorm:"foreignKey:AssignmentId"`
+	Assignment   Assignment `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
 }
 
 func (attachment *AssignmentAttachment) BeforeCreate(tx *gorm.DB) error {

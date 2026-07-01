@@ -1,9 +1,9 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { getFileExtension, getFileName } from "@/lib/utils";
+import { getFileExtension, getFileName, isVideoFile } from "@/lib/utils";
 import { IAttachment } from "@/types/Classroom";
-import { File } from "lucide-react";
+import { File, Video } from "lucide-react";
 
 export default function FileMaterialItem({
   fileMateri,
@@ -19,7 +19,7 @@ export default function FileMaterialItem({
     >
       <CardContent className="flex items-center gap-4">
         <div className="p-4 bg-accent rounded-full">
-          <File />
+          {isVideoFile(fileMateri.name) ? <Video /> : <File />}
         </div>
         <div className="space-y-2">
           <div>

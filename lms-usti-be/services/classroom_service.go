@@ -28,6 +28,7 @@ type ClassroomServiceInterface interface {
 	Update(classroomUpdateRequest data.UpdateClassroomRequest) error
 	Delete(classroomId string, userId string) error
 	GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error)
+	GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error)
 }
 
 func NewClassroomService(classroomRepository repositories.ClassroomRepositoryInterface,
@@ -259,6 +260,10 @@ func (c *ClassroomService) Update(classroomUpdateRequest data.UpdateClassroomReq
 func (c *ClassroomService) Delete(classroomId string, userId string) error {
 	return c.classroomRepository.Delete(classroomId, userId)
 
+}
+
+func (c *ClassroomService) GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error) {
+	return c.classroomRepository.GetMahasiswaDashboardStats(mahasiswaId)
 }
 
 func (c *ClassroomService) GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error) {

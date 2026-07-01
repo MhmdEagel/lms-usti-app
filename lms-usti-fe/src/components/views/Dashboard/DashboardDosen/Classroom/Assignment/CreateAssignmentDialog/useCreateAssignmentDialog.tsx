@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { createAssignmentSchema } from "@/schemas/assignment";
@@ -18,44 +18,17 @@ const useCreateAssignmentDialog = () => {
   const [attachments, setAttachments] = useState<IAttachment[]>([]);
 
   const [hasDeadline, setHasDeadline] = useState(false);
-  const [arrayOfRubrics, setArrayOfRubrics] = useState<
-    { name: string; score: string }[]
-  >([]);
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
-
-  const [rubricName, setRubricName] = useState("");
-  const [rubricValue, setRubricValue] = useState("");
-
-  const totalScore = arrayOfRubrics.reduce(
-    (sum, r) => sum + (parseInt(r.score) || 0),
-    0,
-  );
-  const canAddRubric = totalScore < 100;
 
   const assignmentForm = useForm({
     defaultValues: {
       title: "",
       instruction: "",
       deadline: "",
-      rubrics: [],
     },
     resolver: zodResolver(createAssignmentSchema),
   });
-
-  useEffect(() => {
-    assignmentForm.setValue("rubrics", arrayOfRubrics);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [arrayOfRubrics]);
-
-  const handleAddRubric = (rubricName: string, rubricScore: string) => {
-    setArrayOfRubrics((prev) => [
-      ...prev,
-      { name: rubricName, score: rubricScore },
-    ]);
-    setRubricName("");
-    setRubricValue("");
-  };
 
   const handleUploadFile = async (file: File) => {
     const formData = new FormData();
@@ -89,9 +62,6 @@ const useCreateAssignmentDialog = () => {
       title: data.title,
       deadline: data.deadline || undefined,
       instruction: data.instruction || undefined,
-      rubrics: data.rubrics
-        ?.filter((r) => r.name && r.score)
-        .map((r) => ({ name: r.name, score: parseInt(r.score) || 0 })) || [],
       attachments,
     };
 
@@ -103,7 +73,6 @@ const useCreateAssignmentDialog = () => {
     }
     setIsPending(false);
     toast.success(res.success);
-    setArrayOfRubrics([]);
     setAttachments([]);
     setHasDeadline(false);
     assignmentForm.reset();
@@ -114,7 +83,7 @@ const useCreateAssignmentDialog = () => {
     try {
       setIsPending(true);
       const filesToDelete = attachments.filter(
-        (a) => a.type === "FILE" || a.type === "VIDEO",
+        (a) => a.type === "FILE",
       );
       if (filesToDelete.length > 0) {
         await deleteMaterialBatch(filesToDelete);
@@ -124,7 +93,6 @@ const useCreateAssignmentDialog = () => {
       toast.error(err.response?.data.meta.message);
     }
     setAttachments([]);
-    setArrayOfRubrics([]);
     setHasDeadline(false);
     setIsPending(false);
     assignmentForm.reset();
@@ -141,24 +109,13 @@ const useCreateAssignmentDialog = () => {
     attachments,
     setAttachments,
 
-    arrayOfRubrics,
-    setArrayOfRubrics,
-
     setIsPending,
     isPending,
 
-    handleAddRubric,
     handleAssignmentForm,
     handleClose,
 
     assignmentForm,
-
-    rubricName,
-    rubricValue,
-    setRubricName,
-    setRubricValue,
-    totalScore,
-    canAddRubric,
 
     handleUploadFile,
     isPendingUploadFile,

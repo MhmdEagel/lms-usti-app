@@ -92,7 +92,6 @@ export default function GradingContent({
         <GradingCard
           classroomId={classroomId}
           assignmentId={assignmentId}
-          rubrics={assignment.rubrics}
           selectedSubmission={selectedSubmission}
         />
       </div>

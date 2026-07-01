@@ -5,9 +5,17 @@ import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { ISubmission, ISubmissionDetail } from "@/types/Classroom";
 import { Skeleton } from "@/components/ui/skeleton";
-import { File, LinkIcon } from "lucide-react";
-import { getFileExtension, getFileName } from "@/lib/utils";
+import { File, LinkIcon, PlayCircle, Video } from "lucide-react";
+import { getFileExtension, getFileName, isVideoFile } from "@/lib/utils";
 import Link from "next/link";
+import {
+  VideoModal,
+  VideoModalContent,
+  VideoModalTitle,
+  VideoModalVideo,
+  VideoPlayButton,
+  VideoPlayer,
+} from "@/components/ui/video-dialog";
 
 const ViewPdf = dynamic(() => import("@/components/common/ViewPdf/ViewPdf"), {
   ssr: false,
@@ -24,7 +32,11 @@ export default function AttachmentCard({
   submissionDetail,
   loadingDetail,
 }: PropTypes) {
-  const [previewFile, setPreviewFile] = useState<{ url: string; name: string } | null>(null);
+  const [previewFile, setPreviewFile] = useState<{
+    url: string;
+    name: string;
+    isVideo: boolean;
+  } | null>(null);
 
   if (!selectedSubmission) {
     return (
@@ -57,9 +69,7 @@ export default function AttachmentCard({
 
   const attachments = submissionDetail?.attachments || [];
 
-  const fileAttachments = attachments.filter(
-    (a) => a.type === "FILE" || a.type === "VIDEO",
-  );
+  const fileAttachments = attachments.filter((a) => a.type === "FILE");
   const linkAttachments = attachments.filter((a) => a.type === "LINK");
 
   if (attachments.length === 0) {
@@ -90,11 +100,21 @@ export default function AttachmentCard({
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => setPreviewFile({ url: attachment.url, name: attachment.name })}
+                  onClick={() =>
+                    setPreviewFile({
+                      url: attachment.url,
+                      name: attachment.name,
+                      isVideo: isVideoFile(attachment.name),
+                    })
+                  }
                   className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors text-left w-full"
                 >
                   <div className="p-2 bg-accent rounded-full">
-                    <File className="h-4 w-4" />
+                    {isVideoFile(attachment.name) ? (
+                      <Video className="h-4 w-4" />
+                    ) : (
+                      <File className="h-4 w-4" />
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium truncate">
@@ -137,7 +157,19 @@ export default function AttachmentCard({
           )}
         </CardContent>
       </Card>
-      {previewFile && (
+      {previewFile?.isVideo && (
+        <VideoModal open={true} onOpenChange={() => setPreviewFile(null)}>
+          <VideoModalContent>
+            <VideoModalTitle>{previewFile.name}</VideoModalTitle>
+            <VideoModalVideo>
+              <video src={previewFile.url} controls className="w-full h-full">
+                Browser tidak mendukung pemutar video.
+              </video>
+            </VideoModalVideo>
+          </VideoModalContent>
+        </VideoModal>
+      )}
+      {previewFile && !previewFile.isVideo && (
         <ViewPdf
           fileUrl={previewFile.url}
           fileName={previewFile.name}

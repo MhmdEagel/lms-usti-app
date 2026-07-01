@@ -23,7 +23,6 @@ import { Spinner } from "@/components/ui/spinner";
 import type { IAttachment, IMaterial } from "@/types/Classroom";
 import { Dispatch, SetStateAction, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { deleteFileMaterial } from "@/actions/delete-file-material";
 import { Dropzone, DropzoneEmptyState } from "@/components/ui/dropzone";
 
 interface PropTypes {
@@ -46,6 +45,7 @@ export default function EditMaterialDialog(props: PropTypes) {
     handleMaterialForm,
     materialForm,
     handleUploadFile,
+    handleDeleteFile,
     handleClose,
     initializeAttachments,
   } = useEditMaterialDialog();
@@ -77,26 +77,8 @@ export default function EditMaterialDialog(props: PropTypes) {
   );
 
   const handleDeleteAttachment = async (item: IAttachment) => {
-    if (item.type === "FILE" || item.type === "VIDEO") {
-      const tracked = item as TrackedAttachment;
-      if (tracked.status === "new") {
-        try {
-          await deleteFileMaterial(item.unique_name);
-        } catch {
-          throw new Error("Gagal menghapus file");
-        }
-        setTrackedAttachments((prev) =>
-          prev.filter((f) => f.unique_name !== item.unique_name),
-        );
-      } else {
-        setTrackedAttachments((prev) =>
-          prev.map((f) =>
-            f.unique_name === item.unique_name
-              ? { ...f, status: "deleted" as const }
-              : f,
-          ),
-        );
-      }
+    if (item.type === "FILE") {
+      handleDeleteFile(item.unique_name);
     } else {
       setTrackedAttachments((prev) =>
         prev.filter((a) => a.id !== item.id),

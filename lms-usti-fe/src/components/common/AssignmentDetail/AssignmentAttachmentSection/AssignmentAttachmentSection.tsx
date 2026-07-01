@@ -9,7 +9,7 @@ interface PropTypes {
 }
 
 export default function AssignmentAttachmentSection({ attachments }: PropTypes) {
-  const fileAttachments = attachments.filter((a) => a.type === "FILE" || a.type === "VIDEO");
+  const fileAttachments = attachments.filter((a) => a.type === "FILE");
   const linkAttachments = attachments.filter((a) => a.type === "LINK");
 
   return (

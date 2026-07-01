@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { Link, Plus, UploadIcon, X } from "lucide-react";
+import { Link, Notebook, Pen, Plus, UploadIcon, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,10 @@ export default function SubmitAssignmentDialog({
   mySubmission,
 }: PropTypes) {
   const router = useRouter();
-  const [previewFile, setPreviewFile] = useState<{ url: string; name: string } | null>(null);
+  const [previewFile, setPreviewFile] = useState<{
+    url: string;
+    name: string;
+  } | null>(null);
   const {
     open,
     setOpen,
@@ -61,11 +64,7 @@ export default function SubmitAssignmentDialog({
       url: a.url,
       unique_name: a.unique_name,
     }));
-    const res = await submitAssignment(
-      classroomId,
-      assignmentId,
-      active,
-    );
+    const res = await submitAssignment(classroomId, assignmentId, active);
     if (res.success) {
       toast.success(res.success);
       await handleClose();
@@ -78,8 +77,17 @@ export default function SubmitAssignmentDialog({
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} type="button">
-        {hasSubmission ? "Edit Pengumpulan" : "Kumpulkan Tugas"}
+      <Button onClick={() => setOpen(true)} type="button" variant="outline">
+        {}
+        {hasSubmission ? (
+          <>
+            <Pen /> Edit Pengumpulan
+          </>
+        ) : (
+          <>
+            <Notebook /> Unggah Tugas
+          </>
+        )}
       </Button>
       <div
         data-state={open ? "open" : "closed"}
@@ -135,9 +143,8 @@ export default function SubmitAssignmentDialog({
               onChange={handleFileInputChange}
             />
 
-            {currentAttachments.filter(
-              (a) => a.type === "FILE" || a.type === "VIDEO",
-            ).length === 0 && (
+            {currentAttachments.filter((a) => a.type === "FILE").length ===
+              0 && (
               <Dropzone
                 accept={{
                   "application/pdf": [".pdf"],
@@ -167,12 +174,10 @@ export default function SubmitAssignmentDialog({
               </Dropzone>
             )}
 
-            {currentAttachments.filter(
-              (a) => a.type === "FILE" || a.type === "VIDEO",
-            ).length > 0 && (
+            {currentAttachments.filter((a) => a.type === "FILE").length > 0 && (
               <div className="grid grid-cols-3 gap-2 mt-4">
                 {currentAttachments
-                  .filter((a) => a.type === "FILE" || a.type === "VIDEO")
+                  .filter((a) => a.type === "FILE")
                   .map((item) => (
                     <FileItem
                       key={item.unique_name}
@@ -180,7 +185,9 @@ export default function SubmitAssignmentDialog({
                       onDelete={() => handleDeleteAttachment(item)}
                       isPending={isPending || isPendingUploadFile}
                       fileUrl={item.url}
-                      onClick={() => setPreviewFile({ url: item.url, name: item.name })}
+                      onClick={() =>
+                        setPreviewFile({ url: item.url, name: item.name })
+                      }
                     />
                   ))}
               </div>
@@ -201,7 +208,8 @@ export default function SubmitAssignmentDialog({
               <hr className="mt-4" />
             </div>
 
-            {currentAttachments.filter((a) => a.type === "LINK").length === 0 && (
+            {currentAttachments.filter((a) => a.type === "LINK").length ===
+              0 && (
               <Button
                 onClick={() => setLinkDialogOpen(true)}
                 type="button"

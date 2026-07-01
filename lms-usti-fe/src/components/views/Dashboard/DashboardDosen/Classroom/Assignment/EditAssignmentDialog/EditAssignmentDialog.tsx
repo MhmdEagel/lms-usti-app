@@ -15,17 +15,16 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import RubrikItem from "../RubrikItem/RubrikItem";
 import AddLinkDialog from "@/components/common/AddLinkDialog/AddLinkDialog";
 import FileItem from "@/components/common/FileItem/FileItem";
 import LinkItem from "@/components/common/LinkItem/LinkItem";
-import useEditAssignmentDialog, { type TrackedAttachment } from "./useEditAssignmentDialog";
+import useEditAssignmentDialog, {
+  type TrackedAttachment,
+} from "./useEditAssignmentDialog";
 import { Spinner } from "@/components/ui/spinner";
 import type { IAttachment, IAssignment } from "@/types/Classroom";
 import { Dispatch, SetStateAction, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { deleteFileAssignment } from "@/actions/delete-file-assignment";
-import { Label } from "@/components/ui/label";
 import { DatePickerTime } from "@/components/ui/calendar-time-picker";
 import { Dropzone, DropzoneEmptyState } from "@/components/ui/dropzone";
 
@@ -49,19 +48,12 @@ export default function EditAssignmentDialog(props: PropTypes) {
     handleAssignmentForm,
     assignmentForm,
     handleUploadFile,
+    handleDeleteFile,
     handleClose,
     initializeAttachments,
     hasDeadline,
     setHasDeadline,
-    arrayOfRubrics,
-    setArrayOfRubrics,
-    handleAddRubric,
-    rubricName,
-    rubricValue,
-    setRubricName,
-    setRubricValue,
-    totalScore,
-    canAddRubric,
+
   } = useEditAssignmentDialog();
   const { open, setOpen, assignment, classroomId } = props;
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
@@ -83,13 +75,6 @@ export default function EditAssignmentDialog(props: PropTypes) {
     if (assignment.attachments && assignment.attachments.length > 0) {
       initializeAttachments(assignment.attachments);
     }
-    if (assignment.rubrics && assignment.rubrics.length > 0) {
-      const rubrics = assignment.rubrics.map((r) => ({
-        name: r.name,
-        score: r.score.toString(),
-      }));
-      setArrayOfRubrics(rubrics);
-    }
     if (assignment.deadline && !assignment.deadline.startsWith("0001")) {
       setHasDeadline(true);
       assignmentForm.setValue("deadline", assignment.deadline);
@@ -101,30 +86,10 @@ export default function EditAssignmentDialog(props: PropTypes) {
   );
 
   const handleDeleteAttachment = async (item: IAttachment) => {
-    if (item.type === "FILE" || item.type === "VIDEO") {
-      const tracked = item as TrackedAttachment;
-      if (tracked.status === "new") {
-        try {
-          await deleteFileAssignment(item.unique_name);
-        } catch {
-          throw new Error("Gagal menghapus file");
-        }
-        setTrackedAttachments((prev) =>
-          prev.filter((f) => f.unique_name !== item.unique_name),
-        );
-      } else {
-        setTrackedAttachments((prev) =>
-          prev.map((f) =>
-            f.unique_name === item.unique_name
-              ? { ...f, status: "deleted" as const }
-              : f,
-          ),
-        );
-      }
+    if (item.type === "FILE") {
+      handleDeleteFile(item.unique_name);
     } else {
-      setTrackedAttachments((prev) =>
-        prev.filter((a) => a.id !== item.id),
-      );
+      setTrackedAttachments((prev) => prev.filter((a) => a.id !== item.id));
     }
   };
 
@@ -181,7 +146,12 @@ export default function EditAssignmentDialog(props: PropTypes) {
             type="button"
             onClick={() =>
               assignmentForm.handleSubmit((data) =>
-                handleAssignmentForm(data, classroomId, assignment.id!, setOpen),
+                handleAssignmentForm(
+                  data,
+                  classroomId,
+                  assignment.id!,
+                  setOpen,
+                ),
               )()
             }
             className="ml-auto"
@@ -240,7 +210,12 @@ export default function EditAssignmentDialog(props: PropTypes) {
                   <FormLabel>Tenggat Waktu</FormLabel>
                   <Switch
                     checked={hasDeadline}
-                    onCheckedChange={setHasDeadline}
+                    onCheckedChange={(checked) => {
+                      if (!checked) {
+                        assignmentForm.setValue("deadline", null);
+                      }
+                      setHasDeadline(checked);
+                    }}
                   />
                 </div>
                 {hasDeadline && (
@@ -251,7 +226,7 @@ export default function EditAssignmentDialog(props: PropTypes) {
                       <FormItem>
                         <FormControl>
                           <DatePickerTime
-                            value={field.value}
+                            value={field.value ? field.value : ""}
                             onChange={field.onChange}
                           />
                         </FormControl>
@@ -262,6 +237,7 @@ export default function EditAssignmentDialog(props: PropTypes) {
                 )}
               </CardContent>
             </Card>
+
             <Card className="relative">
               {isPendingUploadFile ? (
                 <div className="bg-slate-600/90 absolute top-0 left-0 right-0 bottom-0 rounded-lg flex justify-center items-center">
@@ -353,7 +329,9 @@ export default function EditAssignmentDialog(props: PropTypes) {
                   <hr className="mt-4" />
                 </div>
 
-                {trackedAttachments.filter((a) => a.type === "LINK" && a.status !== "deleted").length === 0 && (
+                {trackedAttachments.filter(
+                  (a) => a.type === "LINK" && a.status !== "deleted",
+                ).length === 0 && (
                   <Button
                     onClick={() => setLinkDialogOpen(true)}
                     type="button"
@@ -369,10 +347,14 @@ export default function EditAssignmentDialog(props: PropTypes) {
                   </Button>
                 )}
 
-                {trackedAttachments.filter((a) => a.type === "LINK" && a.status !== "deleted").length > 0 && (
+                {trackedAttachments.filter(
+                  (a) => a.type === "LINK" && a.status !== "deleted",
+                ).length > 0 && (
                   <div className="grid grid-cols-3 gap-2 mt-4">
                     {trackedAttachments
-                      .filter((a) => a.type === "LINK" && a.status !== "deleted")
+                      .filter(
+                        (a) => a.type === "LINK" && a.status !== "deleted",
+                      )
                       .map((item) => (
                         <LinkItem
                           key={item.id}
@@ -383,57 +365,6 @@ export default function EditAssignmentDialog(props: PropTypes) {
                       ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-            <Card className="mx-auto p-2 rounded-xl">
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div className="font-bold">Rubrik Penilaian</div>
-                  <div className="text-sm text-gray-500">
-                    Total: {totalScore}/100
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex gap-4 items-end">
-                  <div className="grid gap-2">
-                    <Label>Nama</Label>
-                    <Input
-                      value={rubricName}
-                      onChange={(e) => setRubricName(e.target.value)}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>Nilai</Label>
-                    <Input
-                      value={rubricValue}
-                      onChange={(e) => setRubricValue(e.target.value)}
-                      inputMode="numeric"
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => handleAddRubric(rubricName, rubricValue)}
-                    disabled={!canAddRubric || !rubricName || !rubricValue}
-                  >
-                    Tambah Rubrik
-                  </Button>
-                </div>
-                {arrayOfRubrics.length > 0 ? (
-                  <div className="grid grid-cols-3">
-                    {arrayOfRubrics.map((rubric, index) => (
-                      <RubrikItem
-                        key={index}
-                        index={index}
-                        name={rubric.name}
-                        score={rubric.score}
-                        arrayOfRubrics={arrayOfRubrics}
-                        setArrayOfRubrics={setArrayOfRubrics}
-                      />
-                    ))}
-                  </div>
-                ) : null}
               </CardContent>
             </Card>
           </form>

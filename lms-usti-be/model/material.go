@@ -10,9 +10,8 @@ import (
 type AttachmentType string
 
 const (
-	AttachmentTypeFile  AttachmentType = "FILE"
-	AttachmentTypeVideo AttachmentType = "VIDEO"
-	AttachmentTypeLink  AttachmentType = "LINK"
+	AttachmentTypeFile AttachmentType = "FILE"
+	AttachmentTypeLink AttachmentType = "LINK"
 )
 
 type Material struct {
