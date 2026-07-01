@@ -23,11 +23,6 @@ const useEditAssignmentDialog = () => {
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
   const [hasDeadline, setHasDeadline] = useState(false);
-  const [arrayOfRubrics, setArrayOfRubrics] = useState<
-    { name: string; score: string }[]
-  >([]);
-  const [rubricName, setRubricName] = useState("");
-  const [rubricValue, setRubricValue] = useState("");
 
   const assignmentForm = useForm({
     defaultValues: {
@@ -49,31 +44,10 @@ const useEditAssignmentDialog = () => {
     assignmentForm.setValue("attachments", nonDeleted as IAttachment[]);
   }, [trackedAttachments]);
 
-  const totalScore = arrayOfRubrics.reduce(
-    (sum, r) => sum + (parseInt(r.score) || 0),
-    0,
-  );
-  const canAddRubric = totalScore < 100;
-
-  useEffect(() => {
-    assignmentForm.setValue("rubrics", arrayOfRubrics);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [arrayOfRubrics]);
-
-  const handleAddRubric = (rubricName: string, rubricScore: string) => {
-    setArrayOfRubrics((prev) => [
-      ...prev,
-      { name: rubricName, score: rubricScore },
-    ]);
-    setRubricName("");
-    setRubricValue("");
-  };
-
   const orphanedNewFilesRef = useRef<Set<string>>(new Set());
 
   const resetState = (setOpen: Dispatch<SetStateAction<string>>) => {
     setTrackedAttachments([]);
-    setArrayOfRubrics([]);
     setHasDeadline(false);
     setIsPending(false);
     setOpen("closed");
@@ -85,15 +59,13 @@ const useEditAssignmentDialog = () => {
     assignmentId: string,
     setOpen: Dispatch<SetStateAction<string>>,
   ) => {
+    console.log(data)
     try {
       setIsPending(true);
       const payload = {
         title: data.title,
-        deadline: data.deadline || undefined,
+        deadline: hasDeadline ? data.deadline : null,
         instruction: data.instruction || undefined,
-        rubrics: data.rubrics
-          ?.filter((r) => r.name && r.score)
-          .map((r) => ({ name: r.name, score: parseInt(r.score) || 0 })) || [],
         attachments: trackedAttachments.filter((f) => f.status !== "deleted"),
       };
       await editAssignment(payload, classroomId, assignmentId);
@@ -201,15 +173,6 @@ const useEditAssignmentDialog = () => {
     initializeAttachments,
     hasDeadline,
     setHasDeadline,
-    arrayOfRubrics,
-    setArrayOfRubrics,
-    handleAddRubric,
-    rubricName,
-    rubricValue,
-    setRubricName,
-    setRubricValue,
-    totalScore,
-    canAddRubric,
   };
 };
 

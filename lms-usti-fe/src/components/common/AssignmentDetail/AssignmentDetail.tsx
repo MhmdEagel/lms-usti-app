@@ -13,7 +13,6 @@ import { ArrowLeft, FileText } from "lucide-react";
 import { assignmentServices } from "@/services/assignment.service";
 import type { IAssignment, IMySubmission } from "@/types/Classroom";
 import AssignmentAttachmentSection from "./AssignmentAttachmentSection";
-import AssignmentRubricSection from "./AssignmentRubricSection";
 import LinkMaterialItem from "../MaterialDetail/LinkMaterialItem/LinkMaterialItem";
 import AssignmentAction from "./AssignmentAction";
 import SubmitAssignmentDialog from "./SubmitAssignmentDialog/SubmitAssignmentDialog";
@@ -68,9 +67,6 @@ export default async function AssignmentDetail(props: PropTypes) {
       .tz("Asia/Jakarta")
       .isBefore(dayjs().tz("Asia/Jakarta"));
 
-  const maxScore = data.rubrics
-    ? data.rubrics.reduce((sum, r) => sum + r.score, 0)
-    : 0;
   const submissionStatus =
     !mySubmission || mySubmission.status !== "submitted"
       ? "not_submitted"
@@ -117,7 +113,7 @@ export default async function AssignmentDetail(props: PropTypes) {
             <div className="flex flex-col lg:flex-row">
               <div className="flex-1 min-w-0">
                 <CardHeader>
-                  <div className="flex gap-4 items-start w-full">
+                  <div className="flex gap-4 items-center w-full">
                     <div className="bg-primary p-4 border rounded-full shrink-0">
                       <FileText color="white" />
                     </div>
@@ -199,7 +195,7 @@ export default async function AssignmentDetail(props: PropTypes) {
             <div className="flex flex-col lg:flex-row">
               <div className="flex-1 min-w-0">
                 <CardHeader>
-                  <div className="flex gap-4 items-start w-full">
+                  <div className="flex gap-4 items-center w-full">
                     <div className="bg-primary p-4 border rounded-full shrink-0">
                       <FileText color="white" />
                     </div>
@@ -314,20 +310,7 @@ export default async function AssignmentDetail(props: PropTypes) {
           </CardContent>
         </Card>
       </div>
-      {data.rubrics && data.rubrics.length > 0 && (
-        <div className="p-4 w-full">
-          <Card>
-            <CardHeader className="border-b-2 pb-2">
-              <div className="text-base md:text-xl font-bold">
-                RUBRIK PENILAIAN
-              </div>
-            </CardHeader>
-            <CardContent>
-              <AssignmentRubricSection rubrics={data.rubrics} />
-            </CardContent>
-          </Card>
-        </div>
-      )}
+
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card"
 
 export default function WaitingGradeListSkeleton() {
   return (
-    <Card>
+    <Card className="max-w-2xl">
       <CardHeader>
         <Skeleton className="h-6 w-64" />
       </CardHeader>

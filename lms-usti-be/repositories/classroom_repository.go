@@ -26,6 +26,7 @@ type ClassroomRepositoryInterface interface {
 	FindAllClassroomMahasiswa(classroomId string) (mahasiswa []model.ClassroomMahasiswa, err error)
 	RemoveMember(classroomId string, memberId string) error
 	GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error)
+	GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error)
 }
 
 func NewClassroomRepository(Db *gorm.DB) ClassroomRepositoryInterface {
@@ -198,6 +199,50 @@ func (c *ClassroomRepository) Delete(classroomId string, dosenId string) error {
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+func (c *ClassroomRepository) GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error) {
+	result := data.MahasiswaDashboardStatsResponse{
+		UpcomingAssignments: []data.MahasiswaAssignmentItem{},
+	}
+
+	rows, err := c.Db.Raw(`
+		SELECT
+			a.id AS assignment_id,
+			a.title AS assignment_title,
+			a.classroom_id,
+			c.class_name AS classroom_name,
+			a.deadline,
+			CASE
+				WHEN a.deadline IS NULL THEN NULL
+				ELSE DATEDIFF(a.deadline, NOW())
+			END AS days_remaining
+		FROM assignments a
+		JOIN classrooms c ON c.id = a.classroom_id
+		JOIN classroom_mahasiswas cm ON cm.classroom_id = a.classroom_id
+		LEFT JOIN submissions s ON s.assignment_id = a.id AND s.student_id = cm.user_id
+		WHERE cm.user_id = ?
+		  AND (s.id IS NULL OR s.status = 'not_submitted')
+	`, mahasiswaId).Rows()
+	if err != nil {
+		return result, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var item data.MahasiswaAssignmentItem
+		var deadline *string
+		var daysRemaining *int
+		if err := rows.Scan(&item.AssignmentID, &item.AssignmentTitle, &item.ClassroomID, &item.ClassroomName, &deadline, &daysRemaining); err != nil {
+			return result, err
+		}
+		item.Deadline = deadline
+		item.DaysRemaining = daysRemaining
+
+		result.UpcomingAssignments = append(result.UpcomingAssignments, item)
+	}
+
+	return result, nil
 }
 
 func (c *ClassroomRepository) GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error) {

@@ -13,7 +13,6 @@ type AssignmentRepository struct {
 
 type AssignmentRepositoryInterface interface {
 	Create(assignment *model.Assignment) error
-	CreateRubrics(assignmentRubric []model.AssignmentRubric) error
 	CreateAttachments(attachments []model.AssignmentAttachment) error
 	CreateSubmissions(submissions []model.Submission) error
 	FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error)
@@ -21,7 +20,6 @@ type AssignmentRepositoryInterface interface {
 	FindById(assignmentId, classroomId string) (assignment model.Assignment, err error)
 	Update(assignment model.Assignment) error
 	Delete(assignmentId string, classroomId string) error
-	DeleteRubrics(assignmentRubrics []model.AssignmentRubric) error
 	DeleteAttachments(assignmentId string) error
 	Transaction(fn func(repo AssignmentRepositoryInterface) error) error
 	FindWaitingGrade(dosenId string) ([]data.AssignmentWaitingGradeResponse, error)
@@ -39,13 +37,6 @@ func (a *AssignmentRepository) Create(assignment *model.Assignment) error {
 	return nil
 }
 
-func (a *AssignmentRepository) CreateRubrics(assignmentRubric []model.AssignmentRubric) error {
-	result := a.Db.Create(assignmentRubric)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
 func (a *AssignmentRepository) FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
 	var assignments []model.Assignment
 	result = &data.PaginationWithData{Pagination: pagination}
@@ -62,7 +53,7 @@ func (a *AssignmentRepository) FindAll(classroomId string, search string, pagina
 }
 
 func (a *AssignmentRepository) FindById(assignmentId, classroomId string) (assignment model.Assignment, err error) {
-	result := a.Db.Preload("Rubrics").Preload("Attachments").Where("id = ? AND classroom_id = ?", assignmentId, classroomId).First(&assignment)
+	result := a.Db.Preload("Attachments").Where("id = ? AND classroom_id = ?", assignmentId, classroomId).First(&assignment)
 	if result.Error != nil {
 		return model.Assignment{}, result.Error
 	}
@@ -70,14 +61,14 @@ func (a *AssignmentRepository) FindById(assignmentId, classroomId string) (assig
 }
 
 func (a *AssignmentRepository) Update(assignment model.Assignment) error {
-	res := a.Db.Where("id = ? AND classroom_id = ?", assignment.ID, assignment.ClassroomId).Model(&model.Assignment{}).Updates(assignment)
+	res := a.Db.Where("id = ? AND classroom_id = ?", assignment.ID, assignment.ClassroomId).Model(&model.Assignment{}).Select("Title", "Deadline", "Instruction").Updates(assignment)
 	if res.Error != nil {
 		return res.Error
 	}
 	return nil
 }
 func (a *AssignmentRepository) Delete(assignmentId, classroomId string) error {
-	res := a.Db.Where("id = ? AND classroom_id = ? ", assignmentId, classroomId).Delete(model.Assignment{})
+	res := a.Db.Where("id = ? AND classroom_id = ? ", assignmentId, classroomId).Delete(&model.Assignment{})
 	if res.Error != nil {
 		return res.Error
 	}
@@ -96,14 +87,6 @@ func (a *AssignmentRepository) FindAllClassroomMahasiswa(classroomId string) (ma
 
 func (a *AssignmentRepository) CreateSubmissions(submissions []model.Submission) error {
 	return a.Db.Create(&submissions).Error
-}
-
-func (a *AssignmentRepository) DeleteRubrics(assignmentRubrics []model.AssignmentRubric) error {
-	res := a.Db.Delete(&assignmentRubrics)
-	if res.Error != nil {
-		return res.Error
-	}
-	return nil
 }
 
 func (a *AssignmentRepository) CreateAttachments(attachments []model.AssignmentAttachment) error {

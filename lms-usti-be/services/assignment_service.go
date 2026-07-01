@@ -2,7 +2,6 @@ package services
 
 import (
 	"database/sql"
-	"time"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/lib"
@@ -35,32 +34,14 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 	}
 	return a.assignmentRepository.Transaction(
 		func(repo repositories.AssignmentRepositoryInterface) error {
-			deadline := time.Time{}
-			if assignmentRequest.Deadline != nil {
-				deadline = *assignmentRequest.Deadline
-			}
 			assignment := &model.Assignment{
 				Title:       assignmentRequest.Title,
-				Deadline:    deadline,
+				Deadline:    lib.ToNullTime(assignmentRequest.Deadline),
 				Instruction: assignmentRequest.Instruction,
 				ClassroomId: classroom.ID,
 			}
 			if err := repo.Create(assignment); err != nil {
 				return err
-			}
-			var assignmentRubrics []model.AssignmentRubric
-			for _, v := range assignmentRequest.Rubrics {
-				assignmentRubric := model.AssignmentRubric{
-					Name:         v.Name,
-					Score:        v.Score,
-					AssignmentId: assignment.ID,
-				}
-				assignmentRubrics = append(assignmentRubrics, assignmentRubric)
-			}
-			if len(assignmentRubrics) > 0 {
-				if err := repo.CreateRubrics(assignmentRubrics); err != nil {
-					return err
-				}
 			}
 			var assignmentAttachments []model.AssignmentAttachment
 			for _, v := range assignmentRequest.Attachments {
@@ -137,7 +118,7 @@ func (a *AssignmentService) FindAll(classroomId string, search string, paginatio
 				ID:                 v.ID,
 				Title:              v.Title,
 				Instruction:        v.Instruction,
-				Deadline:           v.Deadline,
+				Deadline:           lib.FromNullTime(v.Deadline),
 				Stats:              &stats,
 				MySubmissionStatus: "",
 				MyScore:            nil,
@@ -169,20 +150,12 @@ func (a *AssignmentService) FindById(assignmentId, classroomId string) (assignme
 	result := data.AssignmentDetailResponse{
 		ID:            res.ID,
 		Title:         res.Title,
-		Deadline:      res.Deadline,
+		Deadline:      lib.FromNullTime(res.Deadline),
 		Instruction:   res.Instruction,
 		ClassroomName: classroom.ClassName,
 	}
 	stats, _ := a.submissionService.GetSubmissionStats(assignmentId)
 	result.Stats = &stats
-	for _, v := range res.Rubrics {
-		rubric := data.AssignmentRubricResponse{
-			ID:    v.ID,
-			Name:  v.Name,
-			Score: v.Score,
-		}
-		result.Rubrics = append(result.Rubrics, rubric)
-	}
 	for _, v := range res.Attachments {
 		attachment := data.AttachmentResponse{
 			Id:         v.ID,
@@ -214,31 +187,9 @@ func (a *AssignmentService) Update(assignmentRequest data.AssignmentUpdateReques
 			if assignmentRequest.Instruction != nil {
 				res.Instruction = *assignmentRequest.Instruction
 			}
-			if assignmentRequest.Deadline != nil {
-				res.Deadline = *assignmentRequest.Deadline
-			}
+			res.Deadline = lib.ToNullTime(assignmentRequest.Deadline)
 			if err := repo.Update(res); err != nil {
 				return err
-			}
-			var updatedRubrics []model.AssignmentRubric
-			for _, v := range assignmentRequest.Rubrics {
-				rubric := model.AssignmentRubric{
-					Name:         v.Name,
-					Score:        v.Score,
-					AssignmentId: assignmentRequest.ID,
-				}
-				updatedRubrics = append(updatedRubrics, rubric)
-			}
-
-			if len(res.Rubrics) > 0 {
-				if err := repo.DeleteRubrics(res.Rubrics); err != nil {
-					return err
-				}
-			}
-			if len(updatedRubrics) > 0 {
-				if err := repo.CreateRubrics(updatedRubrics); err != nil {
-					return err
-				}
 			}
 			var updatedAttachments []model.AssignmentAttachment
 			for _, v := range assignmentRequest.Attachments {

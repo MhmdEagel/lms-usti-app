@@ -27,7 +27,7 @@ type SubmissionAttachment struct {
 	Url          string         `gorm:"not null"`
 	UniqueName   string
 	SubmissionId string
-	Submission   Submission `gorm:"foreignKey:SubmissionId"`
+	Submission   Submission `gorm:"foreignKey:SubmissionId;constraint:OnDelete:CASCADE;"`
 }
 
 func (submission *Submission) BeforeCreate(tx *gorm.DB) error {

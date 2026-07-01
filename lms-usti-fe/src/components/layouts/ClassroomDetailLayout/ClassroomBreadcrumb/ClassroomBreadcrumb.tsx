@@ -17,7 +17,7 @@ interface PropTypes {
 export default function ClassroomBreadcrumb(props: PropTypes) {
   const { classroomName, type, classroomId } = props;
   const pathname = usePathname();
-  const validPages = ["materi", "tugas", "mahasiswa", "pengaturan"];
+  const validPages = ["materi", "tugas", "mahasiswa", "pengaturan", "anggota"];
   const segments = pathname.split("/").filter(Boolean);
   const lastSegment = segments[segments.length - 1];
   const page = validPages.includes(lastSegment) ? lastSegment : null;

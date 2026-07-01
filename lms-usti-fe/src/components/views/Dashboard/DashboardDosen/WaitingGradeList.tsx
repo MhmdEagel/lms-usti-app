@@ -28,7 +28,7 @@ export default async function WaitingGradeList() {
   }, {})
 
   return (
-    <Card>
+    <Card className="max-w-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
           <ClipboardList size={24} />
@@ -45,7 +45,7 @@ export default async function WaitingGradeList() {
                 <CardHeader>
                   <CardTitle className="text-base">{items[0].classroom_name}</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <CardContent className="grid grid-cols-1 gap-3">
                   {items.map((wg) => (
                     <Link key={wg.submission_id} href={`/dosen/kelas/${classroomId}/tugas/${wg.assignment_id}/penilaian`}>
                       <Card className="hover:bg-muted/50 transition-colors cursor-pointer">

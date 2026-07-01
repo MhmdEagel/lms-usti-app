@@ -98,7 +98,6 @@ interface IAssignment {
   classroom_name: string;
   deadline?: string?;
   instruction?: string?;
-  rubrics?: IRubrics[];
   attachments?: IAttachment[];
   stats?: SubmissionStats | null;
   my_submission_status?: string;
@@ -114,16 +113,9 @@ interface SubmissionStats {
 interface IUpdateAssignment {
   id?: string?;
   title?: string;
-  deadline?: string;
+  deadline?: string | null;
   instruction?: string;
-  rubrics?: IRubrics[];
   attachments?: IAttachment[];
-}
-
-interface IRubrics {
-  id?: string?;
-  name: string;
-  score: number;
 }
 interface IClassroomMemberDetail {
   class_name: string;
@@ -169,6 +161,19 @@ interface IMySubmission {
   attachments?: { name: string; type: string; url: string; unique_name: string }[];
 }
 
+interface IMahasiswaAssignmentItem {
+  assignment_id: string;
+  assignment_title: string;
+  classroom_id: string;
+  classroom_name: string;
+  deadline: string | null;
+  days_remaining: number | null;
+}
+
+interface IMahasiswaDashboardStats {
+  upcoming_assignments: IMahasiswaAssignmentItem[];
+}
+
 interface IDashboardStats {
   total_classrooms: number;
   total_students: number;
@@ -212,7 +217,6 @@ export type {
 
   IAssignment,
   IUpdateAssignment,
-  IRubrics,
   SubmissionStats,
   IClassroomMemberDetail,
   ISubmissionDetail,
@@ -221,4 +225,6 @@ export type {
   IDashboardStats,
   IAssignmentWaitingGrade,
   IComment,
+  IMahasiswaAssignmentItem,
+  IMahasiswaDashboardStats,
 };
