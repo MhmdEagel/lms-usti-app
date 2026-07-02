@@ -4,6 +4,7 @@ const endpoint = {
     MEDIA: "/media",
     ADMIN: "/admin",
     PROFILE: "/auth/me/profile",
-    OTP: "/auth/me"
+    OTP: "/auth/me",
+    FORUM: "/forum"
 }
 export default endpoint
