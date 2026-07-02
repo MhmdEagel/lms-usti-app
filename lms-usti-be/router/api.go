@@ -138,15 +138,15 @@ func InitRouter() *gin.Engine {
 
 			classroom.GET("/:id/materials/:materialId/comments", commentController.FindAll)
 			classroom.POST("/:id/materials/:materialId/comments", commentController.Create)
-			classroom.DELETE("/:id/materials/:materialId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA"}), commentController.Delete)
+			classroom.DELETE("/:id/materials/:materialId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA", "PRODI"}), commentController.Delete)
 
 			classroom.GET("/:id/assignments/:assignmentId/comments", commentController.FindAll)
 			classroom.POST("/:id/assignments/:assignmentId/comments", commentController.Create)
-			classroom.DELETE("/:id/assignments/:assignmentId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA"}), commentController.Delete)
+			classroom.DELETE("/:id/assignments/:assignmentId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA", "PRODI"}), commentController.Delete)
 
 			classroom.GET("/:id/announcements/:announcementId/comments", commentController.FindAll)
 			classroom.POST("/:id/announcements/:announcementId/comments", commentController.Create)
-			classroom.DELETE("/:id/announcements/:announcementId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA"}), commentController.Delete)
+			classroom.DELETE("/:id/announcements/:announcementId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA", "PRODI"}), commentController.Delete)
 		}
 		forumService := services.NewForumService(forumRepository, commentRepository)
 		forumController := controllers.NewForumController(forumService)
@@ -161,7 +161,7 @@ func InitRouter() *gin.Engine {
 
 			forum.GET("/posts/:postId/comments", commentController.FindAll)
 			forum.POST("/posts/:postId/comments", commentController.Create)
-			forum.DELETE("/posts/:postId/comments/:commentId", commentController.Delete)
+			forum.DELETE("/posts/:postId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA", "PRODI"}), commentController.Delete)
 		}
 
 		media := api.Group("/media")

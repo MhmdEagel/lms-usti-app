@@ -27,7 +27,7 @@ const loginUser = async (data: ILogin, callbackUrl?: string) => {
     if (role === "MAHASISWA") {
       redirect("/mahasiswa");
     } else if (role === "ADMIN") {
-      redirect("/admin");
+      redirect("/admin/users");
     } else if (role === "PRODI") {
       redirect("/prodi")
     } else {
