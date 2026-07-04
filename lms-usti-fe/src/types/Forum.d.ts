@@ -4,6 +4,7 @@ interface IForumPost {
   content: string;
   author_name: string;
   author_profile: string;
+  created_by: string;
   is_pinned: boolean;
   created_at: string;
 }
@@ -14,6 +15,7 @@ interface IForumPostDetail {
   content: string;
   author_name: string;
   author_profile: string;
+  created_by: string;
   is_pinned: boolean;
   created_at: string;
   comments: IComment[];

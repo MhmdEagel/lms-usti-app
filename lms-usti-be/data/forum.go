@@ -6,22 +6,24 @@ type CreateForumPostRequest struct {
 }
 
 type ForumPostResponse struct {
-	ID          string `json:"id"`
-	Title       string `json:"title"`
-	Content     string `json:"content"`
-	AuthorName  string `json:"author_name"`
+	ID            string `json:"id"`
+	Title         string `json:"title"`
+	Content       string `json:"content"`
+	AuthorName    string `json:"author_name"`
 	AuthorProfile string `json:"author_profile"`
-	IsPinned    bool   `json:"is_pinned"`
-	CreatedAt   string `json:"created_at"`
+	CreatedBy     string `json:"created_by"`
+	IsPinned      bool   `json:"is_pinned"`
+	CreatedAt     string `json:"created_at"`
 }
 
 type ForumPostDetailResponse struct {
-	ID          string            `json:"id"`
-	Title       string            `json:"title"`
-	Content     string            `json:"content"`
-	AuthorName  string            `json:"author_name"`
-	AuthorProfile string          `json:"author_profile"`
-	IsPinned    bool              `json:"is_pinned"`
-	CreatedAt   string            `json:"created_at"`
-	Comments    []CommentResponse `json:"comments,omitempty"`
+	ID            string            `json:"id"`
+	Title         string            `json:"title"`
+	Content       string            `json:"content"`
+	AuthorName    string            `json:"author_name"`
+	AuthorProfile string            `json:"author_profile"`
+	CreatedBy     string            `json:"created_by"`
+	IsPinned      bool              `json:"is_pinned"`
+	CreatedAt     string            `json:"created_at"`
+	Comments      []CommentResponse `json:"comments,omitempty"`
 }

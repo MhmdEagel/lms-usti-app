@@ -8,6 +8,10 @@ export const DASHBOARD_TITLE_DOSEN = [
         title: "Kelas",
     },
     {
+        path: "/dosen/forum",
+        title: "Forum",
+    },
+    {
         path: "/dosen/pengaturan",
         title: "Pengaturan"
     }

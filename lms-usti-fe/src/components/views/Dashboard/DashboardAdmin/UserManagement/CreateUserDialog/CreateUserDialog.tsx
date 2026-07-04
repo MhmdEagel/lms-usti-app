@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Eye, EyeOff, Plus } from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -36,10 +36,12 @@ export default function CreateUserDialog() {
   const {
     isOpen,
     isPending,
+    isVisible,
     setIsOpen,
     createUserForm,
     handleCreateUser,
     handleCloseForm,
+    handleVisibility,
   } = useCreateUserDialog();
 
   return (
@@ -98,11 +100,35 @@ export default function CreateUserDialog() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Password (min 8 karakter)"
-                        {...field}
-                      />
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          className="pe-9"
+                          value={field.value ?? ""}
+                          type={isVisible ? "text" : "password"}
+                          placeholder="Password (min 8 karakter)"
+                        />
+                        <button
+                          className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10 focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+                          type="button"
+                          onClick={handleVisibility}
+                          aria-label={
+                            isVisible ? "Hide password" : "Show password"
+                          }
+                          aria-pressed={isVisible}
+                          aria-controls="password"
+                        >
+                          {isVisible ? (
+                            <Eye size={16} strokeWidth={2} aria-hidden="true" />
+                          ) : (
+                            <EyeOff
+                              size={16}
+                              strokeWidth={2}
+                              aria-hidden="true"
+                            />
+                          )}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

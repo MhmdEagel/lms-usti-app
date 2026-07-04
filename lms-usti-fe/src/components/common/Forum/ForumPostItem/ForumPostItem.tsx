@@ -48,7 +48,7 @@ export default function ForumPostItem({ post, currentUserId, currentRole }: Prop
     .toUpperCase()
     .slice(0, 2);
 
-  const canDelete = currentRole === "PRODI" || currentRole === "DOSEN";
+  const canDelete = currentRole === "PRODI" || post.created_by === currentUserId;
 
   const handleToggleComments = async () => {
     if (expanded) {

@@ -8,6 +8,8 @@ import { z } from "zod";
 const useCreateUserDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const handleVisibility = () => setIsVisible((prev) => !prev);
   const createUserForm = useForm({
     resolver: zodResolver(createUserSchema),
   });
@@ -33,10 +35,12 @@ const useCreateUserDialog = () => {
   return {
     isOpen,
     isPending,
+    isVisible,
     setIsOpen,
     createUserForm,
     handleCreateUser,
     handleCloseForm,
+    handleVisibility,
   };
 };
 

@@ -12,6 +12,7 @@ export async function updateProfile(data: IUpdateProfileRequest) {
     revalidatePath("/admin/pengaturan");
     revalidatePath("/dosen/pengaturan");
     revalidatePath("/mahasiswa/pengaturan");
+    revalidatePath("/prodi/pengaturan");
     return res.data;
   } catch (error) {
     if (error instanceof AxiosError) {

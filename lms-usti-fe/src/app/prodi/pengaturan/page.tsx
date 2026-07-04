@@ -1,3 +1,17 @@
-export default function ProdiPengaturanPage() {
-  return <div className="p-4"><h1 className="text-2xl font-bold">Ini halaman Pengaturan</h1></div>;
+import { getCurrentUser } from "@/lib/auth";
+import ProfileContent from "@/components/views/Dashboard/Profile/ProfileContent";
+import ProfileSkeleton from "@/components/views/Dashboard/Profile/ProfileSkeleton";
+import { Suspense } from "react";
+
+async function ProfileSection() {
+  const user = await getCurrentUser();
+  return <ProfileContent user={user} />;
+}
+
+export default function PengaturanPage() {
+  return (
+    <Suspense fallback={<ProfileSkeleton />}>
+      <ProfileSection />
+    </Suspense>
+  );
 }

@@ -49,6 +49,7 @@ func (f *ForumService) FindAllPosts() ([]data.ForumPostResponse, error) {
 			Content:       p.Content,
 			AuthorName:    p.Author.Fullname,
 			AuthorProfile: p.Author.Image,
+			CreatedBy:     p.CreatedBy,
 			IsPinned:      p.IsPinned,
 			CreatedAt:     p.CreatedAt.Format(time.RFC3339Nano),
 		})
@@ -84,6 +85,7 @@ func (f *ForumService) FindPostById(id string) (data.ForumPostDetailResponse, er
 		Content:       post.Content,
 		AuthorName:    post.Author.Fullname,
 		AuthorProfile: post.Author.Image,
+		CreatedBy:     post.CreatedBy,
 		IsPinned:      post.IsPinned,
 		CreatedAt:     post.CreatedAt.Format(time.RFC3339Nano),
 		Comments:      commentRes,
