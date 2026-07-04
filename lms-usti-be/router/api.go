@@ -155,9 +155,9 @@ func InitRouter() *gin.Engine {
 		forum.Use(authMiddleware.Handle())
 		{
 			forum.GET("/posts", forumController.FindAllPosts)
-			forum.POST("/posts", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), forumController.CreatePost)
+			forum.POST("/posts", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA", "PRODI"}), forumController.CreatePost)
 			forum.GET("/posts/:postId", forumController.FindPostById)
-			forum.DELETE("/posts/:postId", forumController.DeletePost)
+			forum.DELETE("/posts/:postId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA", "PRODI"}), forumController.DeletePost)
 
 			forum.GET("/posts/:postId/comments", commentController.FindAll)
 			forum.POST("/posts/:postId/comments", commentController.Create)

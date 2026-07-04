@@ -45,7 +45,7 @@ export default function CommentItem({
     .toUpperCase()
     .slice(0, 2);
   const canDelete =
-    currentRole === "DOSEN" || comment.created_by === currentUserId;
+    currentRole === "PRODI" || comment.created_by === currentUserId;
 
   return (
     <div className="flex gap-3">

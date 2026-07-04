@@ -90,13 +90,13 @@ func (c *CommentController) Delete(ctx *gin.Context) {
 		return
 	}
 	commentId := ctx.Param("commentId")
-	if user.Role == "MAHASISWA" {
-		if err := c.commentService.Delete(commentId, user.UserId); err != nil {
+	if user.Role == "PRODI" {
+		if err := c.commentService.DeleteByID(commentId); err != nil {
 			handleError(ctx, err)
 			return
 		}
 	} else {
-		if err := c.commentService.DeleteByID(commentId); err != nil {
+		if err := c.commentService.Delete(commentId, user.UserId); err != nil {
 			handleError(ctx, err)
 			return
 		}

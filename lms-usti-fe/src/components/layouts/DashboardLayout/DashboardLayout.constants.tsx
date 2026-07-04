@@ -41,6 +41,12 @@ const SIDEBAR_DOSEN = [
     icon: <School />,
   },
   {
+    key: "forum",
+    label: "Forum",
+    href: "/dosen/forum",
+    icon: <MessageSquare />,
+  },
+  {
     key: "pengaturan",
     label: "Pengaturan",
     href: "/dosen/pengaturan",
