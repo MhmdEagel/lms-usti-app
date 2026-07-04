@@ -14,6 +14,7 @@ type CommentRepositoryInterface interface {
 	Create(comment model.Comment) error
 	Delete(commentId, createdBy string) error
 	DeleteByID(commentId string) error
+	CountByCommentableBatch(commentableType string, ids []string) (map[string]int64, error)
 }
 
 func NewCommentRepository(Db *gorm.DB) CommentRepositoryInterface {
@@ -56,4 +57,25 @@ func (c *CommentRepository) DeleteByID(commentId string) error {
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+func (c *CommentRepository) CountByCommentableBatch(commentableType string, ids []string) (map[string]int64, error) {
+	type result struct {
+		CommentableID string
+		Count         int64
+	}
+	var rows []result
+	err := c.Db.Model(&model.Comment{}).
+		Select("commentable_id, COUNT(*) as count").
+		Where("commentable_type = ? AND commentable_id IN ?", commentableType, ids).
+		Group("commentable_id").
+		Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	counts := make(map[string]int64, len(ids))
+	for _, r := range rows {
+		counts[r.CommentableID] = r.Count
+	}
+	return counts, nil
 }

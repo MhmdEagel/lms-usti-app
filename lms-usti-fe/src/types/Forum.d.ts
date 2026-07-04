@@ -6,6 +6,7 @@ interface IForumPost {
   author_profile: string;
   created_by: string;
   is_pinned: boolean;
+  comment_count: number;
   created_at: string;
 }
 

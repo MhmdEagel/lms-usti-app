@@ -13,6 +13,7 @@ type ForumPostResponse struct {
 	AuthorProfile string `json:"author_profile"`
 	CreatedBy     string `json:"created_by"`
 	IsPinned      bool   `json:"is_pinned"`
+	CommentCount  int    `json:"comment_count"`
 	CreatedAt     string `json:"created_at"`
 }
 
