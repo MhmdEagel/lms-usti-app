@@ -1,19 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Pin, Trash2, User as UserIcon } from "lucide-react";
+import { MessageSquare, Pin, Trash2 } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/id";
-import { getForumPostDetail } from "@/actions/get-forum-post-detail";
 import { deleteForumPost } from "@/actions/delete-forum-post";
 import { toast } from "sonner";
-import ForumCommentSection from "../ForumCommentSection/ForumCommentSection";
-import ForumCommentSectionSkeleton from "../ForumCommentSection/ForumCommentSectionSkeleton";
+import Link from "next/link";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +22,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { IComment } from "@/types/Classroom";
 
 dayjs.extend(relativeTime);
 dayjs.locale("id");
@@ -37,10 +33,6 @@ interface PropTypes {
 }
 
 export default function ForumPostItem({ post, currentUserId, currentRole }: PropTypes) {
-  const [expanded, setExpanded] = useState(false);
-  const [loadingComments, setLoadingComments] = useState(false);
-  const [comments, setComments] = useState<IComment[] | null>(null);
-
   const initials = post.author_name
     .split(" ")
     .map((n: string) => n[0])
@@ -49,22 +41,7 @@ export default function ForumPostItem({ post, currentUserId, currentRole }: Prop
     .slice(0, 2);
 
   const canDelete = currentRole === "PRODI" || post.created_by === currentUserId;
-
-  const handleToggleComments = async () => {
-    if (expanded) {
-      setExpanded(false);
-      return;
-    }
-    if (comments === null) {
-      setLoadingComments(true);
-      const res = await getForumPostDetail(post.id);
-      setLoadingComments(false);
-      if (res.data) {
-        setComments(res.data.comments);
-      }
-    }
-    setExpanded(true);
-  };
+  const forumPath = `/${currentRole.toLowerCase()}/forum/${post.id}`;
 
   const handleDelete = async () => {
     const res = await deleteForumPost(post.id);
@@ -129,20 +106,11 @@ export default function ForumPostItem({ post, currentUserId, currentRole }: Prop
           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
         />
         <div className="mt-4">
-          <Button variant="ghost" size="sm" onClick={handleToggleComments}>
-            <MessageSquare className="h-4 w-4 mr-1" />
-            Komentar
-          </Button>
+          <Link href={forumPath} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+            <MessageSquare className="h-4 w-4" />
+            {post.comment_count > 0 ? post.comment_count : null}
+          </Link>
         </div>
-        {loadingComments && <ForumCommentSectionSkeleton />}
-        {expanded && !loadingComments && comments !== null && (
-          <ForumCommentSection
-            postId={post.id}
-            initialComments={comments}
-            currentUserId={currentUserId}
-            currentRole={currentRole}
-          />
-        )}
       </CardContent>
     </Card>
   );

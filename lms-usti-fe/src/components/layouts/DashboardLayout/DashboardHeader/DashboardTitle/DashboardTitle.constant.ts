@@ -54,6 +54,10 @@ export const DASHBOARD_TITLE_PRODI = [
         title: "Forum",
     },
     {
+        path: "/prodi/forum/[postId]",
+        title: "Postingan",
+    },
+    {
         path: "/prodi/penjadwalan",
         title: "Penjadwalan",
     },

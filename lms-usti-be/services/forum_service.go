@@ -41,6 +41,17 @@ func (f *ForumService) FindAllPosts() ([]data.ForumPostResponse, error) {
 	if err != nil {
 		return nil, data.ErrInternalServer(err)
 	}
+	if len(posts) == 0 {
+		return []data.ForumPostResponse{}, nil
+	}
+	ids := make([]string, len(posts))
+	for i, p := range posts {
+		ids[i] = p.ID
+	}
+	counts, err := f.commentRepository.CountByCommentableBatch(model.CommentableTypeForumPost, ids)
+	if err != nil {
+		return nil, data.ErrInternalServer(err)
+	}
 	var res []data.ForumPostResponse
 	for _, p := range posts {
 		res = append(res, data.ForumPostResponse{
@@ -51,6 +62,7 @@ func (f *ForumService) FindAllPosts() ([]data.ForumPostResponse, error) {
 			AuthorProfile: p.Author.Image,
 			CreatedBy:     p.CreatedBy,
 			IsPinned:      p.IsPinned,
+			CommentCount:  int(counts[p.ID]),
 			CreatedAt:     p.CreatedAt.Format(time.RFC3339Nano),
 		})
 	}
