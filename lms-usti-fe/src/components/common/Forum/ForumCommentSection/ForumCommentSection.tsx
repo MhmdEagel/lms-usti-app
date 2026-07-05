@@ -22,7 +22,7 @@ export default function ForumCommentSection({
   currentUserId,
   currentRole,
 }: PropTypes) {
-  const [comments, setComments] = useState<IComment[]>(initialComments);
+  const [comments, setComments] = useState<IComment[]>(initialComments ?? []);
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -57,8 +57,10 @@ export default function ForumCommentSection({
         <ContentEditor
           onChange={setContent}
           isInvalid={false}
-          placeholder="Tulis komentar..."
-          className="min-h-[100px]"
+          placeholder="Tambahkan komentar..."
+          className="min-h-[60px]"
+          autoFocus={false}
+          showToolbarOnFocus
         />
         <div className="flex justify-end">
           <Button onClick={handleSubmit} disabled={submitting}>
@@ -67,11 +69,11 @@ export default function ForumCommentSection({
         </div>
       </div>
 
-      {comments.length === 0 ? (
+      {comments && comments.length === 0 ? (
         <p className="text-gray-400 text-center py-4">Belum ada komentar.</p>
       ) : (
         <div className="space-y-4">
-          {comments.map((comment) => (
+          {comments && comments.map((comment) => (
             <CommentItem
               key={comment.id}
               comment={comment}

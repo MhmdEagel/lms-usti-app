@@ -291,7 +291,7 @@ export default function CreateClassroom() {
                 </DialogClose>
                 <Button type="submit">
                   {isPending ? (
-                    <Spinner color="white" variant="circle" />
+                    "Menyimpan..."
                   ) : (
                     "Simpan"
                   )}

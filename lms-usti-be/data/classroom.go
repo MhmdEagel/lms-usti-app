@@ -53,12 +53,13 @@ type AnnouncementUpdateRequest struct {
 	IsPinned bool `json:"is_pinned"`
 }
 type AnnouncementResponse struct {
-	Id        string `json:"id"`
-	Title     string `json:"title"`
-	Content   string `json:"content"`
-	IsPinned  bool   `json:"is_pinned"`
-	CreatedBy string `json:"created_by"`
-	CreatedAt string `json:"created_at"`
+	Id            string `json:"id"`
+	Title         string `json:"title"`
+	Content       string `json:"content"`
+	IsPinned      bool   `json:"is_pinned"`
+	ClassroomName string `json:"classroom_name"`
+	CreatedBy     string `json:"created_by"`
+	CreatedAt     string `json:"created_at"`
 }
 
 type ClassroomResponse struct {

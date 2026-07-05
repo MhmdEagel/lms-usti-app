@@ -50,12 +50,13 @@ func (a *AnnouncementService) FindAll(classroomId string) (announcements []data.
 	}
 	for _, v := range res {
 		announcement := data.AnnouncementResponse{
-			Id:        v.ID,
-			Title:     v.Title,
-			Content:   v.Content,
-			IsPinned:  v.IsPinned,
-			CreatedBy: v.Dosen.Fullname,
-			CreatedAt: v.CreatedAt.Format(time.RFC3339Nano),
+			Id:            v.ID,
+			Title:         v.Title,
+			Content:       v.Content,
+			IsPinned:      v.IsPinned,
+			ClassroomName: v.Classroom.ClassName,
+			CreatedBy:     v.Dosen.Fullname,
+			CreatedAt:     v.CreatedAt.Format(time.RFC3339Nano),
 		}
 		announcements = append(announcements, announcement)
 	}
