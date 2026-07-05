@@ -5,12 +5,14 @@ import DashboardStatsCards from "./ClassroomCount";
 import DashboardStatsSkeleton from "./DashboardStatsSkeleton";
 import WaitingGradeList from "./WaitingGradeList";
 import WaitingGradeListSkeleton from "./WaitingGradeListSkeleton";
+import RecentForumPosts from "./RecentForumPosts";
+import RecentForumPostsSkeleton from "./RecentForumPostsSkeleton";
 import ScheduleSkeleton from "./ScheduleSkeleton";
 import WeeklySchedule from "@/components/common/WeeklySchedule/WeeklySchedule";
 
 export default async function DashboardDosen() {
   return (
-    <div className="p-4"> 
+    <div className="p-4">
       <section>
         <Card>
           <CardContent>
@@ -20,9 +22,12 @@ export default async function DashboardDosen() {
           </CardContent>
         </Card>
       </section>
-      <section className="mt-8">
+      <section className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Suspense fallback={<WaitingGradeListSkeleton />}>
           <WaitingGradeList />
+        </Suspense>
+        <Suspense fallback={<RecentForumPostsSkeleton />}>
+          <RecentForumPosts />
         </Suspense>
       </section>
       <section className="mt-8">

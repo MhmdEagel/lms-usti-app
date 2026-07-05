@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { createForumPost } from "@/actions/create-forum-post";
 import ContentEditor from "@/components/ui/content-editor";
@@ -39,9 +40,14 @@ export default function CreateForumPost() {
       <div className="flex items-center justify-between pb-4 border-b-2">
         <div className="text-base md:text-xl font-semibold">Forum Publik</div>
         {!open && (
-          <Button onClick={() => setOpen(true)} size="icon">
-            <Plus />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={() => setOpen(true)} size="icon">
+                <Plus />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Buat postingan baru</TooltipContent>
+          </Tooltip>
         )}
       </div>
       {open && (

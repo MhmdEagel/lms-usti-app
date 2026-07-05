@@ -29,7 +29,7 @@ export default function Login() {
         <div
           className={cn(
             "flex max-w-lg flex-col",
-            Object.keys(errors).length > 0 ? "gap-4" : "gap-8"
+            Object.keys(errors).length > 0 ? "gap-3" : "gap-4",
           )}
         >
           {errors.root && <ErrorCard>{errors.root.message}</ErrorCard>}
@@ -38,10 +38,10 @@ export default function Login() {
               Login
             </h1>
             <p className="text-sm text-gray-500">
-              Selamat Datang! Mulai pengalaman belajar mengajar anda bersama
+              Selamat Datang! Mulai peng alaman belajar mengajar anda bersama
               USTI.
             </p>
-        </div>
+          </div>
           <Form {...form}>
             <form
               className="flex flex-col gap-4"
@@ -54,7 +54,11 @@ export default function Login() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input {...field} value={field.value ?? ""} />
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        autoComplete="off"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -107,7 +111,11 @@ export default function Login() {
                 >
                   Lupa Password?
                 </Link>
-                <Button disabled={isPending} className="w-full mb-4" type="submit">
+                <Button
+                  disabled={isPending}
+                  className="w-full mb-4"
+                  type="submit"
+                >
                   {isPending ? (
                     <Spinner variant="circle" color="white" />
                   ) : (
@@ -117,6 +125,21 @@ export default function Login() {
               </div>
             </form>
           </Form>
+          <div className="bg-blue-100 p-4 rounded-lg text-blue-900">
+            <div className="font-bold">Akun demo</div>
+            <div className="text-sm">
+              <span>dosenusti@yopmail.com</span>
+              <span>: dosenusti123 (DOSEN)</span>
+            </div>
+            <div className="text-sm">
+              <span>mahasiswausti@yopmail.com</span>
+              <span>: mahasiswausti123 (MAHASISWA)</span>
+            </div>
+            <div className="text-sm">
+              <span>proditi@yopmail.com</span>
+              <span>: proditi123 (PRODI)</span>
+            </div>
+          </div>
         </div>
         <div className="absolute left-1 top-1">
           <Image

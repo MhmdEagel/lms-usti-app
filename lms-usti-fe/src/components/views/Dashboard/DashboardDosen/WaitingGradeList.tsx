@@ -28,7 +28,7 @@ export default async function WaitingGradeList() {
   }, {})
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
           <ClipboardList size={24} />

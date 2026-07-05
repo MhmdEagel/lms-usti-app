@@ -42,10 +42,12 @@ interface EditorProps {
   isInvalid: boolean;
   placeholder?: string;
   className?: string;
+  autoFocus?: boolean;
+  showToolbarOnFocus?: boolean;
 }
 
 export default function ContentEditor(props: EditorProps) {
-  const { onChange, isInvalid, placeholder, defaultValue, className } = props;
+  const { onChange, isInvalid, placeholder, defaultValue, className, autoFocus = true, showToolbarOnFocus = false } = props;
 
   const updateHTML = (editor: LexicalEditor, value: string, clear: boolean) => {
     const root = $getRoot();
@@ -73,30 +75,32 @@ export default function ContentEditor(props: EditorProps) {
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <ToolbarPlugin />
+      <ToolbarPlugin showToolbarOnFocus={showToolbarOnFocus} />
       <RichTextPlugin
         contentEditable={
-          <ContentEditable
-            className={cn(
-              "editor placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-h-12 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm",
-              "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-              "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-              className,
-            )}
-            aria-invalid={isInvalid}
-            defaultValue={defaultValue}
-            placeholder={
-              <div className="absolute top-12 pl-3 text-sm opacity-60 select-none overflow-hidden pointer-events-none">
-                {placeholder ?? "Masukkan konten disini..."}
-              </div>
-            }
-            aria-placeholder={placeholder ?? "Masukkan konten disini..."}
-          />
+          <div className="relative">
+            <ContentEditable
+              className={cn(
+                "editor placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-h-12 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm",
+                "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+                "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+                className,
+              )}
+              aria-invalid={isInvalid}
+              defaultValue={defaultValue}
+              placeholder={
+                <div className="absolute inset-0 px-3 py-1 text-sm opacity-60 pointer-events-none select-none overflow-hidden">
+                  {placeholder ?? "Masukkan konten disini..."}
+                </div>
+              }
+              aria-placeholder={placeholder ?? "Masukkan konten disini..."}
+            />
+          </div>
         }
         ErrorBoundary={LexicalErrorBoundary}
       />
       <HistoryPlugin />
-      <AutoFocusPlugin />
+      {autoFocus && <AutoFocusPlugin />}
       <ListPlugin />
       <EditorOnChangePlugin onChange={onChange} />
     </LexicalComposer>
@@ -123,8 +127,24 @@ function EditorOnChangePlugin(props: EditorOnChangeProps) {
   );
 }
 
-function ToolbarPlugin() {
+function ToolbarPlugin({ showToolbarOnFocus }: { showToolbarOnFocus?: boolean }) {
   const [editor] = useLexicalComposerContext();
+  const [focused, setFocused] = useState(false);
+
+  useEffect(() => {
+    const rootElement = editor.getRootElement();
+    if (!rootElement) return;
+    const onFocus = () => setFocused(true);
+    const onBlur = () => setFocused(false);
+    rootElement.addEventListener("focusin", onFocus);
+    rootElement.addEventListener("focusout", onBlur);
+    return () => {
+      rootElement.removeEventListener("focusin", onFocus);
+      rootElement.removeEventListener("focusout", onBlur);
+    };
+  }, [editor]);
+
+  if (showToolbarOnFocus && !focused) return null;
 
   function addListAction() {
     editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
