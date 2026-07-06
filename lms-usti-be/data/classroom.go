@@ -50,7 +50,9 @@ type AnnouncementRequest struct {
 	DosenId     string
 }
 type AnnouncementUpdateRequest struct {
-	IsPinned bool `json:"is_pinned"`
+	IsPinned *bool   `json:"is_pinned"`
+	Title    *string `json:"title"`
+	Content  *string `json:"content"`
 }
 type AnnouncementResponse struct {
 	Id            string `json:"id"`

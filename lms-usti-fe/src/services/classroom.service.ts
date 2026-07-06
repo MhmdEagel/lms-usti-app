@@ -37,7 +37,7 @@ export const classroomServices = {
   updateAnnouncement: (
     classroomId: string,
     announcementId: string,
-    payload: { is_pinned: boolean },
+    payload: { is_pinned?: boolean; title?: string; content?: string },
   ) =>
     instance.put(
       `${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}`,

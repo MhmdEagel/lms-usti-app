@@ -97,12 +97,32 @@ func (a *AnnouncementService) Update(announcementId, classroomId string, req dat
 	if _, err := a.classroomRepository.FindById(classroomId); err != nil {
 		return data.ErrClassroomNotFound(err)
 	}
-	if err := a.announcementRepository.UpdateIsPinned(announcementId, classroomId, req.IsPinned); err != nil {
-		if err == gorm.ErrRecordNotFound {
+
+	if req.IsPinned != nil {
+		if err := a.announcementRepository.UpdateIsPinned(announcementId, classroomId, *req.IsPinned); err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return data.ErrAnnouncementNotFound(err)
+			}
+			return data.ErrInternalServer(err)
+		}
+	}
+
+	if req.Title != nil || req.Content != nil {
+		announcement, err := a.announcementRepository.FindById(announcementId)
+		if err != nil {
 			return data.ErrAnnouncementNotFound(err)
 		}
-		return data.ErrInternalServer(err)
+		if req.Title != nil {
+			announcement.Title = *req.Title
+		}
+		if req.Content != nil {
+			announcement.Content = *req.Content
+		}
+		if err := a.announcementRepository.Update(announcement); err != nil {
+			return data.ErrInternalServer(err)
+		}
 	}
+
 	return nil
 }
 func (a *AnnouncementService) Delete(announcementId, classroomId string) error {

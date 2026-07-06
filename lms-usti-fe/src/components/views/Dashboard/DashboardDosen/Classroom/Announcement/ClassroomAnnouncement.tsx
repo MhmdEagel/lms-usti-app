@@ -25,7 +25,7 @@ export default async function ClassroomAnnouncement({
   return (
     <>
       <AddAnnouncement
-        userRole={user.data?.role}
+        userRole={user?.role}
         classroomId={classroomId}
         id={user?.id}
       />
@@ -41,7 +41,7 @@ export default async function ClassroomAnnouncement({
           ))
         ) : (
           <div className="h-32 flex justify-center items-center text-center">
-            Belum ada pengumuman kelas.
+            Belum ada forum kelas.
           </div>
         )}
       </div>

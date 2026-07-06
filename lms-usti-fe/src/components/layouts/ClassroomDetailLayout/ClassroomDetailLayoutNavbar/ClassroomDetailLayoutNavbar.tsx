@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import ClassroomDetailLayoutNavbarItem from "./ClassroomDetailLayoutNavbarItem";
-import { Book, ListTodo, Megaphone, Settings, Users } from "lucide-react";
+import { Book, ListTodo, MessageSquare, Settings, Users } from "lucide-react";
 
 export default function ClassroomDetailLayoutNavbar({
   classroomId,
@@ -22,8 +22,8 @@ export default function ClassroomDetailLayoutNavbar({
             isActive={url === `/${type}/kelas/${classroomId}`}
             href={`/${type}/kelas/${classroomId}`}
           >
-            <Megaphone size={16} />
-            <span>Pengumuman</span>
+            <MessageSquare size={16} />
+            <span>Forum Kelas</span>
           </ClassroomDetailLayoutNavbarItem>
           <ClassroomDetailLayoutNavbarItem
             isActive={url === `/${type}/kelas/${classroomId}/materi`}

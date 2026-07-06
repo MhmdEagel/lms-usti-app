@@ -53,9 +53,9 @@ func (a *AnnouncementRepository) FindById(announcementId string) (model.Announce
 	return announcement, nil
 }
 func (a *AnnouncementRepository) Update(announcement model.Announcement) error {
-	result := a.Db.Save(&announcement)
-	if result.Error != nil {
-		return result.Error
+	res := a.Db.Where("id = ?", announcement.ID).Model(&model.Announcement{}).Updates(announcement)
+	if res.Error != nil {
+		return res.Error
 	}
 	return nil
 }
