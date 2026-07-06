@@ -21,6 +21,7 @@ type Material struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	ClassroomId string
+	ViewCount   int64 `json:"view_count" gorm:"default:0"`
 	Attachments []MaterialAttachment `gorm:"foreignKey:MaterialId;constraint:OnDelete:CASCADE;"`
 }
 

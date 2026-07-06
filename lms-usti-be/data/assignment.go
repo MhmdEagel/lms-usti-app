@@ -23,6 +23,7 @@ type AssignmentDetailResponse struct {
 	ClassroomName string    `json:"classroom_name"`
 	Deadline      *time.Time `json:"deadline"`
 	Instruction   string    `json:"instruction"`
+	ViewCount     int       `json:"view_count"`
 	Stats         *SubmissionStatsResponse `json:"stats"`
 	Attachments   []AttachmentResponse       `json:"attachments"`
 }

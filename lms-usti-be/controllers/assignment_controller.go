@@ -61,7 +61,17 @@ func (a *AssignmentController) FindAll(ctx *gin.Context) {
 func (a *AssignmentController) FindById(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
 	assignmentId := ctx.Param("assignmentId")
-	assignment, err := a.assignmentService.FindById(assignmentId, classroomId)
+	val, exist := ctx.Get("user")
+	if !exist {
+		handleError(ctx, data.ErrInternalServer(nil))
+		return
+	}
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		handleError(ctx, data.ErrInternalServer(nil))
+		return
+	}
+	assignment, err := a.assignmentService.FindById(assignmentId, classroomId, user.ID)
 	if err != nil {
 		handleError(ctx, err)
 		return

@@ -10,22 +10,23 @@ import (
 )
 
 type AssignmentService struct {
-	assignmentRepository repositories.AssignmentRepositoryInterface
-	classroomRepository  repositories.ClassroomRepositoryInterface
-	submissionService    SubmissionServiceInterface
+	assignmentRepository  repositories.AssignmentRepositoryInterface
+	classroomRepository   repositories.ClassroomRepositoryInterface
+	submissionService     SubmissionServiceInterface
+	contentViewRepository repositories.ContentViewRepositoryInterface
 }
 
 type AssignmentServiceInterface interface {
 	Create(assignmentRequest data.AssignmentRequest) error
 	FindAll(classroomId string, search string, pagination data.Pagination, userID ...string) (paginatedResult *data.PaginationWithData, err error)
-	FindById(assignmentId, classroomId string) (assignment data.AssignmentDetailResponse, err error)
+	FindById(assignmentId, classroomId, userID string) (assignment data.AssignmentDetailResponse, err error)
 	Update(assignmentRequest data.AssignmentUpdateRequest) error
 	Delete(assignmentId, classroomId string) error
 	FindWaitingGrade(dosenId string) ([]data.AssignmentWaitingGradeResponse, error)
 }
 
-func NewAssignmentService(assignmentRepository repositories.AssignmentRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, submissionService SubmissionServiceInterface) AssignmentServiceInterface {
-	return &AssignmentService{assignmentRepository: assignmentRepository, classroomRepository: classroomRepository, submissionService: submissionService}
+func NewAssignmentService(assignmentRepository repositories.AssignmentRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, submissionService SubmissionServiceInterface, contentViewRepository repositories.ContentViewRepositoryInterface) AssignmentServiceInterface {
+	return &AssignmentService{assignmentRepository: assignmentRepository, classroomRepository: classroomRepository, submissionService: submissionService, contentViewRepository: contentViewRepository}
 }
 func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) error {
 	classroom, err := a.classroomRepository.FindById(assignmentRequest.ClassroomId)
@@ -138,7 +139,7 @@ func (a *AssignmentService) FindAll(classroomId string, search string, paginatio
 	return paginatedResult, nil
 }
 
-func (a *AssignmentService) FindById(assignmentId, classroomId string) (assignment data.AssignmentDetailResponse, err error) {
+func (a *AssignmentService) FindById(assignmentId, classroomId, userID string) (assignment data.AssignmentDetailResponse, err error) {
 	classroom, err := a.classroomRepository.FindById(classroomId)
 	if err != nil {
 		return assignment, data.ErrClassroomNotFound(err)
@@ -147,12 +148,27 @@ func (a *AssignmentService) FindById(assignmentId, classroomId string) (assignme
 	if err != nil {
 		return assignment, data.ErrAssignmentNotFound(err)
 	}
+	hasViewed, err := a.contentViewRepository.HasViewed(userID, model.ViewableTypeAssignment, assignmentId)
+	if err != nil {
+		return assignment, data.ErrInternalServer(err)
+	}
+	viewCount := res.ViewCount
+	if !hasViewed {
+		if err := a.contentViewRepository.RecordView(userID, model.ViewableTypeAssignment, assignmentId); err != nil {
+			return assignment, data.ErrInternalServer(err)
+		}
+		if err := a.assignmentRepository.IncrementViewCount(assignmentId); err != nil {
+			return assignment, data.ErrInternalServer(err)
+		}
+		viewCount++
+	}
 	result := data.AssignmentDetailResponse{
 		ID:            res.ID,
 		Title:         res.Title,
 		Deadline:      lib.FromNullTime(res.Deadline),
 		Instruction:   res.Instruction,
 		ClassroomName: classroom.ClassName,
+		ViewCount:     int(viewCount),
 	}
 	stats, _ := a.submissionService.GetSubmissionStats(assignmentId)
 	result.Stats = &stats

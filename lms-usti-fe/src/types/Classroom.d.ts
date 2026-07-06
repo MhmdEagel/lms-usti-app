@@ -72,6 +72,7 @@ interface IMaterial {
   id: string
   title: string;
   description: string;
+  view_count: number;
   attachments: IAttachment[];
   created_at: string;
   updated_at: string
@@ -99,6 +100,7 @@ interface IAssignment {
   classroom_name: string;
   deadline?: string?;
   instruction?: string?;
+  view_count: number;
   attachments?: IAttachment[];
   stats?: SubmissionStats | null;
   my_submission_status?: string;

@@ -9,7 +9,7 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import "dayjs/locale/id";
 import DOMPurify from "isomorphic-dompurify";
 import { getCurrentUser } from "@/lib/auth";
-import { ArrowLeft, Book } from "lucide-react";
+import { ArrowLeft, Book, Eye } from "lucide-react";
 import { materialServices } from "@/services/material.service";
 import { IMaterial } from "@/types/Classroom";
 import LinkMaterialItem from "./LinkMaterialItem";
@@ -81,6 +81,10 @@ export default async function MaterialDetail(props: PropTypes) {
                 </div>
                 <div className="text-gray-500 text-sm md:text-base">
                   {dayjs(data.created_at).format("lll")}
+                </div>
+                <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                  <Eye className="h-3 w-3" />
+                  {data.view_count} dilihat
                 </div>
               </div>
             </div>

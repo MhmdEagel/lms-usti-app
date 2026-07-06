@@ -19,6 +19,8 @@ type MaterialRepositoryInterface interface {
 	Update(material model.Material) error
 	Delete(materialId, classroomId string) error
 	DeleteAttachments(materialId string) error
+	IncrementViewCount(materialID string) error
+	GetViewCountBatch(materialIDs []string) (map[string]int64, error)
 	Transaction(fn func(repo MaterialRepositoryInterface) error) error
 }
 
@@ -84,6 +86,32 @@ func (m *MaterialRepository) DeleteAttachments(materialId string) error {
 	}
 	return nil
 }
+func (m *MaterialRepository) IncrementViewCount(materialID string) error {
+	return m.Db.Model(&model.Material{}).
+		Where("id = ?", materialID).
+		UpdateColumn("view_count", gorm.Expr("view_count + 1")).Error
+}
+
+func (m *MaterialRepository) GetViewCountBatch(materialIDs []string) (map[string]int64, error) {
+	type viewResult struct {
+		ID    string
+		Count int64
+	}
+	var rows []viewResult
+	result := m.Db.Model(&model.Material{}).
+		Select("id, view_count as count").
+		Where("id IN ?", materialIDs).
+		Scan(&rows)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	counts := make(map[string]int64, len(materialIDs))
+	for _, r := range rows {
+		counts[r.ID] = r.Count
+	}
+	return counts, nil
+}
+
 func (m *MaterialRepository) withTx(tx *gorm.DB) MaterialRepositoryInterface {
 	return &MaterialRepository{Db: tx}
 }
