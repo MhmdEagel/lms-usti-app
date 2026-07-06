@@ -33,7 +33,7 @@ func (a *AnnouncementRepository) Create(announcement model.Announcement) error {
 func (a *AnnouncementRepository) FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
 	var announcements []model.Announcement
 	result = &data.PaginationWithData{Pagination: pagination}
-	query := a.Db.Where("classroom_id = ?", classroomId).Preload("Dosen")
+	query := a.Db.Where("classroom_id = ?", classroomId).Preload("Dosen").Order("created_at DESC")
 	if search != "" {
 		query = query.Where("title LIKE ?", "%"+search+"%")
 	}
