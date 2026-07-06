@@ -40,6 +40,7 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 				Deadline:    lib.ToNullTime(assignmentRequest.Deadline),
 				Instruction: assignmentRequest.Instruction,
 				ClassroomId: classroom.ID,
+				DosenId:     assignmentRequest.DosenId,
 			}
 			if err := repo.Create(assignment); err != nil {
 				return err

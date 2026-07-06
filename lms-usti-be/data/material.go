@@ -5,6 +5,7 @@ type MaterialRequest struct {
 	Description string              `json:"description"`
 	Attachments []AttachmentRequest `json:"attachments"`
 	ClassroomId string
+	DosenId     string
 }
 
 type MaterialResponse struct {

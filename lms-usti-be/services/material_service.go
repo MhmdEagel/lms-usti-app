@@ -34,6 +34,7 @@ func (m *MaterialService) Create(materialRequest data.MaterialRequest) error {
 		Title:       materialRequest.Title,
 		Description: materialRequest.Description,
 		ClassroomId: classroom.ID,
+		DosenId:     materialRequest.DosenId,
 	}
 	if err := m.materialRepository.Create(material); err != nil {
 		return err

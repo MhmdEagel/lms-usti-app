@@ -20,6 +20,8 @@ type Material struct {
 	Description string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	DosenId     string
+	Dosen       User      `gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE"`
 	ClassroomId string
 	ViewCount   int64 `json:"view_count" gorm:"default:0"`
 	Attachments []MaterialAttachment `gorm:"foreignKey:MaterialId;constraint:OnDelete:CASCADE;"`

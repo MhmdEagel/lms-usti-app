@@ -8,6 +8,7 @@ type AssignmentRequest struct {
 	Instruction string              `json:"instruction"`
 	Attachments []AttachmentRequest `json:"attachments"`
 	ClassroomId string
+	DosenId     string
 }
 type AssignmentUpdateRequest struct {
 	ID          string

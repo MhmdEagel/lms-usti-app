@@ -143,7 +143,7 @@ func (u *ClassroomRepository) FindAllByMahasiswaId(mahasiswaId string, filter da
 }
 
 func (u *ClassroomRepository) FindAllClassroomMahasiswa(classroomId string) (mahasiswa []model.ClassroomMahasiswa, err error) {
-	result := u.Db.Where("classroom_id = ?", classroomId).Preload("User").Order("created_at DESC").Find(&mahasiswa)
+	result := u.Db.Where("classroom_id = ?", classroomId).Preload("User").Find(&mahasiswa)
 	if result.Error != nil {
 		return []model.ClassroomMahasiswa{}, result.Error
 	}
