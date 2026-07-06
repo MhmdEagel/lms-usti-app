@@ -63,7 +63,7 @@ func (s *SubmissionService) FindAll(classroomId string, assignmentId string, sea
 			Score:          v.Score,
 			Feedback:       v.Feedback,
 			Mahasiswa: data.MahasiswaResponse{
-				UserId:   v.User.ID,
+				ID:       v.User.ID,
 				Profile:  v.User.Image,
 				Fullname: v.User.Fullname,
 			},
@@ -96,7 +96,7 @@ func (s *SubmissionService) FindByAssignmentAndStudent(assignmentId, studentId s
 		Feedback:       res.Feedback,
 		Attachments:    attachments,
 		Mahasiswa: data.MahasiswaResponse{
-			UserId:   res.User.ID,
+			ID:       res.User.ID,
 			Fullname: res.User.Fullname,
 		},
 	}
@@ -122,7 +122,7 @@ func (s *SubmissionService) FindById(req data.SubmissionDetailRequest) (result d
 	}
 	submissionResponse := data.SubmissionDetailResponse{
 		Mahasiswa: data.MahasiswaResponse{
-			UserId:   submission.User.ID,
+			ID:       submission.User.ID,
 			Fullname: submission.User.Fullname,
 		},
 		Attachments: attachments,
@@ -136,7 +136,7 @@ func (s *SubmissionService) Submit(submitReq data.SubmitRequest) error {
 	if err != nil {
 		return err
 	}
-	submission, err := s.submissionRepository.FindByAssignmentIdAndStudentId(assignment.ID, submitReq.UserId)
+	submission, err := s.submissionRepository.FindByAssignmentIdAndStudentId(assignment.ID, submitReq.ID)
 	if err != nil {
 		return err
 	}

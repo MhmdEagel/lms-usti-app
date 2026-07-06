@@ -2,11 +2,11 @@ import { getForumPosts } from "@/actions/get-forum-posts";
 import ForumPostItem from "../ForumPostItem/ForumPostItem";
 
 interface PropTypes {
-  currentUserId: string;
+  currentId: string;
   currentRole: string;
 }
 
-export default async function ForumPostList({ currentUserId, currentRole }: PropTypes) {
+export default async function ForumPostList({ currentId, currentRole }: PropTypes) {
   const { data: posts } = await getForumPosts();
 
   if (!posts || posts.length === 0) {
@@ -23,7 +23,7 @@ export default async function ForumPostList({ currentUserId, currentRole }: Prop
         <ForumPostItem
           key={post.id}
           post={post}
-          currentUserId={currentUserId}
+          currentId={currentId}
           currentRole={currentRole}
         />
       ))}

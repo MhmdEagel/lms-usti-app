@@ -17,7 +17,7 @@ type AssignmentService struct {
 
 type AssignmentServiceInterface interface {
 	Create(assignmentRequest data.AssignmentRequest) error
-	FindAll(classroomId string, search string, pagination data.Pagination, userId ...string) (paginatedResult *data.PaginationWithData, err error)
+	FindAll(classroomId string, search string, pagination data.Pagination, userID ...string) (paginatedResult *data.PaginationWithData, err error)
 	FindById(assignmentId, classroomId string) (assignment data.AssignmentDetailResponse, err error)
 	Update(assignmentRequest data.AssignmentUpdateRequest) error
 	Delete(assignmentId, classroomId string) error
@@ -96,7 +96,7 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 		})
 }
 
-func (a *AssignmentService) FindAll(classroomId string, search string, pagination data.Pagination, userId ...string) (paginatedResult *data.PaginationWithData, err error) {
+func (a *AssignmentService) FindAll(classroomId string, search string, pagination data.Pagination, userID ...string) (paginatedResult *data.PaginationWithData, err error) {
 	classroom, err := a.classroomRepository.FindById(classroomId)
 	if err != nil {
 		return nil, data.ErrClassroomNotFound(err)
@@ -124,8 +124,8 @@ func (a *AssignmentService) FindAll(classroomId string, search string, paginatio
 				MyScore:            nil,
 				MySubmissionDate:   nil,
 			}
-			if len(userId) > 0 && userId[0] != "" {
-				submission, subErr := a.submissionService.FindByAssignmentAndStudent(v.ID, userId[0])
+			if len(userID) > 0 && userID[0] != "" {
+				submission, subErr := a.submissionService.FindByAssignmentAndStudent(v.ID, userID[0])
 				if subErr == nil {
 					assignment.MySubmissionStatus = submission.Status
 					assignment.MyScore = submission.Score

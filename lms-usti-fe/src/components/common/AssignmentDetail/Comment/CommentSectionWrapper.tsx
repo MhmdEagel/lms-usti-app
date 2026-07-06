@@ -12,19 +12,19 @@ const CommentSection = dynamic(
 
 interface PropTypes {
   initialComments: IComment[];
-  currentUserId: string;
+  currentId: string;
   currentRole: string;
 }
 
 export default function CommentSectionWrapper({
   initialComments,
-  currentUserId,
+  currentId,
   currentRole,
 }: PropTypes) {
   return (
     <CommentSection
       initialComments={initialComments}
-      currentUserId={currentUserId}
+      currentId={currentId}
       currentRole={currentRole}
     />
   );

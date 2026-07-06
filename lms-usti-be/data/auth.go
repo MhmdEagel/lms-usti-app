@@ -11,7 +11,7 @@ type UpdateProfileRequest struct {
 	Profile  *string `json:"profile"`
 }
 type MeResponse struct {
-	UserId   string `json:"id"`
+	ID       string `json:"id"`
 	Email    string `json:"email"`
 	Role     string `json:"role"`
 	Fullname string `json:"fullname"`
@@ -20,8 +20,8 @@ type MeResponse struct {
 	Nidn     string `json:"nidn,omitempty"`
 }
 type MahasiswaResponse struct {
-	UserId   string `json:"id"`
-	Profile string `json:"profile"`
+	ID       string `json:"id"`
+	Profile  string `json:"profile"`
 	Fullname string `json:"fullname"`
 }
 type SendOTPRequest struct {

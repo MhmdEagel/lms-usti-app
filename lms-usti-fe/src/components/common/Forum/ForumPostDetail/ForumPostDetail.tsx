@@ -16,11 +16,11 @@ dayjs.locale("id");
 
 interface PropTypes {
   post: IForumPostDetail;
-  currentUserId: string;
+  currentId: string;
   currentRole: string;
 }
 
-export default function ForumPostDetail({ post, currentUserId, currentRole }: PropTypes) {
+export default function ForumPostDetail({ post, currentId, currentRole }: PropTypes) {
   const initials = post.author_name
     .split(" ")
     .map((n) => n[0])
@@ -69,7 +69,7 @@ export default function ForumPostDetail({ post, currentUserId, currentRole }: Pr
       <ForumCommentSection
         postId={post.id}
         initialComments={post.comments}
-        currentUserId={currentUserId}
+        currentId={currentId}
         currentRole={currentRole}
       />
     </div>

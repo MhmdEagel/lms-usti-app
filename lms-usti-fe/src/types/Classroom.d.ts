@@ -121,7 +121,7 @@ interface IUpdateAssignment {
 interface IClassroomMemberDetail {
   class_name: string;
   member: {
-    userId: string;
+    id: string;
     fullname: string;
     email: string;
     profile?: string;
@@ -133,7 +133,7 @@ interface IClassroomMemberDetail {
 
 interface ISubmissionDetail {
   mahasiswa: {
-    userId: string;
+    id: string;
     fullname: string;
   };
   attachments: { name: string; type: string; url: string; unique_name: string }[];
@@ -147,7 +147,7 @@ interface ISubmission {
   score: number | null;
   feedback: string | null;
   mahasiswa: {
-    userId: string;
+    id: string;
     profile: string;
     fullname: string;
   };

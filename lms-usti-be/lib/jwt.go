@@ -9,19 +9,19 @@ import (
 )
 
 type JWTClaims struct {
-	UserId   string `json:"userId"`
+	ID       string `json:"id"`
 	Fullname string `json:"fullname"`
 	Email    string `json:"email"`
 	Role     string `json:"role"`
 	jwt.RegisteredClaims
 }
 
-func CreateToken(fullname, email, role, userId string) (string, error) {
+func CreateToken(fullname, email, role, userID string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"fullname": fullname,
 			"email":    email,
-			"userId":   userId,
+			"id":       userID,
 			"exp":      time.Now().Add(time.Hour * 24).Unix(),
 			"iat":      time.Now().Unix(),
 			"role":     role,

@@ -58,13 +58,13 @@ export default function UserAction({ user }: UserActionProps) {
       <EditUserDialog
         isOpen={openEditDialog}
         setIsOpen={setOpenEditDialog}
-        userId={user.id}
+        id={user.id}
         onSuccess={() => setOpenEditDialog(false)}
       />
       <DeleteUserDialog
         isOpen={openDeleteDialog}
         setIsOpen={setOpenDeleteDialog}
-        userId={user.id}
+        id={user.id}
       />
     </>
   );

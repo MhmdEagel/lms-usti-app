@@ -14,7 +14,7 @@ type SubmissionRequest struct {
 type SubmitRequest struct {
 	Attachments []SubmissionAttachmentRequest `json:"attachments"`
 	AssigmentId string
-	UserId      string
+	ID          string `json:"id"`
 	ClassroomId string
 }
 

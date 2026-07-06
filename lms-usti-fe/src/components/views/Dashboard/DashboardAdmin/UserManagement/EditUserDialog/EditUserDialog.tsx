@@ -30,20 +30,20 @@ import { Button } from "@/components/ui/button";
 import useEditUserDialog from "./useEditUserDialog";
 
 type EditUserDialogProps = {
-  userId: string;
+  id: string;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   onSuccess?: () => void;
 };
 
-export default function EditUserDialog({ userId, isOpen, setIsOpen, onSuccess }: EditUserDialogProps) {
+export default function EditUserDialog({ id, isOpen, setIsOpen, onSuccess }: EditUserDialogProps) {
   const {
     isPending,
     isLoading,
     editUserForm,
     handleUpdateUser,
     handleCloseForm,
-  } = useEditUserDialog({ userId, isOpen, setIsOpen, onSuccess });
+  } = useEditUserDialog({ id, isOpen, setIsOpen, onSuccess });
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {

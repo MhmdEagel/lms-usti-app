@@ -8,7 +8,7 @@ type RegisterRequest struct {
 }
 
 type UpdateUserReq struct {
-	UserId   string  `json:"userId"`
+	ID       string  `json:"id"`
 	Email    *string `json:"email"`
 	Role     *string `json:"role"`
 	Fullname *string `json:"fullname"`

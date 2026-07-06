@@ -78,7 +78,7 @@ func (a *AuthController) ResetPassword(c *gin.Context) {
 }
 
 func (a *AuthController) UpdateProfile(c *gin.Context) {
-	userId := getUserId(c)
+	userId := getUserID(c)
 	if userId == "" {
 		appErr := data.NewAppError(http.StatusUnauthorized, "unauthorized", nil)
 		res := data.NewResponseFromError(appErr)
@@ -102,7 +102,7 @@ func (a *AuthController) UpdateProfile(c *gin.Context) {
 }
 
 func (a *AuthController) SendOTP(c *gin.Context) {
-	userId := getUserId(c)
+	userId := getUserID(c)
 	if userId == "" {
 		appErr := data.NewAppError(http.StatusUnauthorized, "unauthorized", nil)
 		res := data.NewResponseFromError(appErr)
@@ -124,7 +124,7 @@ func (a *AuthController) SendOTP(c *gin.Context) {
 }
 
 func (a *AuthController) VerifyOTPAndChangePassword(c *gin.Context) {
-	userId := getUserId(c)
+	userId := getUserID(c)
 	if userId == "" {
 		appErr := data.NewAppError(http.StatusUnauthorized, "unauthorized", nil)
 		res := data.NewResponseFromError(appErr)
@@ -159,7 +159,7 @@ func (a *AuthController) Me(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
-	user, err := a.authService.GetUserById(userClaim.UserId)
+	user, err := a.authService.GetUserById(userClaim.ID)
 	if err != nil {
 		appErr := data.NewAppError(http.StatusInternalServerError, "gagal mengambil data user", err)
 		res := data.NewResponseFromError(appErr)

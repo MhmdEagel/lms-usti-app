@@ -13,7 +13,7 @@ type ForumRepositoryInterface interface {
 	Create(post model.ForumPost) error
 	FindAll() ([]model.ForumPost, error)
 	FindById(id string) (model.ForumPost, error)
-	Delete(id string, userId string) error
+	Delete(id string, userID string) error
 	DeleteByID(id string) error
 }
 
@@ -47,8 +47,8 @@ func (f *ForumRepository) FindById(id string) (model.ForumPost, error) {
 	return post, nil
 }
 
-func (f *ForumRepository) Delete(id, userId string) error {
-	res := f.Db.Where("id = ? AND created_by = ?", id, userId).Delete(&model.ForumPost{})
+func (f *ForumRepository) Delete(id, userID string) error {
+	res := f.Db.Where("id = ? AND created_by = ?", id, userID).Delete(&model.ForumPost{})
 	if res.Error != nil {
 		return res.Error
 	}

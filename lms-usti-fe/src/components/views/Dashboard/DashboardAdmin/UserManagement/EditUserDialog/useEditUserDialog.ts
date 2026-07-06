@@ -6,13 +6,13 @@ import { getUserById, updateUser } from "@/actions/admin";
 import { z } from "zod";
 
 type UseEditUserDialogProps = {
-  userId: string;
+  id: string;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   onSuccess?: () => void;
 };
 
-const useEditUserDialog = ({ userId, isOpen, setIsOpen, onSuccess }: UseEditUserDialogProps) => {
+const useEditUserDialog = ({ id, isOpen, setIsOpen, onSuccess }: UseEditUserDialogProps) => {
   const [isPending, setIsPending] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,7 +25,7 @@ const useEditUserDialog = ({ userId, isOpen, setIsOpen, onSuccess }: UseEditUser
     const fetchUser = async () => {
       setIsLoading(true);
       try {
-        const res = await getUserById(userId);
+        const res = await getUserById(id);
         const user = res.data as IUser;
         editUserForm.reset({
           fullname: user.fullname,
@@ -41,7 +41,7 @@ const useEditUserDialog = ({ userId, isOpen, setIsOpen, onSuccess }: UseEditUser
       }
     };
     fetchUser();
-  }, [isOpen, userId, editUserForm]);
+  }, [isOpen, id, editUserForm]);
 
   const handleCloseForm = () => {
     setIsOpen(false);
@@ -51,7 +51,7 @@ const useEditUserDialog = ({ userId, isOpen, setIsOpen, onSuccess }: UseEditUser
   const handleUpdateUser = async (data: z.infer<typeof updateUserSchema>) => {
     try {
       setIsPending(true);
-      const res = await updateUser(userId, data);
+      const res = await updateUser(id, data);
       if (res.meta?.status === 200) {
         handleCloseForm();
         onSuccess?.();
