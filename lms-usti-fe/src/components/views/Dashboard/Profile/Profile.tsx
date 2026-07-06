@@ -13,7 +13,7 @@ import ProfileEdit from "./ProfileEdit/ProfileEdit";
 
 interface ProfileProps {
   user: {
-    userId: string;
+    id: string;
     fullname: string;
     email: string;
     role: string;

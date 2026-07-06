@@ -26,7 +26,7 @@ type ClassroomServiceInterface interface {
 	EnrollMahasiswa(joinClassroomRequest data.JoinClassroomRequest, mahasiswaId string) error
 	RemoveMember(classroomId, memberId string) error
 	Update(classroomUpdateRequest data.UpdateClassroomRequest) error
-	Delete(classroomId string, userId string) error
+	Delete(classroomId string, userID string) error
 	GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error)
 	GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error)
 }
@@ -257,8 +257,8 @@ func (c *ClassroomService) Update(classroomUpdateRequest data.UpdateClassroomReq
 	return c.classroomRepository.Update(classroom)
 }
 
-func (c *ClassroomService) Delete(classroomId string, userId string) error {
-	return c.classroomRepository.Delete(classroomId, userId)
+func (c *ClassroomService) Delete(classroomId string, userID string) error {
+	return c.classroomRepository.Delete(classroomId, userID)
 
 }
 

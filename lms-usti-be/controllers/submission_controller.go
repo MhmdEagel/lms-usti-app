@@ -69,7 +69,7 @@ func (s *SubmissionController) FindMySubmission(ctx *gin.Context) {
 	assignmentId := ctx.Param("assignmentId")
 	val, _ := ctx.Get("user")
 	user := val.(data.MeResponse)
-	submission, err := s.submissionService.FindByAssignmentAndStudent(assignmentId, user.UserId)
+	submission, err := s.submissionService.FindByAssignmentAndStudent(assignmentId, user.ID)
 	if err != nil {
 		res := data.NewResponse(http.StatusOK, "no submission", nil)
 		ctx.JSON(http.StatusOK, res)
@@ -119,7 +119,7 @@ func (s *SubmissionController) Submit(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
 	assignmentId := ctx.Param("assignmentId")
 	req.AssigmentId = assignmentId
-	req.UserId = user.UserId
+	req.ID = user.ID
 	req.ClassroomId = classroomId
 	err := s.submissionService.Submit(req)
 	if err != nil {

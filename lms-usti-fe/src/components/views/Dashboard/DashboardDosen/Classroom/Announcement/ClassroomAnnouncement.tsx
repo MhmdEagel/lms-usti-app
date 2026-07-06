@@ -21,7 +21,7 @@ export default async function ClassroomAnnouncement({
         <AddAnnouncement
           userRole={user.data?.role}
           classroomId={classroomId}
-          userId={user?.id}
+          id={user?.id}
         />
         <div className="mt-4">
           {listPengumuman.map((pengumuman) => (
@@ -39,7 +39,7 @@ export default async function ClassroomAnnouncement({
   return (
     <>
       <AddAnnouncement
-        userId={user?.id}
+        id={user?.id}
         userRole={user?.role}
         classroomId={classroomId}
       />

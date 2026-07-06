@@ -22,7 +22,7 @@ import { removeMember } from "@/actions/remove-member";
 import { useState } from "react";
 
 export default function MemberProfile({
-  userId,
+  id,
   fullname,
   profile,
   email,
@@ -32,7 +32,7 @@ export default function MemberProfile({
   className,
   viewerRole,
 }: {
-  userId: string;
+  id: string;
   fullname: string;
   profile?: string;
   email: string;
@@ -48,7 +48,7 @@ export default function MemberProfile({
   const handleRemove = async () => {
     setRemoving(true);
     try {
-      await removeMember(classroomId, userId);
+      await removeMember(classroomId, id);
       router.push(`/${viewerRole.toLowerCase()}/kelas/${classroomId}/anggota`);
     } catch {
       setRemoving(false);
@@ -60,7 +60,7 @@ export default function MemberProfile({
       <MemberProfileBreadcrumb
         classroomId={classroomId}
         classroomName={className}
-        profileId={userId}
+        profileId={id}
         profileName={fullname}
         role={viewerRole}
       />

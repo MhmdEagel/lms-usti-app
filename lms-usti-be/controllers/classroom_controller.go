@@ -38,7 +38,7 @@ func (c *ClassroomController) Create(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	req.DosenId = user.UserId
+	req.DosenId = user.ID
 	err := c.classroomService.Create(req)
 	if err != nil {
 		log.Printf("Classroom Create: %v", err)
@@ -77,7 +77,7 @@ func (c *ClassroomController) FindAllByDosenId(ctx *gin.Context) {
 	}
 
 	pagination := data.Pagination{Limit: limit, Current: page}
-	paginationResult, err := c.classroomService.FindAllByDosenId(user.UserId, filter, pagination)
+	paginationResult, err := c.classroomService.FindAllByDosenId(user.ID, filter, pagination)
 	if err != nil {
 		log.Printf("FindAllByDosenId: %v", err)
 		appErr := data.ErrInternalServer(nil)
@@ -135,7 +135,7 @@ func (c *ClassroomController) FindAllByMahasiswaId(ctx *gin.Context) {
 	}
 
 	pagination := data.Pagination{Limit: limit, Current: page}
-	paginationResult, err := c.classroomService.FindAllByMahasiswaId(user.UserId, filter, pagination)
+	paginationResult, err := c.classroomService.FindAllByMahasiswaId(user.ID, filter, pagination)
 	if err != nil {
 		log.Printf("FindAllByMahasiswaId: %v", err)
 		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
@@ -186,7 +186,7 @@ func (c *ClassroomController) Delete(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	err := c.classroomService.Delete(classroomId, user.UserId)
+	err := c.classroomService.Delete(classroomId, user.ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			res := data.NewResponse(http.StatusNotFound, "classroom not found", nil)
@@ -221,7 +221,7 @@ func (c *ClassroomController) Enroll(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	err := c.classroomService.EnrollMahasiswa(req, user.UserId)
+	err := c.classroomService.EnrollMahasiswa(req, user.ID)
 	if err != nil {
 		appErr, ok := err.(*data.AppError)
 		if ok {
@@ -270,7 +270,7 @@ func (c *ClassroomController) GetDashboardStats(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	stats, err := c.classroomService.GetDashboardStats(user.UserId)
+	stats, err := c.classroomService.GetDashboardStats(user.ID)
 	if err != nil {
 		log.Printf("GetDashboardStats: %v", err)
 		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
@@ -294,7 +294,7 @@ func (c *ClassroomController) GetMahasiswaDashboardStats(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	stats, err := c.classroomService.GetMahasiswaDashboardStats(user.UserId)
+	stats, err := c.classroomService.GetMahasiswaDashboardStats(user.ID)
 	if err != nil {
 		log.Printf("GetMahasiswaDashboardStats: %v", err)
 		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)

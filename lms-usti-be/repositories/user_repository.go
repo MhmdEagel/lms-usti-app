@@ -18,12 +18,12 @@ func NewUserRepository(Db *gorm.DB) UserRepositoryInterface {
 type UserRepositoryInterface interface {
 	Create(user model.User) error
 	FindAll(pagination data.Pagination) (paginationResult *data.PaginationWithData, err error)
-	FindById(userId string) (user model.User, err error)
+	FindById(userID string) (user model.User, err error)
 	FindByEmail(email string) (user model.User, err error)
 	Update(user model.User) error
 	UpdatePassword(user model.User) error
-	Delete(userId string) error
-	FindAllClassrooms(userId string) (classrooms []model.Classroom, err error)
+	Delete(userID string) error
+	FindAllClassrooms(userID string) (classrooms []model.Classroom, err error)
 }
 
 func (u *UserRepository) Create(user model.User) error {
@@ -47,8 +47,8 @@ func (u *UserRepository) FindAll(pagination data.Pagination) (paginationResult *
 	return paginationResult, nil
 }
 
-func (u *UserRepository) FindById(userId string) (user model.User, err error) {
-	result := u.Db.Where("id = ?", userId).First(&user)
+func (u *UserRepository) FindById(userID string) (user model.User, err error) {
+	result := u.Db.Where("id = ?", userID).First(&user)
 	if result.Error != nil {
 		return model.User{}, result.Error
 	}
@@ -78,8 +78,8 @@ func (u *UserRepository) Update(user model.User) error {
 	return nil
 }
 
-func (u *UserRepository) Delete(userId string) error {
-	result := u.Db.Where("id = ?", userId).Delete(&model.User{})
+func (u *UserRepository) Delete(userID string) error {
+	result := u.Db.Where("id = ?", userID).Delete(&model.User{})
 	if result.Error != nil {
 		return result.Error
 	}
@@ -89,9 +89,9 @@ func (u *UserRepository) Delete(userId string) error {
 	return nil
 }
 
-func (u *UserRepository) FindAllClassrooms(userId string) (classrooms []model.Classroom, err error) {
+func (u *UserRepository) FindAllClassrooms(userID string) (classrooms []model.Classroom, err error) {
 	var user model.User
-	result := u.Db.Preload("MahasiswaClassrooms").Preload("MahasiswaClassrooms.Dosen").Find(&user, userId)
+	result := u.Db.Preload("MahasiswaClassrooms").Preload("MahasiswaClassrooms.Dosen").Find(&user, userID)
 	if result.Error != nil {
 		return []model.Classroom{}, result.Error
 	}

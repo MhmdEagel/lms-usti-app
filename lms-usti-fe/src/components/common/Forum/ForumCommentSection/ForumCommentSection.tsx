@@ -12,14 +12,14 @@ import type { IComment } from "@/types/Classroom";
 interface PropTypes {
   postId: string;
   initialComments: IComment[];
-  currentUserId: string;
+  currentId: string;
   currentRole: string;
 }
 
 export default function ForumCommentSection({
   postId,
   initialComments,
-  currentUserId,
+  currentId,
   currentRole,
 }: PropTypes) {
   const [comments, setComments] = useState<IComment[]>(initialComments ?? []);
@@ -77,7 +77,7 @@ export default function ForumCommentSection({
             <CommentItem
               key={comment.id}
               comment={comment}
-              currentUserId={currentUserId}
+              currentId={currentId}
               currentRole={currentRole}
               onDelete={handleDelete}
               isDeleting={deletingId === comment.id}

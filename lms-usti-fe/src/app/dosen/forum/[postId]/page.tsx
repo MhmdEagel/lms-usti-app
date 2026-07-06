@@ -15,7 +15,7 @@ async function ForumDetailSection({ postId, userId, role }: { postId: string; us
   return <ForumPostDetail post={post} currentId={userId} currentRole={role} />;
 }
 
-export default async function ProdiForumPostDetailPage(props: { params: Promise<{ postId: string }> }) {
+export default async function DosenForumPostDetailPage(props: { params: Promise<{ postId: string }> }) {
   const { postId } = await props.params;
   const user = await getCurrentUser();
 

@@ -41,7 +41,7 @@ func (a *AssignmentController) FindAll(ctx *gin.Context) {
 
 	val, _ := ctx.Get("user")
 	user := val.(data.MeResponse)
-	userId := user.UserId
+	userId := user.ID
 
 	pagination := data.Pagination{Limit: limit, Current: page}
 	paginatedResult, err := a.assignmentService.FindAll(classroomId, search, pagination, userId)
@@ -101,7 +101,7 @@ func (a *AssignmentController) FindWaitingGrade(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	waitingGrades, err := a.assignmentService.FindWaitingGrade(user.UserId)
+	waitingGrades, err := a.assignmentService.FindWaitingGrade(user.ID)
 	if err != nil {
 		handleError(ctx, err)
 		return

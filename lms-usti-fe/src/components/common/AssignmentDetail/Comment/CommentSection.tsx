@@ -13,13 +13,13 @@ import type { IComment } from "@/types/Classroom";
 
 interface PropTypes {
   initialComments: IComment[];
-  currentUserId: string;
+  currentId: string;
   currentRole: string;
 }
 
 export default function CommentSection({
   initialComments,
-  currentUserId,
+  currentId,
   currentRole,
 }: PropTypes) {
   const params = useParams();
@@ -104,7 +104,7 @@ export default function CommentSection({
               <CommentItem
                 key={comment.id}
                 comment={comment}
-                currentUserId={currentUserId}
+                currentId={currentId}
                 currentRole={currentRole}
                 onDelete={handleDelete}
                 isDeleting={deletingId === comment.id}

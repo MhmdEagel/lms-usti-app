@@ -22,9 +22,9 @@ type AdminService struct {
 type AdminServiceInterface interface {
 	CreateUser(req data.RegisterRequest, adminId string) error
 	FindAllUsers(pagination data.Pagination) (paginationResult data.PaginationWithData, err error)
-	FindUserById(userId string) (*data.MeResponse, error)
+	FindUserById(userID string) (*data.MeResponse, error)
 	UpdateUser(req data.UpdateUserReq, adminId string) error
-	DeleteUser(userId string, adminId string) error
+	DeleteUser(userID string, adminId string) error
 	SendVerificationEmail(req data.SendVerificationRequest) error
 }
 
@@ -69,7 +69,7 @@ func (a *AdminService) FindAllUsers(pagination data.Pagination) (paginationResul
 	var users []data.MeResponse
 	for _, v := range paginationRes.Data.([]model.User) {
 		userResponse := data.MeResponse{
-			UserId:   v.ID,
+			ID:       v.ID,
 			Email:    v.Email,
 			Role:     v.Role,
 			Fullname: v.Fullname,
@@ -85,7 +85,7 @@ func (a *AdminService) FindAllUsers(pagination data.Pagination) (paginationResul
 
 
 func (a *AdminService) UpdateUser(req data.UpdateUserReq, adminId string) error {
-	user, err := a.userRepository.FindById(req.UserId)
+	user, err := a.userRepository.FindById(req.ID)
 	if err != nil {
 		return err
 	}
@@ -109,13 +109,13 @@ func (a *AdminService) UpdateUser(req data.UpdateUserReq, adminId string) error 
 	)
 	return nil
 }
-func (a *AdminService) FindUserById(userId string) (*data.MeResponse, error) {
-	user, err := a.userRepository.FindById(userId)
+func (a *AdminService) FindUserById(userID string) (*data.MeResponse, error) {
+	user, err := a.userRepository.FindById(userID)
 	if err != nil {
 		return nil, err
 	}
 	res := &data.MeResponse{
-		UserId:   user.ID,
+		ID:   user.ID,
 		Email:    user.Email,
 		Role:     user.Role,
 		Fullname: user.Fullname,
@@ -126,8 +126,8 @@ func (a *AdminService) FindUserById(userId string) (*data.MeResponse, error) {
 	return res, nil
 }
 
-func (a *AdminService) DeleteUser(userId string, adminId string) error {
-	user, err := a.userRepository.FindById(userId)
+func (a *AdminService) DeleteUser(userID string, adminId string) error {
+	user, err := a.userRepository.FindById(userID)
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func (a *AdminService) DeleteUser(userId string, adminId string) error {
 		fmt.Sprintf("Menghapus user: %s (%s)", user.Fullname, user.Email),
 		adminId,
 	)
-	return a.userRepository.Delete(userId)
+	return a.userRepository.Delete(userID)
 }
 
 func (a *AdminService) SendVerificationEmail(req data.SendVerificationRequest) error {

@@ -70,7 +70,7 @@ func (c *CommentController) Create(ctx *gin.Context) {
 		return
 	}
 	classroomId := ctx.Param("id")
-	if err := c.commentService.Create(req, commentableType, commentableId, user.UserId, classroomId); err != nil {
+	if err := c.commentService.Create(req, commentableType, commentableId, user.ID, classroomId); err != nil {
 		handleError(ctx, err)
 		return
 	}
@@ -96,7 +96,7 @@ func (c *CommentController) Delete(ctx *gin.Context) {
 			return
 		}
 	} else {
-		if err := c.commentService.Delete(commentId, user.UserId); err != nil {
+		if err := c.commentService.Delete(commentId, user.ID); err != nil {
 			handleError(ctx, err)
 			return
 		}

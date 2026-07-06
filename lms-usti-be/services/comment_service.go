@@ -17,8 +17,8 @@ type CommentService struct {
 
 type CommentServiceInterface interface {
 	FindAll(commentableType, commentableId string) ([]data.CommentResponse, error)
-	Create(req data.CommentRequest, commentableType, commentableId, userId, classroomId string) error
-	Delete(commentId, userId string) error
+	Create(req data.CommentRequest, commentableType, commentableId, userID, classroomId string) error
+	Delete(commentId, userID string) error
 	DeleteByID(commentId string) error
 }
 
@@ -47,7 +47,7 @@ func (c *CommentService) FindAll(commentableType, commentableId string) ([]data.
 	return comments, nil
 }
 
-func (c *CommentService) Create(req data.CommentRequest, commentableType, commentableId, userId, classroomId string) error {
+func (c *CommentService) Create(req data.CommentRequest, commentableType, commentableId, userID, classroomId string) error {
 	switch commentableType {
 	case model.CommentableTypeMaterial:
 		if _, err := c.materialRepository.FindById(commentableId); err != nil {
@@ -75,7 +75,7 @@ func (c *CommentService) Create(req data.CommentRequest, commentableType, commen
 	}
 	comment := model.Comment{
 		Content:         req.Content,
-		CreatedBy:       userId,
+		CreatedBy:       userID,
 		CommentableType: commentableType,
 		CommentableID:   commentableId,
 	}
@@ -85,8 +85,8 @@ func (c *CommentService) Create(req data.CommentRequest, commentableType, commen
 	return nil
 }
 
-func (c *CommentService) Delete(commentId, userId string) error {
-	if err := c.commentRepository.Delete(commentId, userId); err != nil {
+func (c *CommentService) Delete(commentId, userID string) error {
+	if err := c.commentRepository.Delete(commentId, userID); err != nil {
 		return data.ErrCommentNotFound(err)
 	}
 	return nil

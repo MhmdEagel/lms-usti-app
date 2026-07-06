@@ -10,7 +10,7 @@ export default function ProfileContent({
   user,
 }: {
   user: {
-    userId: string;
+    id: string;
     fullname: string;
     email: string;
     role: string;
