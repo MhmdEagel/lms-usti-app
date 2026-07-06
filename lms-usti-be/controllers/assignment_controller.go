@@ -23,8 +23,19 @@ func (a *AssignmentController) Create(ctx *gin.Context) {
 		bindJSONError(ctx, err)
 		return
 	}
+	val, exist := ctx.Get("user")
+	if !exist {
+		handleError(ctx, data.ErrInternalServer(nil))
+		return
+	}
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		handleError(ctx, data.ErrInternalServer(nil))
+		return
+	}
 	classroomId := ctx.Param("id")
 	req.ClassroomId = classroomId
+	req.DosenId = user.ID
 	if err := a.assignmentService.Create(req); err != nil {
 		handleError(ctx, err)
 		return

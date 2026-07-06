@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -12,6 +13,10 @@ type Assignment struct {
 	Title       string `gorm:"not null"`
 	Deadline    sql.NullTime
 	Instruction string `gorm:"not null"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DosenId     string
+	Dosen       User      `gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE"`
 	ClassroomId string
 	Attachments []AssignmentAttachment `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
 	Submissions []Submission           `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`

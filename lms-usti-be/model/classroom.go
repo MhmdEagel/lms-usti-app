@@ -20,6 +20,8 @@ type Classroom struct {
 	Day                   int       `gorm:"not null"`
 	ClassStart            time.Time `gorm:"not null"`
 	ClassEnd              time.Time `gorm:"not null"`
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
 	DosenId               string
 	Dosen                 User           `gorm:"foreignKey:DosenId"`
 	Prodi                 string         `gorm:"not null"`
