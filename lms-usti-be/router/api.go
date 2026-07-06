@@ -33,6 +33,7 @@ func InitRouter() *gin.Engine {
 		materialRepository := repositories.NewMaterialRepository(Db)
 		assignmentRepository := repositories.NewAssignmentRepository(Db)
 		submissionRepository := repositories.NewSubmissionRepository(Db)
+		contentViewRepository := repositories.NewContentViewRepository(Db)
 
 		mediaService := services.NewMediaService()
 
@@ -45,13 +46,13 @@ func InitRouter() *gin.Engine {
 
 		submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository)
 
-		assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService)
+		assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService, contentViewRepository)
 
 		classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService)
 
 		announcementService := services.NewAnnouncementService(announcementRepository, classroomRepository)
 
-		materialService := services.NewMaterialService(materialRepository, classroomRepository)
+		materialService := services.NewMaterialService(materialRepository, classroomRepository, contentViewRepository)
 
 		commentRepository := repositories.NewCommentRepository(Db)
 		forumRepository := repositories.NewForumRepository(Db)

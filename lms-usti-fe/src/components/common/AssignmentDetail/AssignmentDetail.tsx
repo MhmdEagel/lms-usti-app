@@ -9,7 +9,7 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import "dayjs/locale/id";
 import DOMPurify from "isomorphic-dompurify";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, Eye, FileText } from "lucide-react";
 import { assignmentServices } from "@/services/assignment.service";
 import type { IAssignment, IMySubmission } from "@/types/Classroom";
 import AssignmentAttachmentSection from "./AssignmentAttachmentSection";
@@ -129,6 +129,10 @@ export default async function AssignmentDetail(props: PropTypes) {
                           {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
                         </div>
                       )}
+                      <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                        <Eye className="h-3 w-3" />
+                        {data.view_count} dilihat
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
@@ -211,6 +215,10 @@ export default async function AssignmentDetail(props: PropTypes) {
                           {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
                         </div>
                       )}
+                      <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                        <Eye className="h-3 w-3" />
+                        {data.view_count} dilihat
+                      </div>
                     </div>
                   </div>
                 </CardHeader>

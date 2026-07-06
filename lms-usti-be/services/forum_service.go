@@ -9,7 +9,7 @@ import (
 )
 
 type ForumService struct {
-	forumRepository repositories.ForumRepositoryInterface
+	forumRepository   repositories.ForumRepositoryInterface
 	commentRepository repositories.CommentRepositoryInterface
 }
 

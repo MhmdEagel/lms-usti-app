@@ -13,6 +13,7 @@ type Assignment struct {
 	Deadline    sql.NullTime
 	Instruction string `gorm:"not null"`
 	ClassroomId string
+	ViewCount   int64 `json:"view_count" gorm:"default:0"`
 	Attachments []AssignmentAttachment `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
 	Submissions []Submission           `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
 }
