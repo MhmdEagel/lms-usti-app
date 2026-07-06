@@ -30,10 +30,12 @@ export default function AddAnnouncement({
   const { form, open, handleOpen, handleAddAnnouncement } =
     useAddAnnouncement();
 
+    console.log(userRole)
+
   return (
     <>
       <div className="pb-4 border-b-2 flex items-center">
-        <div className="text-base md:text-xl font-semibold">Pengumuman Kelas</div>
+        <div className="text-base md:text-xl font-semibold">Forum Kelas</div>
         {userRole === "DOSEN" && !open ? (
           <Tooltip>
             <TooltipTrigger className="ml-auto" asChild>
@@ -42,7 +44,7 @@ export default function AddAnnouncement({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Buat Pengumuman</p>
+              <p>Buat Forum</p>
             </TooltipContent>
           </Tooltip>
         ) : null}
@@ -65,7 +67,7 @@ export default function AddAnnouncement({
                       <FormLabel>Judul</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Pengumuman"
+                          placeholder="Judul postingan..."
                           {...field}
                           value={field.value ?? ""}
                           autoComplete="off"
