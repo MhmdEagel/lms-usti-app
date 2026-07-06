@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Link, Plus, UploadIcon, X } from "lucide-react";
+import { FileText, Link, UploadIcon, X } from "lucide-react";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,6 @@ import type { IAttachment, IAssignment } from "@/types/Classroom";
 import { Dispatch, SetStateAction, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { DatePickerTime } from "@/components/ui/calendar-time-picker";
-import { Dropzone, DropzoneEmptyState } from "@/components/ui/dropzone";
 
 interface PropTypes {
   open: string;
@@ -81,8 +80,8 @@ export default function EditAssignmentDialog(props: PropTypes) {
     }
   }, [assignment]);
 
-  const currentFiles = trackedAttachments.filter(
-    (f) => f.status !== "deleted" && f.type !== "LINK",
+  const currentAttachments = trackedAttachments.filter(
+    (f) => f.status !== "deleted",
   );
 
   const handleDeleteAttachment = async (item: IAttachment) => {
@@ -249,120 +248,62 @@ export default function EditAssignmentDialog(props: PropTypes) {
                 <div className="mb-4">
                   <div className="flex items-center justify-between">
                     <div className="font-bold">Lampiran</div>
-                    <Button
-                      onClick={() => fileInputRef.current?.click()}
-                      type="button"
-                      size={"icon"}
-                      variant="outline"
-                    >
-                      <Plus />
-                    </Button>
-                  </div>
-                  <hr className="mt-4" />
-                </div>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="application/pdf,application/msword,application/vnd.ms-powerpoint,video/*"
-                  className="hidden"
-                  multiple
-                  onChange={handleFileInputChange}
-                />
-
-                {currentFiles.length === 0 && (
-                  <Dropzone
-                    accept={{
-                      "application/pdf": [".pdf"],
-                      "application/msword": [".doc", ".docx"],
-                      "application/vnd.ms-powerpoint": [".ppt", ".pptx"],
-                      "video/*": [".mp4", ".mov", ".avi"],
-                    }}
-                    maxFiles={5}
-                    onDrop={async (files) => {
-                      for (const file of files) {
-                        await handleUploadFile(file);
-                      }
-                    }}
-                    onError={(error) => toast.error(error.message)}
-                  >
-                    <DropzoneEmptyState>
-                      <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                        <UploadIcon size={16} />
-                      </div>
-                      <p className="my-2 w-full truncate font-medium text-sm">
-                        Unggah file
-                      </p>
-                      <p className="w-full truncate text-muted-foreground text-xs">
-                        Seret dan lepas atau klik untuk mengunggah
-                      </p>
-                    </DropzoneEmptyState>
-                  </Dropzone>
-                )}
-
-                {currentFiles.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2 mt-4">
-                    {currentFiles.map((item) => (
-                      <FileItem
-                        key={item.unique_name}
-                        fileName={item.name}
-                        onDelete={() => handleDeleteAttachment(item)}
-                        isPending={isPending || isPendingUploadFile}
-                        fileUrl={item.url}
+                    <div className="flex items-center gap-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="application/pdf,application/msword,application/vnd.ms-powerpoint,video/*"
+                        className="hidden"
+                        multiple
+                        onChange={handleFileInputChange}
                       />
-                    ))}
-                  </div>
-                )}
-
-                <div className="mt-6 mb-4">
-                  <div className="flex items-center justify-between">
-                    <div className="font-bold">Link Referensi</div>
-                    <Button
-                      onClick={() => setLinkDialogOpen(true)}
-                      type="button"
-                      size={"icon"}
-                      variant="outline"
-                    >
-                      <Plus />
-                    </Button>
+                      <Button
+                        onClick={() => fileInputRef.current?.click()}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                      >
+                        <UploadIcon className="mr-1 size-4" />
+                        Upload
+                      </Button>
+                      <Button
+                        onClick={() => setLinkDialogOpen(true)}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                      >
+                        <Link className="mr-1 size-4" />
+                        Link
+                      </Button>
+                    </div>
                   </div>
                   <hr className="mt-4" />
                 </div>
 
-                {trackedAttachments.filter(
-                  (a) => a.type === "LINK" && a.status !== "deleted",
-                ).length === 0 && (
-                  <Button
-                    onClick={() => setLinkDialogOpen(true)}
-                    type="button"
-                    variant="outline"
-                    className="relative h-auto w-full flex-col overflow-hidden p-8"
-                  >
-                    <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                      <Link size={16} />
-                    </div>
-                    <p className="my-2 w-full truncate font-medium text-sm">
-                      Tambah Link
-                    </p>
-                  </Button>
-                )}
-
-                {trackedAttachments.filter(
-                  (a) => a.type === "LINK" && a.status !== "deleted",
-                ).length > 0 && (
+                {currentAttachments.length > 0 ? (
                   <div className="grid grid-cols-3 gap-2 mt-4">
-                    {trackedAttachments
-                      .filter(
-                        (a) => a.type === "LINK" && a.status !== "deleted",
-                      )
-                      .map((item) => (
+                    {currentAttachments.map((item) =>
+                      item.type === "FILE" ? (
+                        <FileItem
+                          key={item.unique_name}
+                          fileName={item.name}
+                          onDelete={() => handleDeleteAttachment(item)}
+                          isPending={isPending || isPendingUploadFile}
+                          fileUrl={item.url}
+                        />
+                      ) : (
                         <LinkItem
                           key={item.id}
                           linkName={item.name}
                           url={item.url}
                           onDelete={() => handleDeleteAttachment(item)}
                         />
-                      ))}
+                      ),
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground text-sm py-8 border border-dashed rounded-lg">
+                    Belum ada lampiran. Klik tombol Upload atau Link untuk menambahkan.
                   </div>
                 )}
               </CardContent>

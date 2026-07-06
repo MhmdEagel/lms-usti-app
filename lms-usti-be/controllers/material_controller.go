@@ -23,8 +23,19 @@ func (m *MaterialController) Create(c *gin.Context) {
 		bindJSONError(c, err)
 		return
 	}
+	val, exist := c.Get("user")
+	if !exist {
+		handleError(c, data.ErrInternalServer(nil))
+		return
+	}
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		handleError(c, data.ErrInternalServer(nil))
+		return
+	}
 	classroomId := c.Param("id")
 	req.ClassroomId = classroomId
+	req.DosenId = user.ID
 	err := m.materialService.Create(req)
 	if err != nil {
 		handleError(c, err)

@@ -42,7 +42,7 @@ func (a *AssignmentRepository) Create(assignment *model.Assignment) error {
 func (a *AssignmentRepository) FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
 	var assignments []model.Assignment
 	result = &data.PaginationWithData{Pagination: pagination}
-	query := a.Db.Where("classroom_id = ?", classroomId)
+	query := a.Db.Where("classroom_id = ?", classroomId).Order("created_at DESC")
 	if search != "" {
 		query = query.Where("title LIKE ?", "%"+search+"%")
 	}
@@ -80,7 +80,7 @@ func (a *AssignmentRepository) Delete(assignmentId, classroomId string) error {
 	return nil
 }
 func (a *AssignmentRepository) FindAllClassroomMahasiswa(classroomId string) (mahasiswa []model.ClassroomMahasiswa, err error) {
-	result := a.Db.Where("classroom_id = ?", classroomId).Find(&mahasiswa)
+	result := a.Db.Where("classroom_id = ?", classroomId).Order("created_at DESC").Find(&mahasiswa)
 	if result.Error != nil {
 		return []model.ClassroomMahasiswa{}, result.Error
 	}

@@ -58,7 +58,7 @@ func (u *ClassroomRepository) FindByClassCode(classCode string) (classroom model
 }
 func (u *ClassroomRepository) FindAllByDosenId(dosenId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error) {
 	var classrooms []model.Classroom
-	query := u.Db.Scopes(lib.Paginate(classrooms, &pagination, u.Db)).Preload("Dosen").Where("dosen_id = ?", dosenId)
+	query := u.Db.Scopes(lib.Paginate(classrooms, &pagination, u.Db)).Preload("Dosen").Where("dosen_id = ?", dosenId).Order("created_at DESC")
 	if filter.Search != "" {
 		query = query.Where("class_name LIKE ?", "%"+filter.Search+"%")
 	}
@@ -94,7 +94,7 @@ func (u *ClassroomRepository) FindAllByDosenId(dosenId string, filter data.Class
 func (u *ClassroomRepository) FindAllByMahasiswaId(mahasiswaId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error) {
 	var classrooms []model.Classroom
 	var classroomMahasiswa []model.ClassroomMahasiswa
-	query := u.Db.Scopes(lib.Paginate(classroomMahasiswa, &pagination, u.Db)).Preload("Classroom").Preload("Classroom.Dosen").Where("user_id = ?", mahasiswaId)
+	query := u.Db.Scopes(lib.Paginate(classroomMahasiswa, &pagination, u.Db)).Preload("Classroom").Preload("Classroom.Dosen").Where("user_id = ?", mahasiswaId).Order("created_at DESC")
 	joinsAdded := false
 	addJoin := func() {
 		if !joinsAdded {
