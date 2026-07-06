@@ -53,7 +53,7 @@ export default function ClassroomBreadcrumb(props: PropTypes) {
                 href={`/${type}/kelas/${classroomId}/${classroomId}`}
                 className="capitalize"
               >
-                Pengumuman
+                Forum Kelas
               </BreadcrumbLink>
             </BreadcrumbItem>
           </>

@@ -50,7 +50,9 @@ type AnnouncementRequest struct {
 	DosenId     string
 }
 type AnnouncementUpdateRequest struct {
-	IsPinned bool `json:"is_pinned"`
+	IsPinned *bool   `json:"is_pinned"`
+	Title    *string `json:"title"`
+	Content  *string `json:"content"`
 }
 type AnnouncementResponse struct {
 	Id            string `json:"id"`
@@ -60,6 +62,7 @@ type AnnouncementResponse struct {
 	ClassroomName string `json:"classroom_name"`
 	CreatedBy     string `json:"created_by"`
 	CreatedAt     string `json:"created_at"`
+	CommentCount  int64  `json:"comment_count"`
 }
 
 type ClassroomResponse struct {

@@ -56,9 +56,9 @@ export default function ForumPostDetail({ post, currentId, currentRole }: PropTy
               </div>
             )}
           </div>
-          <div className="text-base font-bold mt-2">{post.title}</div>
         </CardHeader>
         <CardContent>
+          <div className="text-base font-bold mt-2">{post.title}</div>
           <div
             className="prose max-w-none"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}

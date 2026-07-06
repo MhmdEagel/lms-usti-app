@@ -21,17 +21,18 @@ import { Spinner } from "@/components/ui/spinner";
 import { deleteAnnoucement } from "@/actions/delete-announcement";
 import { updateAnnouncement } from "@/actions/update-announcement";
 import { IAnnouncement } from "@/types/Classroom";
-import { EllipsisVertical, Pin, PinOff, Trash } from "lucide-react";
+import { EllipsisVertical, Pin, PinOff, Pencil, Trash } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 interface PropTypes {
   announcement: IAnnouncement;
   classroomId: string;
+  onEdit?: () => void;
 }
 
 export default function AnnouncementAction(props: PropTypes) {
-  const { announcement, classroomId } = props;
+  const { announcement, classroomId, onEdit } = props;
   const [openPopOver, setOpenPopOver] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -42,7 +43,7 @@ export default function AnnouncementAction(props: PropTypes) {
         await updateAnnouncement(
           classroomId,
           announcement.id,
-          !announcement.is_pinned,
+          { is_pinned: !announcement.is_pinned },
         );
         toast.success(
           announcement.is_pinned
@@ -71,6 +72,17 @@ export default function AnnouncementAction(props: PropTypes) {
         </PopoverTrigger>
         <PopoverContent align="start" className="w-fit p-4">
           <div>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                onEdit?.();
+                setOpenPopOver(false);
+              }}
+              type="button"
+              className="block text-left w-full"
+            >
+              <Pencil className="inline mr-2 size-4" /> Edit
+            </Button>
             <Button
               variant="ghost"
               onClick={handlePinToggle}

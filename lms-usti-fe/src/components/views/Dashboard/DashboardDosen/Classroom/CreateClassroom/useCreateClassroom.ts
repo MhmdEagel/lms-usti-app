@@ -11,7 +11,9 @@ const useCreateClassroom = () => {
   const [coverPreview, setCoverPreview] = useState("basic");
 
   const createClassForm = useForm({
-    
+    defaultValues: {
+      class_cover: "basic",
+    },
     resolver: zodResolver(newClassroomSchema),
   });
 

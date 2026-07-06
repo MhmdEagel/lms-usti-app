@@ -70,53 +70,61 @@ export default async function MaterialDetail(props: PropTypes) {
       <div className="p-4 w-full">
         <MaterialTabNavigation />
         <Card>
-          <CardHeader>
-            <div className="flex gap-4 items-center w-full">
-              <div className="bg-primary p-4 border rounded-full">
-                <Book color="white" />
-              </div>
-              <div>
-                <div className="text-base md:text-xl font-bold">
-                  {data.title}
+          <div className="flex flex-col lg:flex-row">
+            <div className="flex-1 min-w-0">
+              <CardHeader>
+                <div className="flex gap-4 items-center w-full">
+                  <div className="bg-primary p-4 border rounded-full shrink-0">
+                    <Book color="white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-base md:text-xl font-bold">
+                      {data.title}
+                    </div>
+                    <div className="text-gray-500 text-sm md:text-base">
+                      {dayjs(data.created_at).format("lll")}
+                    </div>
+                    <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                      <Eye className="h-3 w-3" />
+                      {data.view_count} dilihat
+                    </div>
+                  </div>
                 </div>
-                <div className="text-gray-500 text-sm md:text-base">
-                  {dayjs(data.created_at).format("lll")}
-                </div>
-                <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
-                  <Eye className="h-3 w-3" />
-                  {data.view_count} dilihat
-                </div>
-              </div>
+              </CardHeader>
+              <CardContent>
+                {data.description! !== "" ? (
+                  <>
+                    <div className="font-bold text-gray-500 text-sm">DESKRIPSI</div>
+                    <div
+                      className="prose max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(
+                          data.description! !== ""
+                            ? data.description!
+                            : "Tidak ada materi",
+                        ),
+                      }}
+                    ></div>
+                  </>
+                ) : null}
+              </CardContent>
             </div>
-          </CardHeader>
-          <CardContent>
-            {data.description! !== "" ? (
+            {user?.role === "DOSEN" && (
               <>
-                <div className="font-bold text-gray-500 text-sm">DESKRIPSI</div>
-                <div
-                  className="prose max-w-none"
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(
-                      data.description! !== ""
-                        ? data.description!
-                        : "Tidak ada materi",
-                    ),
-                  }}
-                ></div>
-              </>
-            ) : null}
-            {user?.role === "DOSEN" ? (
-              <>
-                <div className="font-bold text-gray-500 text-sm mt-4 mb-2">
-                  AKSI
+                <div className="hidden lg:block w-px bg-border" />
+                <hr className="lg:hidden border-t border-border" />
+                <div className="w-full lg:w-72 shrink-0 p-4 space-y-4">
+                  <div>
+                    <div className="font-bold text-gray-500 text-xs mb-2">AKSI</div>
+                    <MaterialAction
+                      material={data}
+                      classroomId={classroomId}
+                    />
+                  </div>
                 </div>
-                <MaterialAction
-                  material={data}
-                  classroomId={classroomId}
-                />
               </>
-            ) : null}
-          </CardContent>
+            )}
+          </div>
         </Card>
       </div>
       <div className="p-4 w-full">

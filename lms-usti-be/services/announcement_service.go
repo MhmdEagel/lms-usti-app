@@ -6,22 +6,25 @@ import (
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
+	"gorm.io/gorm"
 )
 
 type AnnouncementService struct {
 	announcementRepository repositories.AnnouncementRepositoryInterface
 	classroomRepository    repositories.ClassroomRepositoryInterface
+	commentRepository      repositories.CommentRepositoryInterface
 }
 
 type AnnouncementServiceInterface interface {
 	Create(announcementRequest data.AnnouncementRequest) error
-	FindAll(classroomId string) (announcements []data.AnnouncementResponse, err error)
+	FindAll(classroomId string, search string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error)
+	FindById(announcementId, classroomId string) (data.AnnouncementResponse, error)
 	Update(announcementId, classroomId string, req data.AnnouncementUpdateRequest) error
 	Delete(announcementId, classroomId string) error
 }
 
-func NewAnnouncementService(announcementRepository repositories.AnnouncementRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface) AnnouncementServiceInterface {
-	return &AnnouncementService{announcementRepository: announcementRepository, classroomRepository: classroomRepository}
+func NewAnnouncementService(announcementRepository repositories.AnnouncementRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, commentRepository repositories.CommentRepositoryInterface) AnnouncementServiceInterface {
+	return &AnnouncementService{announcementRepository: announcementRepository, classroomRepository: classroomRepository, commentRepository: commentRepository}
 }
 
 func (a *AnnouncementService) Create(announcementRequest data.AnnouncementRequest) error {
@@ -40,15 +43,22 @@ func (a *AnnouncementService) Create(announcementRequest data.AnnouncementReques
 	}
 	return nil
 }
-func (a *AnnouncementService) FindAll(classroomId string) (announcements []data.AnnouncementResponse, err error) {
+func (a *AnnouncementService) FindAll(classroomId string, search string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error) {
 	if _, err := a.classroomRepository.FindById(classroomId); err != nil {
 		return nil, data.ErrClassroomNotFound(err)
 	}
-	res, err := a.announcementRepository.FindAll(classroomId)
+	paginatedResult, err = a.announcementRepository.FindAll(classroomId, search, pagination)
 	if err != nil {
 		return nil, data.ErrInternalServer(err)
 	}
-	for _, v := range res {
+	announcements := paginatedResult.Data.([]model.Announcement)
+	var ids []string
+	for _, v := range announcements {
+		ids = append(ids, v.ID)
+	}
+	counts, _ := a.commentRepository.CountByCommentableBatch(model.CommentableTypeAnnouncement, ids)
+	var announcementResponses []data.AnnouncementResponse
+	for _, v := range announcements {
 		announcement := data.AnnouncementResponse{
 			Id:            v.ID,
 			Title:         v.Title,
@@ -57,23 +67,62 @@ func (a *AnnouncementService) FindAll(classroomId string) (announcements []data.
 			ClassroomName: v.Classroom.ClassName,
 			CreatedBy:     v.Dosen.Fullname,
 			CreatedAt:     v.CreatedAt.Format(time.RFC3339Nano),
+			CommentCount:  counts[v.ID],
 		}
-		announcements = append(announcements, announcement)
+		announcementResponses = append(announcementResponses, announcement)
 	}
-	return announcements, nil
+	paginatedResult.Data = announcementResponses
+	return paginatedResult, nil
 }
+func (a *AnnouncementService) FindById(announcementId, classroomId string) (data.AnnouncementResponse, error) {
+	if _, err := a.classroomRepository.FindById(classroomId); err != nil {
+		return data.AnnouncementResponse{}, data.ErrClassroomNotFound(err)
+	}
+	announcement, err := a.announcementRepository.FindById(announcementId)
+	if err != nil {
+		return data.AnnouncementResponse{}, data.ErrAnnouncementNotFound(err)
+	}
+	return data.AnnouncementResponse{
+		Id:            announcement.ID,
+		Title:         announcement.Title,
+		Content:       announcement.Content,
+		IsPinned:      announcement.IsPinned,
+		ClassroomName: announcement.Classroom.ClassName,
+		CreatedBy:     announcement.Dosen.Fullname,
+		CreatedAt:     announcement.CreatedAt.Format(time.RFC3339Nano),
+	}, nil
+}
+
 func (a *AnnouncementService) Update(announcementId, classroomId string, req data.AnnouncementUpdateRequest) error {
 	if _, err := a.classroomRepository.FindById(classroomId); err != nil {
 		return data.ErrClassroomNotFound(err)
 	}
-	announcement, err := a.announcementRepository.FindById(announcementId)
-	if err != nil {
-		return data.ErrAnnouncementNotFound(err)
+
+	if req.IsPinned != nil {
+		if err := a.announcementRepository.UpdateIsPinned(announcementId, classroomId, *req.IsPinned); err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return data.ErrAnnouncementNotFound(err)
+			}
+			return data.ErrInternalServer(err)
+		}
 	}
-	announcement.IsPinned = req.IsPinned
-	if err := a.announcementRepository.Update(announcement); err != nil {
-		return data.ErrInternalServer(err)
+
+	if req.Title != nil || req.Content != nil {
+		announcement, err := a.announcementRepository.FindById(announcementId)
+		if err != nil {
+			return data.ErrAnnouncementNotFound(err)
+		}
+		if req.Title != nil {
+			announcement.Title = *req.Title
+		}
+		if req.Content != nil {
+			announcement.Content = *req.Content
+		}
+		if err := a.announcementRepository.Update(announcement); err != nil {
+			return data.ErrInternalServer(err)
+		}
 	}
+
 	return nil
 }
 func (a *AnnouncementService) Delete(announcementId, classroomId string) error {

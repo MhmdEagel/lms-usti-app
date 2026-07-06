@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import CLASS_DAYS from "../../../../../../constants/ClassDays.constant";
 import PROGRAM_STUDI from "@/constants/programStudi.constant";
 import { Input } from "@/components/ui/input";
 import useCreateClassroom from "./useCreateClassroom";
@@ -41,6 +40,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import CLASS_DAYS from "@/constants/ClassDays.constant";
 
 export default function CreateClassroom() {
   const {
@@ -138,7 +138,6 @@ export default function CreateClassroom() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={createClassForm.control}
                 name="room_number"
@@ -161,7 +160,6 @@ export default function CreateClassroom() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={createClassForm.control}
                 name="term"
@@ -183,7 +181,6 @@ export default function CreateClassroom() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={createClassForm.control}
                 name="class_start"
@@ -214,7 +211,6 @@ export default function CreateClassroom() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={createClassForm.control}
                 name="day"
@@ -239,7 +235,6 @@ export default function CreateClassroom() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={createClassForm.control}
                 name="prodi"
@@ -264,7 +259,6 @@ export default function CreateClassroom() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={createClassForm.control}
                 name="tahun_ajaran"
@@ -282,14 +276,13 @@ export default function CreateClassroom() {
                   </FormItem>
                 )}
               />
-
               <div className="flex gap-2 justify-end">
                 <DialogClose asChild>
                   <Button onClick={handleCloseForm} variant="outline">
                     Batal
                   </Button>
                 </DialogClose>
-                <Button type="submit">
+                <Button type="submit" disabled={isPending}>
                   {isPending ? (
                     "Menyimpan..."
                   ) : (

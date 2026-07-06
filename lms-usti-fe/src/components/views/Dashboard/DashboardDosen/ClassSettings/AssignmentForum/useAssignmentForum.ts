@@ -1,0 +1,49 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { classPolicySchema, type ClassPolicyFormData } from "@/schemas/classroom";
+import { updateClassroomPolicies } from "@/actions/update-classroom-policies";
+import { toast } from "sonner";
+import type { IClassroomPolicies } from "@/types/Classroom";
+
+export function useAssignmentForum(classroomId: string, policies: IClassroomPolicies | null) {
+  const [isPending, setIsPending] = useState(false);
+
+  const form = useForm<ClassPolicyFormData>({
+    resolver: zodResolver(classPolicySchema),
+    defaultValues: {
+      lateSubmission: "allow",
+      forumPermission: "comment_only",
+      commentPermission: "active",
+    },
+  });
+  const { setValue } = form;
+
+  useEffect(() => {
+    if (policies) {
+      setValue("lateSubmission", policies.late_submission as "allow" | "not_allowed");
+      setValue("forumPermission", policies.forum_permission as "full_access" | "comment_only" | "dosen_only");
+      setValue("commentPermission", policies.comment_permission as "active" | "inactive");
+    }
+  }, [policies, setValue]);
+
+  const onSubmit = async (data: ClassPolicyFormData) => {
+    setIsPending(true);
+    try {
+      await updateClassroomPolicies(classroomId, {
+        late_submission: data.lateSubmission,
+        forum_permission: data.forumPermission,
+        comment_permission: data.commentPermission,
+      });
+      toast.success("Kebijakan kelas berhasil diperbarui");
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return { form, isPending, onSubmit };
+}

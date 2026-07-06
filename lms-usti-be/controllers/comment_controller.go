@@ -70,7 +70,7 @@ func (c *CommentController) Create(ctx *gin.Context) {
 		return
 	}
 	classroomId := ctx.Param("id")
-	if err := c.commentService.Create(req, commentableType, commentableId, user.ID, classroomId); err != nil {
+	if err := c.commentService.Create(req, commentableType, commentableId, user.ID, classroomId, user.Role); err != nil {
 		handleError(ctx, err)
 		return
 	}
