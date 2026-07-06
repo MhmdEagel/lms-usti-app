@@ -49,7 +49,7 @@ func (m *MaterialRepository) Update(material model.Material) error {
 func (m *MaterialRepository) FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
 	var materials []model.Material
 	result = &data.PaginationWithData{Pagination: pagination}
-	query := m.Db.Where("classroom_id = ?", classroomId)
+	query := m.Db.Where("classroom_id = ?", classroomId).Order("created_at DESC")
 	if search != "" {
 		query = query.Where("title LIKE ?", "%"+search+"%")
 	}

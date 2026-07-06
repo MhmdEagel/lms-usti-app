@@ -36,7 +36,7 @@ func (u *UserRepository) Create(user model.User) error {
 
 func (u *UserRepository) FindAll(pagination data.Pagination) (paginationResult *data.PaginationWithData, err error) {
 	var users []model.User
-	result := u.Db.Scopes(lib.Paginate(users, &pagination, u.Db)).Find(&users)
+	result := u.Db.Scopes(lib.Paginate(users, &pagination, u.Db)).Order("created_at DESC").Find(&users)
 	if result.Error != nil {
 		return paginationResult, result.Error
 	}
