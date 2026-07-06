@@ -6,12 +6,8 @@ const NAVBAR_ITEMS = [
     description: "Pengaturan umum dari kelas",
   },
   {
-    lable: "Privasi",
-    description: "Pengaturan izin mahasiswa kelas",
-  },
-  {
-    lable: "Penilaian",
-    description: "Pengaturan nilai untuk mahasiswa",
+    lable: "Tugas dan Forum",
+    description: "Pengaturan tugas dan forum kelas",
   },
 ];
 

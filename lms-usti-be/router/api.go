@@ -48,15 +48,19 @@ func InitRouter() *gin.Engine {
 
 		assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService, contentViewRepository)
 
-		classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService)
+		classroomPolicyRepository := repositories.NewClassroomPolicyRepository(Db)
 
-		announcementService := services.NewAnnouncementService(announcementRepository, classroomRepository)
-
-		materialService := services.NewMaterialService(materialRepository, classroomRepository, contentViewRepository)
+		classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService, classroomPolicyRepository)
 
 		commentRepository := repositories.NewCommentRepository(Db)
 		forumRepository := repositories.NewForumRepository(Db)
-		commentService := services.NewCommentService(commentRepository, classroomRepository, materialRepository, assignmentRepository, announcementRepository, forumRepository)
+
+		announcementService := services.NewAnnouncementService(announcementRepository, classroomRepository, commentRepository)
+
+		materialService := services.NewMaterialService(materialRepository, classroomRepository, contentViewRepository)
+		commentService := services.NewCommentService(commentRepository, classroomRepository, materialRepository, assignmentRepository, announcementRepository, forumRepository, classroomPolicyRepository)
+		classroomPolicyService := services.NewClassroomPolicyService(classroomPolicyRepository)
+		classroomPolicyController := controllers.NewClassroomPolicyController(classroomPolicyService)
 
 		api.GET("", controllers.Test)
 		auth := api.Group("/auth")
@@ -115,6 +119,7 @@ func InitRouter() *gin.Engine {
 			classroom.PUT("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Update)
 
 			classroom.GET("/:id/announcements", announcementController.FindAll)
+			classroom.GET("/:id/announcements/:announcementId", announcementController.FindById)
 			classroom.POST("/:id/announcements", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Create)
 			classroom.PUT("/:id/announcements/:announcementId", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Update)
 			classroom.DELETE("/:id/announcements/:announcementId", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Delete)
@@ -148,6 +153,8 @@ func InitRouter() *gin.Engine {
 			classroom.GET("/:id/announcements/:announcementId/comments", commentController.FindAll)
 			classroom.POST("/:id/announcements/:announcementId/comments", commentController.Create)
 			classroom.DELETE("/:id/announcements/:announcementId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA", "PRODI"}), commentController.Delete)
+			classroom.GET("/:id/policies", classroomPolicyController.FindByClassroomId)
+			classroom.PUT("/:id/policies", aclMiddleware.Handle([]string{"DOSEN"}), classroomPolicyController.Update)
 		}
 		forumService := services.NewForumService(forumRepository, commentRepository)
 		forumController := controllers.NewForumController(forumService)
@@ -156,7 +163,7 @@ func InitRouter() *gin.Engine {
 		forum.Use(authMiddleware.Handle())
 		{
 			forum.GET("/posts", forumController.FindAllPosts)
-			forum.POST("/posts", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA", "PRODI"}), forumController.CreatePost)
+			forum.POST("/posts", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), forumController.CreatePost)
 			forum.GET("/posts/:postId", forumController.FindPostById)
 			forum.DELETE("/posts/:postId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA", "PRODI"}), forumController.DeletePost)
 

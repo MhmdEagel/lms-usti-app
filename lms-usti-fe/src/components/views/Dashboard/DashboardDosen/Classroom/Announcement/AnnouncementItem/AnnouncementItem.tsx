@@ -1,8 +1,9 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Pin, User as UserIcon } from "lucide-react";
+import { Pin, MessageSquare, User as UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import DOMPurify from "isomorphic-dompurify";
+import Link from "next/link";
 import type { IAnnouncement } from "@/types/Classroom";
 import AnnouncementAction from "./AnnouncementAction";
 
@@ -17,10 +18,12 @@ export default function AnnouncementItem({
   classroomId,
   userRole,
 }: PropTypes) {
+  const detailPath = `/${userRole?.toLowerCase() ?? "dosen"}/kelas/${classroomId}/pengumuman/${announcement.id}`;
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center">
+        <div className="flex items-center justify-between">
           <div className="flex gap-2 items-center">
             <Avatar className="size-10">
               <AvatarFallback>
@@ -49,10 +52,17 @@ export default function AnnouncementItem({
         </div>
       </CardHeader>
       <CardContent>
+        <div className="text-lg font-bold mt-2">{announcement.title}</div>
         <div
           className="prose max-w-none"
           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.content) }}
-        ></div>
+        />
+        <div className="mt-4">
+          <Link href={detailPath} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+            <MessageSquare className="h-4 w-4" />
+            {announcement.comment_count && announcement.comment_count > 0 ? announcement.comment_count : "0"}
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );

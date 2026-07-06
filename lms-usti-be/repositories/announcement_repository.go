@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"github.com/MhmdEagel/lms-usti-be/data"
+	"github.com/MhmdEagel/lms-usti-be/lib"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"gorm.io/gorm"
 )
@@ -10,9 +12,10 @@ type AnnouncementRepository struct {
 }
 type AnnouncementRepositoryInterface interface {
 	Create(announcement model.Announcement) error
-	FindAll(classroomId string) (announcements []model.Announcement, err error)
+	FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error)
 	FindById(announcementId string) (model.Announcement, error)
 	Update(announcement model.Announcement) error
+	UpdateIsPinned(announcementId, classroomId string, isPinned bool) error
 	Delete(announcementId string, classroomId string) error
 }
 
@@ -27,16 +30,23 @@ func (a *AnnouncementRepository) Create(announcement model.Announcement) error {
 	}
 	return nil
 }
-func (a *AnnouncementRepository) FindAll(classroomId string) (announcements []model.Announcement, err error) {
-	result := a.Db.Where("classroom_id = ?", classroomId).Preload("Dosen").Find(&announcements)
-	if result.Error != nil {
-		return []model.Announcement{}, result.Error
+func (a *AnnouncementRepository) FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
+	var announcements []model.Announcement
+	result = &data.PaginationWithData{Pagination: pagination}
+	query := a.Db.Where("classroom_id = ?", classroomId).Preload("Dosen")
+	if search != "" {
+		query = query.Where("title LIKE ?", "%"+search+"%")
 	}
-	return announcements, nil
+	if err := query.Scopes(lib.Paginate(announcements, &pagination, query)).Find(&announcements).Error; err != nil {
+		return nil, err
+	}
+	result.Data = announcements
+	result.Pagination = pagination
+	return result, nil
 }
 func (a *AnnouncementRepository) FindById(announcementId string) (model.Announcement, error) {
 	var announcement model.Announcement
-	result := a.Db.First(&announcement, "id = ?", announcementId)
+	result := a.Db.Preload("Dosen").Preload("Classroom").First(&announcement, "id = ?", announcementId)
 	if result.Error != nil {
 		return model.Announcement{}, result.Error
 	}
@@ -49,6 +59,19 @@ func (a *AnnouncementRepository) Update(announcement model.Announcement) error {
 	}
 	return nil
 }
+func (a *AnnouncementRepository) UpdateIsPinned(announcementId, classroomId string, isPinned bool) error {
+	result := a.Db.Model(&model.Announcement{}).
+		Where("id = ? AND classroom_id = ?", announcementId, classroomId).
+		Update("is_pinned", isPinned)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
 func (a *AnnouncementRepository) Delete(announcementId, classroomId string) error {
 	res := a.Db.Where("id = ? AND classroom_id = ? ", announcementId, classroomId).Delete(model.Announcement{})
 	if res.Error != nil {

@@ -37,6 +37,7 @@ interface IAnnouncement extends ICreateAnnouncement {
   created_by: string;
   created_at: string;
   is_pinned: boolean;
+  comment_count?: number;
 }
 
 interface IClassroom {
@@ -195,6 +196,12 @@ interface IAssignmentWaitingGrade {
   submission_date: string;
 }
 
+interface IClassroomPolicies {
+  late_submission: string;
+  forum_permission: string;
+  comment_permission: string;
+}
+
 interface IComment {
   id: string;
   content: string;
@@ -230,4 +237,5 @@ export type {
   IComment,
   IMahasiswaAssignmentItem,
   IMahasiswaDashboardStats,
+  IClassroomPolicies,
 };

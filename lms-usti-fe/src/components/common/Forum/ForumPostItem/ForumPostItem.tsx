@@ -101,7 +101,7 @@ export default function ForumPostItem({ post, currentId, currentRole }: PropType
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-base font-bold mt-2">{post.title}</div>
+        <div className="text-lg font-bold mt-2">{post.title}</div>
         <div
           className="prose max-w-none"
           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
