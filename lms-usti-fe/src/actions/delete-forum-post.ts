@@ -8,6 +8,7 @@ export async function deleteForumPost(postId: string) {
     await forumServices.deletePost(postId);
     revalidatePath("/prodi/forum");
     revalidatePath("/dosen/forum");
+    revalidatePath("/mahasiswa/forum");
     revalidatePath(`/prodi/forum/${postId}`);
     revalidatePath(`/dosen/forum/${postId}`);
     return { success: "Postingan berhasil dihapus", error: null };

@@ -52,7 +52,7 @@ func (a *AssignmentController) FindAll(ctx *gin.Context) {
 
 	val, _ := ctx.Get("user")
 	user := val.(data.MeResponse)
-	userId := user.UserId
+	userId := user.ID
 
 	pagination := data.Pagination{Limit: limit, Current: page}
 	paginatedResult, err := a.assignmentService.FindAll(classroomId, search, pagination, userId)
@@ -72,7 +72,17 @@ func (a *AssignmentController) FindAll(ctx *gin.Context) {
 func (a *AssignmentController) FindById(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
 	assignmentId := ctx.Param("assignmentId")
-	assignment, err := a.assignmentService.FindById(assignmentId, classroomId)
+	val, exist := ctx.Get("user")
+	if !exist {
+		handleError(ctx, data.ErrInternalServer(nil))
+		return
+	}
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		handleError(ctx, data.ErrInternalServer(nil))
+		return
+	}
+	assignment, err := a.assignmentService.FindById(assignmentId, classroomId, user.ID)
 	if err != nil {
 		handleError(ctx, err)
 		return
@@ -112,7 +122,7 @@ func (a *AssignmentController) FindWaitingGrade(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	waitingGrades, err := a.assignmentService.FindWaitingGrade(user.UserId)
+	waitingGrades, err := a.assignmentService.FindWaitingGrade(user.ID)
 	if err != nil {
 		handleError(ctx, err)
 		return

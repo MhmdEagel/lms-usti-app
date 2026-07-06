@@ -16,7 +16,7 @@ export default async function MemberProfilePage({
 
   return (
     <MemberProfile
-      userId={member.userId}
+      id={member.id}
       fullname={member.fullname}
       profile={member.profile}
       email={member.email}

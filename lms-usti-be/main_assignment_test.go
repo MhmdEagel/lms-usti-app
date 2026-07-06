@@ -32,11 +32,13 @@ func setupAssignmentTestRouter(db *gorm.DB) *gin.Engine {
 	classroomRepo := repositories.NewClassroomRepository(db)
 	assignmentRepo := repositories.NewAssignmentRepository(db)
 	submissionRepo := repositories.NewSubmissionRepository(db)
+	contentViewRepo := repositories.NewContentViewRepository(db)
 
 	authService := services.NewAuthService(userRepo, verificationRepo)
 	submissionService := services.NewSubmissionService(submissionRepo, assignmentRepo)
-	assignmentService := services.NewAssignmentService(assignmentRepo, classroomRepo, submissionService)
-	classroomService := services.NewClassroomService(classroomRepo, submissionService, assignmentService)
+	assignmentService := services.NewAssignmentService(assignmentRepo, classroomRepo, submissionService, contentViewRepo)
+	classroomPolicyRepo := repositories.NewClassroomPolicyRepository(db)
+	classroomService := services.NewClassroomService(classroomRepo, submissionService, assignmentService, classroomPolicyRepo)
 	mediaService := services.NewMediaService()
 
 	authController := controllers.NewAuthController(authService)

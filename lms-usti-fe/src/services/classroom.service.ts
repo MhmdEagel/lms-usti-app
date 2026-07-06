@@ -1,6 +1,7 @@
 import instance from "@/lib/axios";
 import endpoint from "./endpoint.constant";
 import type {
+  IClassroomPolicies,
   ICreateAnnouncement,
   ICreateClassroom,
   IJoinClassroom,
@@ -25,8 +26,10 @@ export const classroomServices = {
       `${endpoint.CLASSROOM}/${classroomId}/announcements`,
       payload,
     ),
-  getAnnouncement: (classroomId: string) =>
-    instance.get(`${endpoint.CLASSROOM}/${classroomId}/announcements`),
+  getAnnouncement: (classroomId: string, params?: { page?: number; limit?: number; search?: string }) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}/announcements`, { params }),
+  getAnnouncementById: (classroomId: string, announcementId: string) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}`),
   deleteAnnouncement: (classroomId: string, announcementId: string) =>
     instance.delete(
       `${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}`,
@@ -50,4 +53,8 @@ export const classroomServices = {
     instance.get(`${endpoint.CLASSROOM}/dosen/dashboard-stats`),
   getMahasiswaDashboardStats: () =>
     instance.get(`${endpoint.CLASSROOM}/mahasiswa/dashboard-stats`),
+  getPolicies: (classroomId: string) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}${endpoint.POLICIES}`),
+  updatePolicies: (classroomId: string, payload: IClassroomPolicies) =>
+    instance.put(`${endpoint.CLASSROOM}/${classroomId}${endpoint.POLICIES}`, payload),
 };

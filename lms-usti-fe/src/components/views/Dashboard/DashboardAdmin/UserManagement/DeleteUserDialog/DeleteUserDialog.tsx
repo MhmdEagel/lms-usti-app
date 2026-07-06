@@ -16,18 +16,18 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 
 type DeleteUserDialogProps = {
-  userId: string;
+  id: string;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
 };
 
-export default function DeleteUserDialog({ userId, isOpen, setIsOpen }: DeleteUserDialogProps) {
+export default function DeleteUserDialog({ id, isOpen, setIsOpen }: DeleteUserDialogProps) {
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = () =>
     startTransition(async () => {
       try {
-        await deleteUser(userId);
+        await deleteUser(id);
         toast.success("User berhasil dihapus");
         setIsOpen(false);
       } catch {

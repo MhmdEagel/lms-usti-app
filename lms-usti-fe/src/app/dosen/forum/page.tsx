@@ -11,7 +11,7 @@ export default async function DosenForumPage() {
     <div className="p-4 space-y-4">
       <CreateForumPost />
       <Suspense fallback={<ForumPostListSkeleton />}>
-        <ForumPostList currentUserId={user.userId} currentRole={user.role} />
+        <ForumPostList currentId={user.id} currentRole={user.role} />
       </Suspense>
     </div>
   );

@@ -8,6 +8,12 @@ const SIDEBAR_MAHASISWA = [
     icon: <Grid2x2 />,
   },
   {
+    key: "forum",
+    label: "Forum",
+    href: "/mahasiswa/forum",
+    icon: <MessageSquare />,
+  },
+  {
     key: "kelas",
     label: "Kelas",
     href: "/mahasiswa/kelas",
@@ -35,16 +41,16 @@ const SIDEBAR_DOSEN = [
     icon: <Grid2x2 />,
   },
   {
-    key: "kelas",
-    label: "Kelas",
-    href: "/dosen/kelas",
-    icon: <School />,
-  },
-  {
     key: "forum",
     label: "Forum",
     href: "/dosen/forum",
     icon: <MessageSquare />,
+  },
+  {
+    key: "kelas",
+    label: "Kelas",
+    href: "/dosen/kelas",
+    icon: <School />,
   },
   {
     key: "pengaturan",

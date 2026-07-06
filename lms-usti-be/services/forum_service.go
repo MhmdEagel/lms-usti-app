@@ -9,26 +9,26 @@ import (
 )
 
 type ForumService struct {
-	forumRepository repositories.ForumRepositoryInterface
+	forumRepository   repositories.ForumRepositoryInterface
 	commentRepository repositories.CommentRepositoryInterface
 }
 
 type ForumServiceInterface interface {
-	CreatePost(req data.CreateForumPostRequest, userId string) error
+	CreatePost(req data.CreateForumPostRequest, userID string) error
 	FindAllPosts() ([]data.ForumPostResponse, error)
 	FindPostById(id string) (data.ForumPostDetailResponse, error)
-	DeletePost(id string, userId string, userRole string) error
+	DeletePost(id string, userID string, userRole string) error
 }
 
 func NewForumService(forumRepository repositories.ForumRepositoryInterface, commentRepository repositories.CommentRepositoryInterface) ForumServiceInterface {
 	return &ForumService{forumRepository: forumRepository, commentRepository: commentRepository}
 }
 
-func (f *ForumService) CreatePost(req data.CreateForumPostRequest, userId string) error {
+func (f *ForumService) CreatePost(req data.CreateForumPostRequest, userID string) error {
 	post := model.ForumPost{
 		Title:     req.Title,
 		Content:   req.Content,
-		CreatedBy: userId,
+		CreatedBy: userID,
 	}
 	if err := f.forumRepository.Create(post); err != nil {
 		return data.ErrInternalServer(err)
@@ -104,7 +104,7 @@ func (f *ForumService) FindPostById(id string) (data.ForumPostDetailResponse, er
 	}, nil
 }
 
-func (f *ForumService) DeletePost(id, userId, userRole string) error {
+func (f *ForumService) DeletePost(id, userID, userRole string) error {
 	if userRole == "PRODI" {
 		if _, err := f.forumRepository.FindById(id); err != nil {
 			return data.ErrForumPostNotFound(err)
@@ -114,7 +114,7 @@ func (f *ForumService) DeletePost(id, userId, userRole string) error {
 		}
 		return nil
 	}
-	if err := f.forumRepository.Delete(id, userId); err != nil {
+	if err := f.forumRepository.Delete(id, userID); err != nil {
 		return data.ErrForumPostNotFound(err)
 	}
 	return nil

@@ -25,7 +25,7 @@ dayjs.locale("id");
 
 interface PropTypes {
   comment: IComment;
-  currentUserId: string;
+  currentId: string;
   currentRole: string;
   onDelete: (commentId: string) => void;
   isDeleting: boolean;
@@ -33,7 +33,7 @@ interface PropTypes {
 
 export default function CommentItem({
   comment,
-  currentUserId,
+  currentId,
   currentRole,
   onDelete,
   isDeleting,
@@ -45,7 +45,7 @@ export default function CommentItem({
     .toUpperCase()
     .slice(0, 2);
   const canDelete =
-    currentRole === "PRODI" || comment.created_by === currentUserId;
+    currentRole === "PRODI" || comment.created_by === currentId;
 
   return (
     <div className="flex gap-3">

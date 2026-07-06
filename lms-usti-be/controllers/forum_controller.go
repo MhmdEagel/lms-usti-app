@@ -32,7 +32,7 @@ func (f *ForumController) CreatePost(ctx *gin.Context) {
 		handleError(ctx, data.ErrInternalServer(nil))
 		return
 	}
-	if err := f.forumService.CreatePost(req, user.UserId); err != nil {
+	if err := f.forumService.CreatePost(req, user.ID); err != nil {
 		handleError(ctx, err)
 		return
 	}
@@ -73,7 +73,7 @@ func (f *ForumController) DeletePost(ctx *gin.Context) {
 		return
 	}
 	postId := ctx.Param("postId")
-	if err := f.forumService.DeletePost(postId, user.UserId, user.Role); err != nil {
+	if err := f.forumService.DeletePost(postId, user.ID, user.Role); err != nil {
 		handleError(ctx, err)
 		return
 	}

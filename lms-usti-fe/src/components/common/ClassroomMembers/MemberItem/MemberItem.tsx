@@ -5,19 +5,19 @@ import Link from "next/link";
 export default function MemberItem({
   fullname,
   profile,
-  userId,
+  id,
   viewerRole,
   classroomId,
   isCurrentUser,
 }: {
   fullname: string | undefined;
   profile?: string;
-  userId: string | undefined;
+  id: string | undefined;
   viewerRole: string | undefined; 
   classroomId: string;
   isCurrentUser?: boolean;
 }) {
-  const href = `/${viewerRole === "DOSEN" ? "dosen" : "mahasiswa"}/kelas/${classroomId}/anggota/${userId}`;
+  const href = `/${viewerRole === "DOSEN" ? "dosen" : "mahasiswa"}/kelas/${classroomId}/anggota/${id}`;
 
   const card = (
     <Card className="py-3 px-4 cursor-pointer hover:bg-primary/10">

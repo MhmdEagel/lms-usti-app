@@ -43,7 +43,7 @@ export default async function CommentsPage({
           <CommentSectionData
             classroomId={classroomId}
             assignmentId={assignmentId}
-            currentUserId={user.id}
+            currentId={user.id}
             currentRole={user.role}
           />
         </Suspense>

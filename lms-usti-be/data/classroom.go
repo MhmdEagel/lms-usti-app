@@ -62,6 +62,7 @@ type AnnouncementResponse struct {
 	ClassroomName string `json:"classroom_name"`
 	CreatedBy     string `json:"created_by"`
 	CreatedAt     string `json:"created_at"`
+	CommentCount  int64  `json:"comment_count"`
 }
 
 type ClassroomResponse struct {

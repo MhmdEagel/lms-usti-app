@@ -1,15 +1,11 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import "dayjs/locale/id";
 import DOMPurify from "isomorphic-dompurify";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, Eye, FileText } from "lucide-react";
 import { assignmentServices } from "@/services/assignment.service";
 import type { IAssignment, IMySubmission } from "@/types/Classroom";
 import AssignmentAttachmentSection from "./AssignmentAttachmentSection";
@@ -43,7 +39,7 @@ export default async function AssignmentDetail(props: PropTypes) {
   const mySubmission: IMySubmission | null =
     mySubmissionRes?.data?.data || null;
   dayjs.locale("id");
-  console.log(data)
+  console.log(data);
   if (!data) {
     return (
       <div className="p-4 flex flex-col justify-center items-center h-128">
@@ -129,6 +125,10 @@ export default async function AssignmentDetail(props: PropTypes) {
                           {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
                         </div>
                       )}
+                      <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                        <Eye className="h-3 w-3" />
+                        {data.view_count} dilihat
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
@@ -180,7 +180,9 @@ export default async function AssignmentDetail(props: PropTypes) {
                   </div>
                 )}
                 <div>
-                  <div className="font-bold text-gray-500 text-xs mb-2">AKSI</div>
+                  <div className="font-bold text-gray-500 text-xs mb-2">
+                    AKSI
+                  </div>
                   <SubmitAssignmentDialog
                     classroomId={classroomId}
                     assignmentId={assignmentId}
@@ -211,6 +213,10 @@ export default async function AssignmentDetail(props: PropTypes) {
                           {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
                         </div>
                       )}
+                      <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                        <Eye className="h-3 w-3" />
+                        {data.view_count} dilihat
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
@@ -228,7 +234,12 @@ export default async function AssignmentDetail(props: PropTypes) {
                       />
                     </>
                   ) : (
-                    <div className="text-gray-500">Tidak ada instruksi</div>
+                    <>
+                      <div className="font-bold text-gray-500 text-sm mt-2">
+                        INSTRUKSI
+                      </div>
+                      <div>Tidak ada instruksi</div>
+                    </>
                   )}
                 </CardContent>
               </div>
@@ -237,13 +248,17 @@ export default async function AssignmentDetail(props: PropTypes) {
               <div className="w-full lg:w-72 shrink-0 p-4 space-y-4">
                 {data.stats && (
                   <div className="space-y-2">
-                    <div className="font-bold text-gray-500 text-xs">STATUS PENGUMPULAN</div>
+                    <div className="font-bold text-gray-500 text-xs">
+                      STATUS PENGUMPULAN
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
-                        Belum dikumpulkan: {data.stats.total_students - data.stats.total_submitted}
+                        Belum dikumpulkan:{" "}
+                        {data.stats.total_students - data.stats.total_submitted}
                       </span>
                       <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-700">
-                        Menunggu nilai: {data.stats.total_submitted - data.stats.total_graded}
+                        Menunggu nilai:{" "}
+                        {data.stats.total_submitted - data.stats.total_graded}
                       </span>
                       <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
                         Sudah dinilai: {data.stats.total_graded}
@@ -252,7 +267,9 @@ export default async function AssignmentDetail(props: PropTypes) {
                   </div>
                 )}
                 <div>
-                  <div className="font-bold text-gray-500 text-xs mb-2">AKSI</div>
+                  <div className="font-bold text-gray-500 text-xs mb-2">
+                    AKSI
+                  </div>
                   <AssignmentAction
                     assignment={data}
                     classroomId={classroomId}
@@ -271,13 +288,9 @@ export default async function AssignmentDetail(props: PropTypes) {
           </CardHeader>
           <CardContent>
             {data.attachments &&
-            data.attachments.filter(
-              (a) => a.type === "FILE",
-            ).length > 0 ? (
+            data.attachments.filter((a) => a.type === "FILE").length > 0 ? (
               <AssignmentAttachmentSection
-                attachments={data.attachments.filter(
-                  (a) => a.type === "FILE",
-                )}
+                attachments={data.attachments.filter((a) => a.type === "FILE")}
               />
             ) : (
               <div className="h-23 flex items-center justify-center">
@@ -310,7 +323,6 @@ export default async function AssignmentDetail(props: PropTypes) {
           </CardContent>
         </Card>
       </div>
-
     </div>
   );
 }

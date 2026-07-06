@@ -12,7 +12,7 @@ async function ForumDetailSection({ postId, userId, role }: { postId: string; us
     return <div className="text-center py-12 text-gray-400">Postingan tidak ditemukan.</div>;
   }
 
-  return <ForumPostDetail post={post} currentUserId={userId} currentRole={role} />;
+  return <ForumPostDetail post={post} currentId={userId} currentRole={role} />;
 }
 
 export default async function ProdiForumPostDetailPage(props: { params: Promise<{ postId: string }> }) {
@@ -22,7 +22,7 @@ export default async function ProdiForumPostDetailPage(props: { params: Promise<
   return (
     <div className="p-4">
       <Suspense fallback={<ForumPostDetailSkeleton />}>
-        <ForumDetailSection postId={postId} userId={user.userId} role={user.role} />
+        <ForumDetailSection postId={postId} userId={user.id} role={user.role} />
       </Suspense>
     </div>
   );
