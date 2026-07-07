@@ -55,7 +55,7 @@ func InitRouter() *gin.Engine {
 		commentRepository := repositories.NewCommentRepository(Db)
 		forumRepository := repositories.NewForumRepository(Db)
 
-		announcementService := services.NewAnnouncementService(announcementRepository, classroomRepository, commentRepository)
+		announcementService := services.NewAnnouncementService(announcementRepository, classroomRepository, commentRepository, classroomPolicyRepository)
 
 		materialService := services.NewMaterialService(materialRepository, classroomRepository, contentViewRepository)
 		commentService := services.NewCommentService(commentRepository, classroomRepository, materialRepository, assignmentRepository, announcementRepository, forumRepository, classroomPolicyRepository)
@@ -120,7 +120,7 @@ func InitRouter() *gin.Engine {
 
 			classroom.GET("/:id/announcements", announcementController.FindAll)
 			classroom.GET("/:id/announcements/:announcementId", announcementController.FindById)
-			classroom.POST("/:id/announcements", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Create)
+			classroom.POST("/:id/announcements", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA"}), announcementController.Create)
 			classroom.PUT("/:id/announcements/:announcementId", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Update)
 			classroom.DELETE("/:id/announcements/:announcementId", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Delete)
 

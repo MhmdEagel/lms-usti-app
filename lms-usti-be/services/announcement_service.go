@@ -10,28 +10,40 @@ import (
 )
 
 type AnnouncementService struct {
-	announcementRepository repositories.AnnouncementRepositoryInterface
-	classroomRepository    repositories.ClassroomRepositoryInterface
-	commentRepository      repositories.CommentRepositoryInterface
+	announcementRepository    repositories.AnnouncementRepositoryInterface
+	classroomRepository       repositories.ClassroomRepositoryInterface
+	commentRepository         repositories.CommentRepositoryInterface
+	classroomPolicyRepository repositories.ClassroomPolicyRepositoryInterface
 }
 
 type AnnouncementServiceInterface interface {
-	Create(announcementRequest data.AnnouncementRequest) error
+	Create(announcementRequest data.AnnouncementRequest, userRole string) error
 	FindAll(classroomId string, search string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error)
 	FindById(announcementId, classroomId string) (data.AnnouncementResponse, error)
 	Update(announcementId, classroomId string, req data.AnnouncementUpdateRequest) error
 	Delete(announcementId, classroomId string) error
 }
 
-func NewAnnouncementService(announcementRepository repositories.AnnouncementRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, commentRepository repositories.CommentRepositoryInterface) AnnouncementServiceInterface {
-	return &AnnouncementService{announcementRepository: announcementRepository, classroomRepository: classroomRepository, commentRepository: commentRepository}
+func NewAnnouncementService(announcementRepository repositories.AnnouncementRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, commentRepository repositories.CommentRepositoryInterface, classroomPolicyRepository repositories.ClassroomPolicyRepositoryInterface) AnnouncementServiceInterface {
+	return &AnnouncementService{announcementRepository: announcementRepository, classroomRepository: classroomRepository, commentRepository: commentRepository, classroomPolicyRepository: classroomPolicyRepository}
 }
 
-func (a *AnnouncementService) Create(announcementRequest data.AnnouncementRequest) error {
+func (a *AnnouncementService) Create(announcementRequest data.AnnouncementRequest, userRole string) error {
 	classroom, err := a.classroomRepository.FindById(announcementRequest.ClassroomId)
 	if err != nil {
 		return data.ErrClassroomNotFound(err)
 	}
+
+	if userRole == "MAHASISWA" {
+		policy, err := a.classroomPolicyRepository.FindByClassroomId(announcementRequest.ClassroomId)
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return data.ErrInternalServer(err)
+		}
+		if err == nil && (policy.ForumPermission == model.ForumPermissionComment || policy.ForumPermission == model.ForumPermissionDosen) {
+			return data.ErrForumPermissionDenied(err)
+		}
+	}
+
 	announcement := model.Announcement{
 		Title:       announcementRequest.Title,
 		Content:     announcementRequest.Content,

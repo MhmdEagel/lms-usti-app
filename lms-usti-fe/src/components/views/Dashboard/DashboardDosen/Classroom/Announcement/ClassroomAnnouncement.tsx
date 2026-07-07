@@ -11,11 +11,13 @@ export default async function ClassroomAnnouncement({
   page = 1,
   limit = 10,
   search = "",
+  canCreatePost = true,
 }: {
   classroomId: string;
   page?: number;
   limit?: number;
   search?: string;
+  canCreatePost?: boolean;
 }) {
   const user = await getCurrentUser();
   const res = await classroomServices.getAnnouncement(classroomId, { page, limit, search });
@@ -28,6 +30,7 @@ export default async function ClassroomAnnouncement({
         userRole={user?.role}
         classroomId={classroomId}
         id={user?.id}
+        canCreatePost={canCreatePost}
       />
       <div className="mt-4 flex flex-col gap-4">
         {listPengumuman && listPengumuman.length > 0 ? (
