@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-const useAddAnnouncement = () => {
+const useAddForumPost = () => {
   const form = useForm({
     resolver: zodResolver(newAnnouncementSchema),
   });
@@ -38,4 +38,4 @@ const useAddAnnouncement = () => {
   };
 };
 
-export default useAddAnnouncement;
+export default useAddForumPost;

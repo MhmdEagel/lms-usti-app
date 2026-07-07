@@ -35,7 +35,7 @@ func (a *AssignmentController) Create(ctx *gin.Context) {
 	}
 	classroomId := ctx.Param("id")
 	req.ClassroomId = classroomId
-	req.DosenId = user.ID
+	req.DosenId = user.UserId
 	if err := a.assignmentService.Create(req); err != nil {
 		handleError(ctx, err)
 		return

@@ -45,12 +45,14 @@ func setupAnnouncementTestRouter(db *gorm.DB) *gin.Engine {
 	announcementRepo := repositories.NewAnnouncementRepository(db)
 	assignmentRepo := repositories.NewAssignmentRepository(db)
 	submissionRepo := repositories.NewSubmissionRepository(db)
+	commentRepo := repositories.NewCommentRepository(db)
 
-	authService := services.NewAuthService(userRepo, verificationRepo)
+	mediaService := services.NewMediaService()
+	authService := services.NewAuthService(userRepo, verificationRepo, mediaService)
 	submissionService := services.NewSubmissionService(submissionRepo, assignmentRepo)
 	assignmentService := services.NewAssignmentService(assignmentRepo, classroomRepo, submissionService)
-	classroomService := services.NewClassroomService(classroomRepo, submissionService, assignmentService)
-	announcementService := services.NewAnnouncementService(announcementRepo, classroomRepo)
+	classroomService := services.NewClassroomService(classroomRepo, userRepo, submissionService, assignmentService)
+	announcementService := services.NewAnnouncementService(announcementRepo, classroomRepo, commentRepo)
 
 	authController := controllers.NewAuthController(authService)
 	classroomController := controllers.NewClassroomController(classroomService)

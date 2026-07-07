@@ -35,7 +35,7 @@ func (m *MaterialController) Create(c *gin.Context) {
 	}
 	classroomId := c.Param("id")
 	req.ClassroomId = classroomId
-	req.DosenId = user.ID
+	req.DosenId = user.UserId
 	err := m.materialService.Create(req)
 	if err != nil {
 		handleError(c, err)

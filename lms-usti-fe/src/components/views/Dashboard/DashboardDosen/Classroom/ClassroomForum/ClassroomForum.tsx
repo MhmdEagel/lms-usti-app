@@ -1,12 +1,12 @@
-import AddAnnouncement from "./AddAnnouncement/AddAnnouncement";
-import AnnouncementItem from "./AnnouncementItem/AnnouncementItem";
+import AddForumPost from "./AddForumPost/AddForumPost";
+import ForumItem from "./ForumItem/ForumItem";
 import { getCurrentUser } from "@/lib/auth";
 import { classroomServices } from "@/services/classroom.service";
 import { IAnnouncement } from "@/types/Classroom";
 import PaginationControls from "@/components/common/PaginationControls/PaginationControls";
 import PaginationNav from "@/components/common/PaginationControls/PaginationNav";
 
-export default async function ClassroomAnnouncement({
+export default async function ClassroomForum({
   classroomId,
   page = 1,
   limit = 10,
@@ -24,7 +24,7 @@ export default async function ClassroomAnnouncement({
 
   return (
     <>
-      <AddAnnouncement
+      <AddForumPost
         userRole={user?.role}
         classroomId={classroomId}
         id={user?.id}
@@ -32,7 +32,7 @@ export default async function ClassroomAnnouncement({
       <div className="mt-4 flex flex-col gap-4">
         {listPengumuman && listPengumuman.length > 0 ? (
           listPengumuman.map((pengumuman) => (
-            <AnnouncementItem
+            <ForumItem
               key={pengumuman.id}
               announcement={pengumuman}
               classroomId={classroomId}

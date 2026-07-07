@@ -67,7 +67,7 @@ func (a *AnnouncementService) FindAll(classroomId string, search string, paginat
 			ClassroomName: v.Classroom.ClassName,
 			CreatedBy:     v.Dosen.Fullname,
 			CreatedAt:     v.CreatedAt.Format(time.RFC3339Nano),
-			CommentCount:  counts[v.ID],
+			CommentCount:  int(counts[v.ID]),
 		}
 		announcementResponses = append(announcementResponses, announcement)
 	}
@@ -82,6 +82,8 @@ func (a *AnnouncementService) FindById(announcementId, classroomId string) (data
 	if err != nil {
 		return data.AnnouncementResponse{}, data.ErrAnnouncementNotFound(err)
 	}
+	counts, _ := a.commentRepository.CountByCommentableBatch(model.CommentableTypeAnnouncement, []string{announcementId})
+	count := int(counts[announcementId])
 	return data.AnnouncementResponse{
 		Id:            announcement.ID,
 		Title:         announcement.Title,
@@ -90,6 +92,7 @@ func (a *AnnouncementService) FindById(announcementId, classroomId string) (data
 		ClassroomName: announcement.Classroom.ClassName,
 		CreatedBy:     announcement.Dosen.Fullname,
 		CreatedAt:     announcement.CreatedAt.Format(time.RFC3339Nano),
+		CommentCount:  count,
 	}, nil
 }
 

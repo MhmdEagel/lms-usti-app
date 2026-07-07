@@ -8,7 +8,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import useAddAnnouncement from "./useAddAnnouncement";
+import useAddForumPost from "./useAddForumPost";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Plus } from "lucide-react";
 import ContentEditor from "@/components/ui/content-editor";
-export default function AddAnnouncement({
+export default function AddForumPost({
   userRole,
   classroomId,
 }: {
@@ -28,7 +28,7 @@ export default function AddAnnouncement({
   classroomId: string;
 }) {
   const { form, open, handleOpen, handleAddAnnouncement } =
-    useAddAnnouncement();
+    useAddForumPost();
 
     console.log(userRole)
 

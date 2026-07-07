@@ -31,7 +31,7 @@ interface PropTypes {
   onEdit?: () => void;
 }
 
-export default function AnnouncementAction(props: PropTypes) {
+export default function ForumAction(props: PropTypes) {
   const { announcement, classroomId, onEdit } = props;
   const [openPopOver, setOpenPopOver] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);

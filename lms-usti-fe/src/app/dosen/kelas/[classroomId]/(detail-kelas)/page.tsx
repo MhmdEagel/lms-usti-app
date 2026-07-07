@@ -1,5 +1,5 @@
-import AnnouncementSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/Announcement/AnnouncementSkeleton/AnnouncementSkeleton";
-import ClassroomAnnouncement from "@/components/views/Dashboard/DashboardDosen/Classroom/Announcement/ClassroomAnnouncement";
+import ForumSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/ClassroomForum/ForumSkeleton/ForumSkeleton";
+import ClassroomForum from "@/components/views/Dashboard/DashboardDosen/Classroom/ClassroomForum/ClassroomForum";
 import { Suspense } from "react";
 
 export default async function ClassDetailPage({
@@ -10,8 +10,8 @@ export default async function ClassDetailPage({
   const { classroomId } = await params;
   return (
     <>
-      <Suspense fallback={<AnnouncementSkeleton />}>
-        <ClassroomAnnouncement classroomId={classroomId} />
+      <Suspense fallback={<ForumSkeleton />}>
+        <ClassroomForum classroomId={classroomId} />
       </Suspense>
     </>
   );

@@ -25,8 +25,10 @@ export const classroomServices = {
       `${endpoint.CLASSROOM}/${classroomId}/announcements`,
       payload,
     ),
-  getAnnouncement: (classroomId: string) =>
-    instance.get(`${endpoint.CLASSROOM}/${classroomId}/announcements`),
+  getAnnouncement: (classroomId: string, params?: { page?: number; limit?: number; search?: string }) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}/announcements`, { params }),
+  getAnnouncementById: (classroomId: string, announcementId: string) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}`),
   deleteAnnouncement: (classroomId: string, announcementId: string) =>
     instance.delete(
       `${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}`,

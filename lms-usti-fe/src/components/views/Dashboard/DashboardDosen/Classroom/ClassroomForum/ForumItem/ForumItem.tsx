@@ -11,17 +11,17 @@ import DOMPurify from "isomorphic-dompurify";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import type { IAnnouncement } from "@/types/Classroom";
-import AnnouncementAction from "./AnnouncementAction";
+import type { IAnnouncement as IForumPost } from "@/types/Classroom";
+import ForumAction from "./ForumAction";
 import { updateAnnouncement } from "@/actions/update-announcement";
 
 interface PropTypes {
-  announcement: IAnnouncement;
+  announcement: IForumPost;
   classroomId: string;
   userRole?: string;
 }
 
-export default function AnnouncementItem({
+export default function ForumItem({
   announcement,
   classroomId,
   userRole,
@@ -82,7 +82,7 @@ export default function AnnouncementItem({
             </div>
           )}
           {userRole === "DOSEN" && (
-            <AnnouncementAction
+            <ForumAction
               announcement={announcement}
               classroomId={classroomId}
               onEdit={() => setIsEditing(true)}

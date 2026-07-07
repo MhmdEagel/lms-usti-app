@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function AnnouncementSkeleton() {
+export default function ForumSkeleton() {
   return (
     <>
       <div className="flex items-center border-b-2 pb-4">
