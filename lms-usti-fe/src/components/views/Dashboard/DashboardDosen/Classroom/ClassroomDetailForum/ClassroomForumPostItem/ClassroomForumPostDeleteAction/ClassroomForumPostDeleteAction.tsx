@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteAnnoucement } from "@/actions/delete-announcement";
+import { deleteForumPost } from "@/actions/delete-forum-post";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,12 +20,12 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 
 interface PropTypes {
-  annId: string;
+  forumPostId: string;
   classroomId: string;
 }
 
 export default function DeleteAction(props: PropTypes) {
-  const { annId, classroomId } = props;
+  const { forumPostId, classroomId } = props;
   const [isPending, startTransition] = useTransition();
   return (
     <AlertDialog>
@@ -52,7 +52,7 @@ export default function DeleteAction(props: PropTypes) {
           <AlertDialogAction
             onClick={() =>
               startTransition(async () => {
-                await deleteAnnoucement(classroomId, annId);
+                await deleteForumPost(classroomId, forumPostId);
                 toast.success("Pengumuman berhasil dihapus")
               })
             }

@@ -16,7 +16,7 @@ type User struct {
 	Nidn                   string         `json:"nidn,omitempty"`
 	DosenClassrooms        []Classroom    `json:"dosenClassrooms,omitempty" gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE;"`
 	MahasiswaClassrooms    []Classroom    `json:"mahasiswaClassrooms,omitempty" gorm:"many2many:classroom_mahasiswas;constraint:OnDelete:CASCADE;"`
-	ClassroomAnnouncements []Announcement `json:"dosenAnnouncements,omitempty" gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE;"`
+	ClassroomForumPosts []ClassroomForumPost `json:"dosenForumPosts,omitempty" gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE;"`
 }
 
 func (user *User) BeforeCreate(tx *gorm.DB) error {

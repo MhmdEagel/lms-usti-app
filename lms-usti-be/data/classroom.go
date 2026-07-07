@@ -43,18 +43,18 @@ type JoinClassroomRequest struct {
 	ClassCode string `json:"class_code" binding:"required"`
 }
 
-type AnnouncementRequest struct {
+type ClassroomForumPostRequest struct {
 	Title       string `json:"title" binding:"required"`
 	Content     string `json:"content" binding:"required"`
 	ClassroomId string
 	DosenId     string
 }
-type AnnouncementUpdateRequest struct {
+type ClassroomForumPostUpdateRequest struct {
 	IsPinned *bool   `json:"is_pinned"`
 	Title    *string `json:"title"`
 	Content  *string `json:"content"`
 }
-type AnnouncementResponse struct {
+type ClassroomForumPostResponse struct {
 	Id            string `json:"id"`
 	Title         string `json:"title"`
 	Content       string `json:"content"`

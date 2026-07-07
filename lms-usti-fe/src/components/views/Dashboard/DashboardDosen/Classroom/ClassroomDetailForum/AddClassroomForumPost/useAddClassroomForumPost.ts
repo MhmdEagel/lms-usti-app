@@ -1,6 +1,6 @@
-import { createNewAnnouncement } from "@/actions/new-announcement";
+import { createNewForumPost } from "@/actions/create-forum-post";
 import { newForumPostSchema } from "@/schemas/schemas";
-import { ICreateClassroomDetailForum } from "@/types/Classroom";
+import { ICreateClassroomForumPost } from "@/types/Classroom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -17,12 +17,12 @@ const useAddForumPost = () => {
     setOpen(isOpen);
   };
 
-  const handleAddAnnouncement = async (
-    data: ICreateClassroomDetailForum,
+  const handleAddForumPost = async (
+    data: ICreateClassroomForumPost,
     classroomId: string,
   ) => {
     try {
-      await createNewAnnouncement(data, classroomId);
+      await createNewForumPost(data, classroomId);
       toast.success("Berhasil menambahkan pengumuman");
       handleOpen(false);
     } catch {
@@ -32,7 +32,7 @@ const useAddForumPost = () => {
 
   return {
     form,
-    handleAddAnnouncement,
+    handleAddForumPost,
     open,
     handleOpen,
   };

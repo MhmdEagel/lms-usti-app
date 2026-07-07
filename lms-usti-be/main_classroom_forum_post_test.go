@@ -15,21 +15,21 @@ import (
 	"gorm.io/gorm"
 )
 
-func seedAnnouncement(db *gorm.DB, classroomId, dosenId, title, content string) model.Announcement {
-	announcement := model.Announcement{
+func seedClassroomForumPost(db *gorm.DB, classroomId, dosenId, title, content string) model.ClassroomForumPost {
+	forumPost := model.ClassroomForumPost{
 		Title:       title,
 		Content:     content,
 		ClassroomId: classroomId,
 		DosenId:     dosenId,
 	}
-	result := db.Create(&announcement)
+	result := db.Create(&forumPost)
 	if result.Error != nil {
 		panic("failed to seed announcement: " + result.Error.Error())
 	}
-	return announcement
+	return forumPost
 }
 
-func setupAnnouncementTestRouter(db *gorm.DB) *gin.Engine {
+func setupClassroomForumPostTestRouter(db *gorm.DB) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 	r.MaxMultipartMemory = 8 << 20
@@ -42,7 +42,7 @@ func setupAnnouncementTestRouter(db *gorm.DB) *gin.Engine {
 	userRepo := repositories.NewUserRepository(db)
 	verificationRepo := repositories.NewVerificationRepository(db)
 	classroomRepo := repositories.NewClassroomRepository(db)
-	announcementRepo := repositories.NewAnnouncementRepository(db)
+	classroomForumPostRepo := repositories.NewClassroomForumPostRepository(db)
 	assignmentRepo := repositories.NewAssignmentRepository(db)
 	submissionRepo := repositories.NewSubmissionRepository(db)
 	commentRepo := repositories.NewCommentRepository(db)
@@ -54,11 +54,11 @@ func setupAnnouncementTestRouter(db *gorm.DB) *gin.Engine {
 	assignmentService := services.NewAssignmentService(assignmentRepo, classroomRepo, submissionService, contentViewRepo)
 	classroomPolicyRepo := repositories.NewClassroomPolicyRepository(db)
 	classroomService := services.NewClassroomService(classroomRepo, userRepo, submissionService, assignmentService, classroomPolicyRepo)
-	announcementService := services.NewAnnouncementService(announcementRepo, classroomRepo, commentRepo)
+	classroomForumPostService := services.NewClassroomForumPostService(classroomForumPostRepo, classroomRepo, commentRepo, classroomPolicyRepo)
 
 	authController := controllers.NewAuthController(authService)
 	classroomController := controllers.NewClassroomController(classroomService)
-	announcementController := controllers.NewAnnouncementController(announcementService)
+	classroomForumPostController := controllers.NewClassroomForumPostController(classroomForumPostService)
 
 	api := r.Group("/lms-usti-api")
 	{
@@ -78,9 +78,9 @@ func setupAnnouncementTestRouter(db *gorm.DB) *gin.Engine {
 			classroom.DELETE("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Delete)
 			classroom.PUT("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Update)
 
-			classroom.GET("/:id/announcements", announcementController.FindAll)
-			classroom.POST("/:id/announcements", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Create)
-			classroom.DELETE("/:id/announcements/:announcementId", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Delete)
+			classroom.GET("/:id/forumPosts", classroomForumPostController.FindAll)
+			classroom.POST("/:id/forumPosts", aclMiddleware.Handle([]string{"DOSEN"}), classroomForumPostController.Create)
+			classroom.DELETE("/:id/forumPosts/:announcementId", aclMiddleware.Handle([]string{"DOSEN"}), classroomForumPostController.Delete)
 		}
 	}
 	return r
@@ -88,10 +88,10 @@ func setupAnnouncementTestRouter(db *gorm.DB) *gin.Engine {
 
 // --- Tahap 3: Test Announcement Create ---
 
-func TestAnnouncementCreate(t *testing.T) {
+func TestClassroomForumPostCreate(t *testing.T) {
 	db := setupTestDB()
 	defer cleanupDatabase(db)
-	r := setupAnnouncementTestRouter(db)
+	r := setupClassroomForumPostTestRouter(db)
 
 	dosenToken := createTestToken("DOSEN")
 	mahasiswaToken := createTestToken("MAHASISWA")
@@ -102,7 +102,7 @@ func TestAnnouncementCreate(t *testing.T) {
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := `{"title":"Pengumuman UTS","content":"Ujian dimulai pukul 08.00"}`
-		w := makeRequest(r, "POST", "/lms-usti-api/classroom/"+classroom.ID+"/announcements", body, dosenToken)
+		w := makeRequest(r, "POST", "/lms-usti-api/classroom/"+classroom.ID+"/forumPosts", body, dosenToken)
 		res := parseResponse(w)
 
 		if w.Code != http.StatusOK {
@@ -119,7 +119,7 @@ func TestAnnouncementCreate(t *testing.T) {
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := `{"title":"","content":"Ujian dimulai pukul 08.00"}`
-		w := makeRequest(r, "POST", "/lms-usti-api/classroom/"+classroom.ID+"/announcements", body, dosenToken)
+		w := makeRequest(r, "POST", "/lms-usti-api/classroom/"+classroom.ID+"/forumPosts", body, dosenToken)
 		if w.Code != http.StatusBadRequest {
 			t.Errorf("expected 400, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
@@ -131,7 +131,7 @@ func TestAnnouncementCreate(t *testing.T) {
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := `{"title":"Pengumuman","content":""}`
-		w := makeRequest(r, "POST", "/lms-usti-api/classroom/"+classroom.ID+"/announcements", body, dosenToken)
+		w := makeRequest(r, "POST", "/lms-usti-api/classroom/"+classroom.ID+"/forumPosts", body, dosenToken)
 		if w.Code != http.StatusBadRequest {
 			t.Errorf("expected 400, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
@@ -140,7 +140,7 @@ func TestAnnouncementCreate(t *testing.T) {
 	t.Run("Tanpa token", func(t *testing.T) {
 		cleanupDatabase(db)
 		body := `{"title":"Pengumuman","content":"Test"}`
-		w := makeRequest(r, "POST", "/lms-usti-api/classroom/some-id/announcements", body, "")
+		w := makeRequest(r, "POST", "/lms-usti-api/classroom/some-id/forumPosts", body, "")
 		if w.Code != http.StatusUnauthorized {
 			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
@@ -149,7 +149,7 @@ func TestAnnouncementCreate(t *testing.T) {
 	t.Run("Token MAHASISWA", func(t *testing.T) {
 		cleanupDatabase(db)
 		body := `{"title":"Pengumuman","content":"Test"}`
-		w := makeRequest(r, "POST", "/lms-usti-api/classroom/some-id/announcements", body, mahasiswaToken)
+		w := makeRequest(r, "POST", "/lms-usti-api/classroom/some-id/forumPosts", body, mahasiswaToken)
 		if w.Code != http.StatusUnauthorized {
 			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
@@ -160,7 +160,7 @@ func TestAnnouncementCreate(t *testing.T) {
 		seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
 
 		body := `{"title":"Pengumuman UTS","content":"Ujian dimulai pukul 08.00"}`
-		w := makeRequest(r, "POST", "/lms-usti-api/classroom/nonexistent-id/announcements", body, dosenToken)
+		w := makeRequest(r, "POST", "/lms-usti-api/classroom/nonexistent-id/forumPosts", body, dosenToken)
 		if w.Code != http.StatusNotFound {
 			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
@@ -169,21 +169,21 @@ func TestAnnouncementCreate(t *testing.T) {
 
 // --- Tahap 4: Test Announcement FindAll ---
 
-func TestAnnouncementFindAll(t *testing.T) {
+func TestClassroomForumPostFindAll(t *testing.T) {
 	db := setupTestDB()
 	defer cleanupDatabase(db)
-	r := setupAnnouncementTestRouter(db)
+	r := setupClassroomForumPostTestRouter(db)
 
 	dosenToken := createTestToken("DOSEN")
 
-	t.Run("Ada announcements", func(t *testing.T) {
+	t.Run("Ada forumPosts", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
-		seedAnnouncement(db, classroom.ID, dosen.ID, "Pengumuman 1", "Konten 1")
-		seedAnnouncement(db, classroom.ID, dosen.ID, "Pengumuman 2", "Konten 2")
+		seedClassroomForumPost(db, classroom.ID, dosen.ID, "Forum Post 1", "Konten 1")
+		seedClassroomForumPost(db, classroom.ID, dosen.ID, "Forum Post 2", "Konten 2")
 
-		w := makeRequest(r, "GET", "/lms-usti-api/classroom/"+classroom.ID+"/announcements", "", dosenToken)
+		w := makeRequest(r, "GET", "/lms-usti-api/classroom/"+classroom.ID+"/forumPosts", "", dosenToken)
 		res := parseResponse(w)
 
 		if w.Code != http.StatusOK {
@@ -192,10 +192,10 @@ func TestAnnouncementFindAll(t *testing.T) {
 		if res.Meta.Message != "berhasil mengambil semua announcement" {
 			t.Errorf("expected 'berhasil mengambil semua announcement', got '%s'", res.Meta.Message)
 		}
-		var announcements []data.AnnouncementResponse
-		json.Unmarshal(res.Data, &announcements)
-		if len(announcements) != 2 {
-			t.Errorf("expected 2 announcements, got %d", len(announcements))
+		var forumPosts []data.ClassroomForumPostResponse
+		json.Unmarshal(res.Data, &forumPosts)
+		if len(forumPosts) != 2 {
+			t.Errorf("expected 2 forumPosts, got %d", len(forumPosts))
 		}
 	})
 
@@ -204,22 +204,22 @@ func TestAnnouncementFindAll(t *testing.T) {
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
-		w := makeRequest(r, "GET", "/lms-usti-api/classroom/"+classroom.ID+"/announcements", "", dosenToken)
+		w := makeRequest(r, "GET", "/lms-usti-api/classroom/"+classroom.ID+"/forumPosts", "", dosenToken)
 		res := parseResponse(w)
 
 		if w.Code != http.StatusOK {
 			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
-		var announcements []data.AnnouncementResponse
-		json.Unmarshal(res.Data, &announcements)
-		if len(announcements) != 0 {
-			t.Errorf("expected 0 announcements, got %d", len(announcements))
+		var forumPosts []data.ClassroomForumPostResponse
+		json.Unmarshal(res.Data, &forumPosts)
+		if len(forumPosts) != 0 {
+			t.Errorf("expected 0 forumPosts, got %d", len(forumPosts))
 		}
 	})
 
 	t.Run("Classroom tidak ada", func(t *testing.T) {
 		cleanupDatabase(db)
-		w := makeRequest(r, "GET", "/lms-usti-api/classroom/nonexistent-id/announcements", "", dosenToken)
+		w := makeRequest(r, "GET", "/lms-usti-api/classroom/nonexistent-id/forumPosts", "", dosenToken)
 		if w.Code != http.StatusNotFound {
 			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
@@ -228,10 +228,10 @@ func TestAnnouncementFindAll(t *testing.T) {
 
 // --- Tahap 5: Test Announcement Delete ---
 
-func TestAnnouncementDelete(t *testing.T) {
+func TestClassroomForumPostDelete(t *testing.T) {
 	db := setupTestDB()
 	defer cleanupDatabase(db)
-	r := setupAnnouncementTestRouter(db)
+	r := setupClassroomForumPostTestRouter(db)
 
 	dosenToken := createTestToken("DOSEN")
 	mahasiswaToken := createTestToken("MAHASISWA")
@@ -240,9 +240,9 @@ func TestAnnouncementDelete(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
-		announcement := seedAnnouncement(db, classroom.ID, dosen.ID, "Pengumuman", "Test")
+		forumPost := seedClassroomForumPost(db, classroom.ID, dosen.ID, "Pengumuman", "Test")
 
-		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/"+classroom.ID+"/announcements/"+announcement.ID, "", dosenToken)
+		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/"+classroom.ID+"/forumPosts/"+announcement.ID, "", dosenToken)
 		res := parseResponse(w)
 
 		if w.Code != http.StatusOK {
@@ -253,12 +253,12 @@ func TestAnnouncementDelete(t *testing.T) {
 		}
 	})
 
-	t.Run("Announcement tidak ada", func(t *testing.T) {
+	t.Run("Forum post tidak ada", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
-		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/"+classroom.ID+"/announcements/nonexistent-id", "", dosenToken)
+		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/"+classroom.ID+"/forumPosts/nonexistent-id", "", dosenToken)
 		if w.Code != http.StatusNotFound {
 			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
@@ -266,7 +266,7 @@ func TestAnnouncementDelete(t *testing.T) {
 
 	t.Run("Tanpa token", func(t *testing.T) {
 		cleanupDatabase(db)
-		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/some-id/announcements/some-id", "", "")
+		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/some-id/forumPosts/some-id", "", "")
 		if w.Code != http.StatusUnauthorized {
 			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
@@ -274,7 +274,7 @@ func TestAnnouncementDelete(t *testing.T) {
 
 	t.Run("Token MAHASISWA", func(t *testing.T) {
 		cleanupDatabase(db)
-		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/some-id/announcements/some-id", "", mahasiswaToken)
+		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/some-id/forumPosts/some-id", "", mahasiswaToken)
 		if w.Code != http.StatusUnauthorized {
 			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}

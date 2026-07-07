@@ -8,7 +8,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import useAddForumPost from "./useAddForumPost";
+import useAddClassroomForumPost from "./useAddClassroomForumPost";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,15 +21,15 @@ import { Plus } from "lucide-react";
 import ContentEditor from "@/components/ui/content-editor";
 export default function AddForumPost({
   id,
-  userRole,
   classroomId,
+  canCreatePost,
 }: {
   id: string | undefined;
-  userRole: string | undefined;
   classroomId: string;
+  canCreatePost: boolean;
 }) {
-  const { form, open, handleOpen, handleAddAnnouncement } =
-    useAddForumPost();
+  const { form, open, handleOpen, handleAddForumPost } =
+    useAddClassroomForumPost();
 
 
 
@@ -37,7 +37,7 @@ export default function AddForumPost({
     <>
       <div className="pb-4 border-b-2 flex items-center">
         <div className="text-base md:text-xl font-semibold">Forum Kelas</div>
-        {userRole === "DOSEN" && !open ? (
+        {canCreatePost && !open ? (
           <Tooltip>
             <TooltipTrigger className="ml-auto" asChild>
               <Button onClick={() => handleOpen(true)} size={"icon"}>
@@ -57,7 +57,7 @@ export default function AddForumPost({
               <form
                 className="space-y-4"
                 onSubmit={form.handleSubmit((data) =>
-                  handleAddAnnouncement(data, classroomId),
+                  handleAddForumPost(data, classroomId),
                 )}
               >
                 <FormField

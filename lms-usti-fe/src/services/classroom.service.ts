@@ -2,7 +2,7 @@ import instance from "@/lib/axios";
 import endpoint from "./endpoint.constant";
 import type {
   IClassroomPolicies,
-  ICreateClassroomDetailForum,
+  ICreateClassroomForumPost,
   ICreateClassroom,
   IJoinClassroom,
   IUpdateClassroom,
@@ -21,26 +21,26 @@ export const classroomServices = {
     instance.get(`${endpoint.CLASSROOM}/mahasiswa/classrooms`, { params }),
   getDetail: (classroomId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}`),
-  createForumPost: (payload: ICreateClassroomDetailForum, classroomId: string) =>
+  createForumPost: (payload: ICreateClassroomForumPost, classroomId: string) =>
     instance.post(
       `${endpoint.CLASSROOM}/${classroomId}/announcements`,
       payload,
     ),
   getForumPosts: (classroomId: string, params?: { page?: number; limit?: number; search?: string }) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/announcements`, { params }),
-  getForumPostById: (classroomId: string, announcementId: string) =>
-    instance.get(`${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}`),
-  deleteForumPost: (classroomId: string, announcementId: string) =>
+  getForumPostById: (classroomId: string, forumPostId: string) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}/announcements/${forumPostId}`),
+  deleteForumPost: (classroomId: string, forumPostId: string) =>
     instance.delete(
-      `${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}`,
+      `${endpoint.CLASSROOM}/${classroomId}/announcements/${forumPostId}`,
     ),
   updateForumPost: (
     classroomId: string,
-    announcementId: string,
+    forumPostId: string,
     payload: { is_pinned?: boolean; title?: string; content?: string },
   ) =>
     instance.put(
-      `${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}`,
+      `${endpoint.CLASSROOM}/${classroomId}/announcements/${forumPostId}`,
       payload,
     ),
   getMembers: (classroomId: string) =>

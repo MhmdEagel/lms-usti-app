@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Announcement struct {
+type ClassroomForumPost struct {
 	ID          string `json:"id" gorm:"primary_key;not null"`
 	Title       string `json:"title" gorm:"not null;"`
 	Content     string `json:"content" gorm:"not null;type:text"`
@@ -19,9 +19,9 @@ type Announcement struct {
 	Classroom   Classroom `gorm:"foreignKey:ClassroomId"`
 }
 
-func (announcement *Announcement) BeforeCreate(tx *gorm.DB) error {
+func (classroomForumPost *ClassroomForumPost) BeforeCreate(tx *gorm.DB) error {
 	id, err := uuid.NewRandom()
-	announcement.ID = id.String()
-	announcement.IsPinned = false
+	classroomForumPost.ID = id.String()
+	classroomForumPost.IsPinned = false
 	return err
 }

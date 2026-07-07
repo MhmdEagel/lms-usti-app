@@ -27,7 +27,7 @@ type Classroom struct {
 	Prodi                 string         `gorm:"not null"`
 	TahunAjaran           string         `gorm:"not null"`
 	ClassroomMahasiswa    []User         `gorm:"many2many:classroom_mahasiswas;constraint:OnDelete:CASCADE;"`
-	ClassroomAnnouncement []Announcement `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE;"`
+	ClassroomForumPosts []ClassroomForumPost `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE;"`
 	Materials             []Material     `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE;"`
 	Assignments           []Assignment   `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE;"`
 }

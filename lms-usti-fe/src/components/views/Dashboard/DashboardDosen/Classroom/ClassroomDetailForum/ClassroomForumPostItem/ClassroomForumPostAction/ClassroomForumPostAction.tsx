@@ -18,15 +18,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Spinner } from "@/components/ui/spinner";
-import { deleteAnnoucement } from "@/actions/delete-announcement";
-import { updateAnnouncement } from "@/actions/update-announcement";
-import { IClassroomDetailForum } from "@/types/Classroom";
+import { deleteForumPost } from "@/actions/delete-forum-post";
+import { updateForumPost } from "@/actions/update-forum-post";
+import { IClassroomForumPost } from "@/types/Classroom";
 import { EllipsisVertical, Pin, PinOff, Pencil, Trash } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 interface PropTypes {
-  announcement: IClassroomDetailForum;
+  announcement: IClassroomForumPost;
   classroomId: string;
   onEdit?: () => void;
 }
@@ -40,7 +40,7 @@ export default function ForumAction(props: PropTypes) {
   const handlePinToggle = () => {
     startTransition(async () => {
       try {
-        await updateAnnouncement(
+        await updateForumPost(
           classroomId,
           announcement.id,
           { is_pinned: !announcement.is_pinned },
@@ -130,7 +130,7 @@ export default function ForumAction(props: PropTypes) {
             <AlertDialogAction
               onClick={() =>
                 startTransition(async () => {
-                  await deleteAnnoucement(classroomId, announcement.id);
+                  await deleteForumPost(classroomId, announcement.id);
                   toast.success("Pengumuman berhasil dihapus");
                 })
               }

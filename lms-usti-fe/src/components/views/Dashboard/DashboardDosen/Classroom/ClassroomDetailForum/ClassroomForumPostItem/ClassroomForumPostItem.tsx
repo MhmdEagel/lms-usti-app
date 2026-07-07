@@ -11,9 +11,9 @@ import DOMPurify from "isomorphic-dompurify";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import type { IClassroomDetailForum as IForumPost } from "@/types/Classroom";
-import ForumAction from "./ForumAction";
-import { updateAnnouncement } from "@/actions/update-announcement";
+import type { IClassroomForumPost as IForumPost } from "@/types/Classroom";
+import ForumAction from "./ClassroomForumPostAction";
+import { updateForumPost } from "@/actions/update-forum-post";
 
 interface PropTypes {
   announcement: IForumPost;
@@ -46,7 +46,7 @@ export default function ForumItem({
     }
     startTransition(async () => {
       try {
-        await updateAnnouncement(classroomId, announcement.id, {
+        await updateForumPost(classroomId, announcement.id, {
           title: editTitle,
           content: editContent,
         });

@@ -1,4 +1,4 @@
-import ForumSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/ClassroomDetailForum/ForumSkeleton/ForumSkeleton";
+import ClassroomForumPostSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/ClassroomDetailForum/ClassroomForumPostSkeleton/ClassroomForumPostSkeleton";
 import ClassroomDetailForum from "@/components/views/Dashboard/DashboardDosen/Classroom/ClassroomDetailForum/ClassroomDetailForum";
 import { Suspense } from "react";
 
@@ -13,7 +13,7 @@ export default async function ClassDetailPage({
   const { page, limit, search } = await searchParams;
   return (
     <>
-      <Suspense fallback={<ForumSkeleton />}>
+      <Suspense fallback={<ClassroomForumPostSkeleton />}>
         <ClassroomDetailForum
           classroomId={classroomId}
           page={page ? Number(page) : 1}

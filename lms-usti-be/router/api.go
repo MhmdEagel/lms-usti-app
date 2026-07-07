@@ -29,7 +29,7 @@ func InitRouter() *gin.Engine {
 		verificationRepository := repositories.NewVerificationRepository(Db)
 
 		classroomRepository := repositories.NewClassroomRepository(Db)
-		announcementRepository := repositories.NewAnnouncementRepository(Db)
+		classroomForumPostRepository := repositories.NewClassroomForumPostRepository(Db)
 		materialRepository := repositories.NewMaterialRepository(Db)
 		assignmentRepository := repositories.NewAssignmentRepository(Db)
 		submissionRepository := repositories.NewSubmissionRepository(Db)
@@ -54,10 +54,10 @@ func InitRouter() *gin.Engine {
 
 		forumRepository := repositories.NewForumRepository(Db)
 
-		announcementService := services.NewAnnouncementService(announcementRepository, classroomRepository, commentRepository)
+		classroomForumPostService := services.NewClassroomForumPostService(classroomForumPostRepository, classroomRepository, commentRepository, classroomPolicyRepository)
 
 		materialService := services.NewMaterialService(materialRepository, classroomRepository, contentViewRepository)
-		commentService := services.NewCommentService(commentRepository, classroomRepository, materialRepository, assignmentRepository, announcementRepository, forumRepository, classroomPolicyRepository)
+		commentService := services.NewCommentService(commentRepository, classroomRepository, materialRepository, assignmentRepository, classroomForumPostRepository, forumRepository, classroomPolicyRepository)
 		classroomPolicyService := services.NewClassroomPolicyService(classroomPolicyRepository)
 		classroomPolicyController := controllers.NewClassroomPolicyController(classroomPolicyService)
 
@@ -98,7 +98,7 @@ func InitRouter() *gin.Engine {
 		{
 
 			classroomController := controllers.NewClassroomController(classroomService)
-			announcementController := controllers.NewAnnouncementController(announcementService)
+			classroomForumPostController := controllers.NewClassroomForumPostController(classroomForumPostService)
 			materialController := controllers.NewMaterialController(materialService)
 			assignmentController := controllers.NewAssignmentController(assignmentService)
 			submissionController := controllers.NewSubmissionController(submissionService)
@@ -117,11 +117,11 @@ func InitRouter() *gin.Engine {
 			classroom.DELETE("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Delete)
 			classroom.PUT("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Update)
 
-			classroom.GET("/:id/announcements", announcementController.FindAll)
-			classroom.GET("/:id/announcements/:announcementId", announcementController.FindById)
-			classroom.POST("/:id/announcements", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Create)
-			classroom.PUT("/:id/announcements/:announcementId", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Update)
-			classroom.DELETE("/:id/announcements/:announcementId", aclMiddleware.Handle([]string{"DOSEN"}), announcementController.Delete)
+			classroom.GET("/:id/announcements", classroomForumPostController.FindAll)
+			classroom.GET("/:id/announcements/:announcementId", classroomForumPostController.FindById)
+			classroom.POST("/:id/announcements", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA"}), classroomForumPostController.Create)
+			classroom.PUT("/:id/announcements/:announcementId", aclMiddleware.Handle([]string{"DOSEN"}), classroomForumPostController.Update)
+			classroom.DELETE("/:id/announcements/:announcementId", aclMiddleware.Handle([]string{"DOSEN"}), classroomForumPostController.Delete)
 
 			classroom.GET("/:id/materials", materialController.FindAll)
 			classroom.GET("/:id/materials/:materialId", materialController.FindById)

@@ -3,21 +3,21 @@
 import { classroomServices } from "@/services/classroom.service";
 import { revalidatePath } from "next/cache";
 
-interface UpdateAnnouncementPayload {
+interface UpdateForumPostPayload {
   is_pinned?: boolean;
   title?: string;
   content?: string;
 }
 
-export const updateAnnouncement = async (
+export const updateForumPost = async (
   classroomId: string,
-  announcementId: string,
-  payload: UpdateAnnouncementPayload,
+  forumPostId: string,
+  payload: UpdateForumPostPayload,
 ) => {
   try {
     await classroomServices.updateForumPost(
       classroomId,
-      announcementId,
+      forumPostId,
       payload,
     );
     revalidatePath(".");
