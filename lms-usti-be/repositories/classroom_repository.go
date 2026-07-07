@@ -92,7 +92,7 @@ func (u *ClassroomRepository) FindAllByDosenId(dosenId string, filter data.Class
 func (u *ClassroomRepository) FindAllByMahasiswaId(mahasiswaId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error) {
 	var classrooms []model.Classroom
 	var classroomMahasiswa []model.ClassroomMahasiswa
-	query := u.Db.Scopes(lib.Paginate(classroomMahasiswa, &pagination, u.Db)).Preload("Classroom").Preload("Classroom.Dosen").Where("user_id = ?", mahasiswaId).Order("created_at DESC")
+	query := u.Db.Scopes(lib.Paginate(classroomMahasiswa, &pagination, u.Db)).Preload("Classroom").Preload("Classroom.Dosen").Where("user_id = ?", mahasiswaId)
 	joinsAdded := false
 	addJoin := func() {
 		if !joinsAdded {
