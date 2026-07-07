@@ -30,10 +30,10 @@ export default async function ClassroomMembers({
         <MemberItem
           viewerRole={user?.role}
           classroomId={classroomId}
-          userId={members.dosen?.userId}
+          id={members.dosen?.id}
           fullname={members.dosen?.fullname}
           profile={members.dosen?.profile}
-          isCurrentUser={user?.id === members.dosen?.userId}
+          isCurrentUser={user?.id === members.dosen?.id}
         />
       </div>
 
@@ -42,13 +42,13 @@ export default async function ClassroomMembers({
         {members.mahasiswa && members.mahasiswa.length > 0 ? (
           members.mahasiswa?.map((mahasiswa) => (
             <MemberItem
-              key={mahasiswa.userId}
+              key={mahasiswa.id}
               viewerRole={user?.role}
               classroomId={classroomId}
-              userId={mahasiswa.userId}
+              id={mahasiswa.id}
               fullname={mahasiswa.fullname}
               profile={mahasiswa.profile}
-              isCurrentUser={user?.id === mahasiswa.userId}
+              isCurrentUser={user?.id === mahasiswa.id}
             />
           ))
         ) : (

@@ -3,16 +3,17 @@
 import Detail from "../Detail/Detail";
 import Navbar from "../Navbar/Navbar";
 import { useContent } from "./useContent";
-import Privacy from "../Privacy/Privacy";
-import Evaluation from "../Evaluation/Evaluation";
-import { IClassroom } from "@/types/Classroom";
+import AssignmentForum from "../AssignmentForum/AssignmentForum";
+import { IClassroom, IClassroomPolicies } from "@/types/Classroom";
 
 export default function Content({
   classroomId,
   classDetail,
+  policies,
 }: {
   classroomId: string;
   classDetail: IClassroom;
+  policies: IClassroomPolicies | null;
 }) {
   const { isActive, handleActiveBar } = useContent();
 
@@ -20,10 +21,8 @@ export default function Content({
     switch (isActive) {
       case "Detail":
         return <Detail classroomId={classroomId} classDetail={classDetail} />;
-      case "Privasi":
-        return <Privacy />;
-      case "Penilaian":
-        return <Evaluation />;
+      case "Tugas dan Forum":
+        return <AssignmentForum classroomId={classroomId} policies={policies} />;
     }
   };
   return (

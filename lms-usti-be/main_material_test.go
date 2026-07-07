@@ -142,13 +142,15 @@ func setupMaterialTestRouter(db *gorm.DB) *gin.Engine {
 	materialRepo := repositories.NewMaterialRepository(db)
 	assignmentRepo := repositories.NewAssignmentRepository(db)
 	submissionRepo := repositories.NewSubmissionRepository(db)
+	contentViewRepo := repositories.NewContentViewRepository(db)
 
 	mediaService := services.NewMediaService()
 	authService := services.NewAuthService(userRepo, verificationRepo, mediaService)
 	submissionService := services.NewSubmissionService(submissionRepo, assignmentRepo)
-	assignmentService := services.NewAssignmentService(assignmentRepo, classroomRepo, submissionService)
-	classroomService := services.NewClassroomService(classroomRepo, userRepo, submissionService, assignmentService)
-	materialService := services.NewMaterialService(materialRepo, classroomRepo)
+	assignmentService := services.NewAssignmentService(assignmentRepo, classroomRepo, submissionService, contentViewRepo)
+	classroomPolicyRepo := repositories.NewClassroomPolicyRepository(db)
+	classroomService := services.NewClassroomService(classroomRepo, userRepo, submissionService, assignmentService, classroomPolicyRepo)
+	materialService := services.NewMaterialService(materialRepo, classroomRepo, contentViewRepo)
 
 	authController := controllers.NewAuthController(authService)
 	classroomController := controllers.NewClassroomController(classroomService)

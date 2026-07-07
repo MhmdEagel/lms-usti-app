@@ -5,14 +5,14 @@ import type { IComment } from "@/types/Classroom";
 interface PropTypes {
   classroomId: string;
   assignmentId: string;
-  currentUserId: string;
+  currentId: string;
   currentRole: string;
 }
 
 export default async function CommentSectionData({
   classroomId,
   assignmentId,
-  currentUserId,
+  currentId,
   currentRole,
 }: PropTypes) {
   const res = await commentServices.getAssignmentComments(classroomId, assignmentId);
@@ -21,7 +21,7 @@ export default async function CommentSectionData({
   return (
     <CommentSectionWrapper
       initialComments={initialComments}
-      currentUserId={currentUserId}
+      currentId={currentId}
       currentRole={currentRole}
     />
   );

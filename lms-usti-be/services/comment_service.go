@@ -4,26 +4,28 @@ import (
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
+	"gorm.io/gorm"
 )
 
 type CommentService struct {
-	commentRepository       repositories.CommentRepositoryInterface
-	classroomRepository     repositories.ClassroomRepositoryInterface
-	materialRepository      repositories.MaterialRepositoryInterface
-	assignmentRepository    repositories.AssignmentRepositoryInterface
-	announcementRepository  repositories.AnnouncementRepositoryInterface
-	forumRepository         repositories.ForumRepositoryInterface
+	commentRepository         repositories.CommentRepositoryInterface
+	classroomRepository       repositories.ClassroomRepositoryInterface
+	materialRepository        repositories.MaterialRepositoryInterface
+	assignmentRepository      repositories.AssignmentRepositoryInterface
+	announcementRepository    repositories.AnnouncementRepositoryInterface
+	forumRepository           repositories.ForumRepositoryInterface
+	classroomPolicyRepository repositories.ClassroomPolicyRepositoryInterface
 }
 
 type CommentServiceInterface interface {
 	FindAll(commentableType, commentableId string) ([]data.CommentResponse, error)
-	Create(req data.CommentRequest, commentableType, commentableId, userId, classroomId string) error
-	Delete(commentId, userId string) error
+	Create(req data.CommentRequest, commentableType, commentableId, userID, classroomId, userRole string) error
+	Delete(commentId, userID string) error
 	DeleteByID(commentId string) error
 }
 
-func NewCommentService(commentRepository repositories.CommentRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, materialRepository repositories.MaterialRepositoryInterface, assignmentRepository repositories.AssignmentRepositoryInterface, announcementRepository repositories.AnnouncementRepositoryInterface, forumRepository repositories.ForumRepositoryInterface) CommentServiceInterface {
-	return &CommentService{commentRepository: commentRepository, classroomRepository: classroomRepository, materialRepository: materialRepository, assignmentRepository: assignmentRepository, announcementRepository: announcementRepository, forumRepository: forumRepository}
+func NewCommentService(commentRepository repositories.CommentRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, materialRepository repositories.MaterialRepositoryInterface, assignmentRepository repositories.AssignmentRepositoryInterface, announcementRepository repositories.AnnouncementRepositoryInterface, forumRepository repositories.ForumRepositoryInterface, classroomPolicyRepository repositories.ClassroomPolicyRepositoryInterface) CommentServiceInterface {
+	return &CommentService{commentRepository: commentRepository, classroomRepository: classroomRepository, materialRepository: materialRepository, assignmentRepository: assignmentRepository, announcementRepository: announcementRepository, forumRepository: forumRepository, classroomPolicyRepository: classroomPolicyRepository}
 }
 
 func (c *CommentService) FindAll(commentableType, commentableId string) ([]data.CommentResponse, error) {
@@ -47,7 +49,7 @@ func (c *CommentService) FindAll(commentableType, commentableId string) ([]data.
 	return comments, nil
 }
 
-func (c *CommentService) Create(req data.CommentRequest, commentableType, commentableId, userId, classroomId string) error {
+func (c *CommentService) Create(req data.CommentRequest, commentableType, commentableId, userID, classroomId, userRole string) error {
 	switch commentableType {
 	case model.CommentableTypeMaterial:
 		if _, err := c.materialRepository.FindById(commentableId); err != nil {
@@ -72,10 +74,19 @@ func (c *CommentService) Create(req data.CommentRequest, commentableType, commen
 		if _, err := c.classroomRepository.FindById(classroomId); err != nil {
 			return data.ErrClassroomNotFound(err)
 		}
+		if userRole == "MAHASISWA" {
+			policy, err := c.classroomPolicyRepository.FindByClassroomId(classroomId)
+			if err != nil && err != gorm.ErrRecordNotFound {
+				return data.ErrInternalServer(err)
+			}
+			if err == nil && policy.CommentPermission == model.CommentPermissionInactive {
+				return data.NewAppError(403, "komentar dinonaktifkan untuk kelas ini", nil)
+			}
+		}
 	}
 	comment := model.Comment{
 		Content:         req.Content,
-		CreatedBy:       userId,
+		CreatedBy:       userID,
 		CommentableType: commentableType,
 		CommentableID:   commentableId,
 	}
@@ -85,8 +96,8 @@ func (c *CommentService) Create(req data.CommentRequest, commentableType, commen
 	return nil
 }
 
-func (c *CommentService) Delete(commentId, userId string) error {
-	if err := c.commentRepository.Delete(commentId, userId); err != nil {
+func (c *CommentService) Delete(commentId, userID string) error {
+	if err := c.commentRepository.Delete(commentId, userID); err != nil {
 		return data.ErrCommentNotFound(err)
 	}
 	return nil

@@ -24,7 +24,7 @@ func setupTestDB() *gorm.DB {
 	if err != nil {
 		panic("failed to connect to test database: " + err.Error())
 	}
-	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.Announcement{}, &model.Material{}, &model.MaterialAttachment{}, &model.Assignment{}, &model.AssignmentRubric{}, &model.AssignmentAttachment{}, &model.Submission{}, &model.SubmissionAttachment{}, &model.AuditLogs{})
+	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.Announcement{}, &model.Material{}, &model.MaterialAttachment{}, &model.Assignment{}, &model.AssignmentAttachment{}, &model.Submission{}, &model.SubmissionAttachment{}, &model.AuditLogs{})
 	return db
 }
 
@@ -58,12 +58,14 @@ func setupTestRouter(db *gorm.DB) *gin.Engine {
 	classroomRepository := repositories.NewClassroomRepository(db)
 	assignmentRepository := repositories.NewAssignmentRepository(db)
 	submissionRepository := repositories.NewSubmissionRepository(db)
+	contentViewRepository := repositories.NewContentViewRepository(db)
 
 	mediaService := services.NewMediaService()
 	authService := services.NewAuthService(userRepository, verificationRepository, mediaService)
 	submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository)
-	assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService)
-	classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService)
+	assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService, contentViewRepository)
+	classroomPolicyRepo := repositories.NewClassroomPolicyRepository(db)
+	classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService, classroomPolicyRepo)
 
 	authController := controllers.NewAuthController(authService)
 	classroomController := controllers.NewClassroomController(classroomService)

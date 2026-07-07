@@ -20,17 +20,18 @@ import {
 import { Plus } from "lucide-react";
 import ContentEditor from "@/components/ui/content-editor";
 export default function AddForumPost({
+  id,
   userRole,
   classroomId,
 }: {
-  userId: string | undefined;
+  id: string | undefined;
   userRole: string | undefined;
   classroomId: string;
 }) {
   const { form, open, handleOpen, handleAddAnnouncement } =
     useAddForumPost();
 
-    console.log(userRole)
+
 
   return (
     <>

@@ -10,19 +10,20 @@ import (
 )
 
 type MaterialService struct {
-	materialRepository  repositories.MaterialRepositoryInterface
-	classroomRepository repositories.ClassroomRepositoryInterface
+	materialRepository    repositories.MaterialRepositoryInterface
+	classroomRepository   repositories.ClassroomRepositoryInterface
+	contentViewRepository repositories.ContentViewRepositoryInterface
 }
 type MaterialServiceInterface interface {
 	Create(materialRequest data.MaterialRequest) error
 	FindAll(classroomId string, search string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error)
-	FindById(materialId, classroomId string) (material data.MaterialDetailResponse, err error)
+	FindById(materialId, classroomId, userID string) (material data.MaterialDetailResponse, err error)
 	Update(materialUpdateRequest data.MaterialUpdateRequest) error
 	Delete(materialId, classroomId string) error
 }
 
-func NewMaterialService(materialRepository repositories.MaterialRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface) MaterialServiceInterface {
-	return &MaterialService{materialRepository: materialRepository, classroomRepository: classroomRepository}
+func NewMaterialService(materialRepository repositories.MaterialRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, contentViewRepository repositories.ContentViewRepositoryInterface) MaterialServiceInterface {
+	return &MaterialService{materialRepository: materialRepository, classroomRepository: classroomRepository, contentViewRepository: contentViewRepository}
 }
 func (m *MaterialService) Create(materialRequest data.MaterialRequest) error {
 	classroom, err := m.classroomRepository.FindById(materialRequest.ClassroomId)
@@ -93,7 +94,7 @@ func (m *MaterialService) FindAll(classroomId string, search string, pagination 
 	paginatedResult.Data = materials
 	return paginatedResult, nil
 }
-func (m *MaterialService) FindById(materialId, classroomId string) (material data.MaterialDetailResponse, err error) {
+func (m *MaterialService) FindById(materialId, classroomId, userID string) (material data.MaterialDetailResponse, err error) {
 	classroom, err := m.classroomRepository.FindById(classroomId)
 	if err != nil {
 		return material, data.ErrClassroomNotFound(err)
@@ -102,10 +103,25 @@ func (m *MaterialService) FindById(materialId, classroomId string) (material dat
 	if err != nil {
 		return material, data.ErrMaterialNotFound(err)
 	}
+	hasViewed, err := m.contentViewRepository.HasViewed(userID, model.ViewableTypeMaterial, materialId)
+	if err != nil {
+		return material, data.ErrInternalServer(err)
+	}
+	viewCount := res.ViewCount
+	if !hasViewed {
+		if err := m.contentViewRepository.RecordView(userID, model.ViewableTypeMaterial, materialId); err != nil {
+			return material, data.ErrInternalServer(err)
+		}
+		if err := m.materialRepository.IncrementViewCount(materialId); err != nil {
+			return material, data.ErrInternalServer(err)
+		}
+		viewCount++
+	}
 	material = data.MaterialDetailResponse{
 		Id:          res.ID,
 		Title:       res.Title,
 		Description: res.Description,
+		ViewCount:   int(viewCount),
 		Classroom: data.ClassroomMeta{
 			ClassroomId: classroom.ID,
 			ClassroomName: classroom.ClassName,

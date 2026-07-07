@@ -24,6 +24,7 @@ type AssignmentDetailResponse struct {
 	ClassroomName string    `json:"classroom_name"`
 	Deadline      *time.Time `json:"deadline"`
 	Instruction   string    `json:"instruction"`
+	ViewCount     int       `json:"view_count"`
 	Stats         *SubmissionStatsResponse `json:"stats"`
 	Attachments   []AttachmentResponse       `json:"attachments"`
 }
@@ -38,6 +39,11 @@ type AssignmentResponse struct {
 	MySubmissionDate   *time.Time               `json:"my_submission_date"`
 }
 
+type AssignmentRubricRequest struct {
+	Id    *uint   `json:"id"`
+	Name  string  `json:"name" binding:"required"`
+	Score float64 `json:"score" binding:"required"`
+}
 type AssignmentWaitingGradeResponse struct {
 	SubmissionId     string    `json:"submission_id"`
 	AssignmentId     string    `json:"assignment_id"`

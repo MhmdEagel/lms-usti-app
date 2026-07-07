@@ -38,7 +38,7 @@ func (a *AuthMiddleware) Handle() gin.HandlerFunc {
 			c.AbortWithStatusJSON(appErr.Code, res)
 			return
 		}
-		c.Set("user", data.MeResponse{Email: claims.Email, Role: claims.Role, UserId: claims.UserId, Fullname: claims.Fullname})
+		c.Set("user", data.MeResponse{Email: claims.Email, Role: claims.Role, ID: claims.ID, Fullname: claims.Fullname})
 		c.Next()
 	}
 }

@@ -23,9 +23,9 @@ export async function getAllUsers(params?: { page?: number; limit?: number }) {
   }
 }
 
-export async function getUserById(userId: string) {
+export async function getUserById(userID: string) {
   try {
-    const res = await adminServices.getUserById(userId);
+    const res = await adminServices.getUserById(userID);
     return res.data;
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -50,9 +50,9 @@ export async function createUser(data: ICreateUserRequest) {
   }
 }
 
-export async function updateUser(userId: string, data: IUpdateUserRequest) {
+export async function updateUser(userID: string, data: IUpdateUserRequest) {
   try {
-    const res = await adminServices.updateUser(userId, data);
+    const res = await adminServices.updateUser(userID, data);
     revalidateAdmin()
     return res.data;
   } catch (error) {
@@ -64,9 +64,9 @@ export async function updateUser(userId: string, data: IUpdateUserRequest) {
   }
 }
 
-export async function deleteUser(userId: string) {
+export async function deleteUser(userID: string) {
   try {
-    const res = await adminServices.deleteUser(userId);
+    const res = await adminServices.deleteUser(userID);
     revalidateAdmin()
     return res.data;
   } catch (error) {

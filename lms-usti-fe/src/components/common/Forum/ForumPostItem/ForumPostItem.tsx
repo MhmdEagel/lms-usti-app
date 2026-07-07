@@ -28,11 +28,11 @@ dayjs.locale("id");
 
 interface PropTypes {
   post: IForumPost;
-  currentUserId: string;
+  currentId: string;
   currentRole: string;
 }
 
-export default function ForumPostItem({ post, currentUserId, currentRole }: PropTypes) {
+export default function ForumPostItem({ post, currentId, currentRole }: PropTypes) {
   const initials = post.author_name
     .split(" ")
     .map((n: string) => n[0])
@@ -40,7 +40,7 @@ export default function ForumPostItem({ post, currentUserId, currentRole }: Prop
     .toUpperCase()
     .slice(0, 2);
 
-  const canDelete = currentRole === "PRODI" || post.created_by === currentUserId;
+  const canDelete = currentRole === "PRODI" || post.created_by === currentId;
   const forumPath = `/${currentRole.toLowerCase()}/forum/${post.id}`;
 
   const handleDelete = async () => {
@@ -51,6 +51,7 @@ export default function ForumPostItem({ post, currentUserId, currentRole }: Prop
       toast.error(res.error);
     }
   };
+
 
   return (
     <Card>
@@ -98,9 +99,9 @@ export default function ForumPostItem({ post, currentUserId, currentRole }: Prop
             </AlertDialog>
           )}
         </div>
-        <div className="text-base font-bold mt-2">{post.title}</div>
       </CardHeader>
       <CardContent>
+        <div className="text-lg font-bold mt-2">{post.title}</div>
         <div
           className="prose max-w-none"
           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
@@ -108,7 +109,7 @@ export default function ForumPostItem({ post, currentUserId, currentRole }: Prop
         <div className="mt-4">
           <Link href={forumPath} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
             <MessageSquare className="h-4 w-4" />
-            {post.comment_count > 0 ? post.comment_count : null}
+            {post.comment_count > 0 ? post.comment_count : "0"}
           </Link>
         </div>
       </CardContent>

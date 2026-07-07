@@ -10,10 +10,11 @@ import (
 )
 
 type ClassroomService struct {
-	classroomRepository repositories.ClassroomRepositoryInterface
-	userRepository      repositories.UserRepositoryInterface
-	submissionService   SubmissionServiceInterface
-	assignmentService   AssignmentServiceInterface
+	classroomRepository       repositories.ClassroomRepositoryInterface
+	userRepository            repositories.UserRepositoryInterface
+	submissionService         SubmissionServiceInterface
+	assignmentService         AssignmentServiceInterface
+	classroomPolicyRepository repositories.ClassroomPolicyRepositoryInterface
 }
 
 type ClassroomServiceInterface interface {
@@ -26,30 +27,42 @@ type ClassroomServiceInterface interface {
 	EnrollMahasiswa(joinClassroomRequest data.JoinClassroomRequest, mahasiswaId string) error
 	RemoveMember(classroomId, memberId string) error
 	Update(classroomUpdateRequest data.UpdateClassroomRequest) error
-	Delete(classroomId string, userId string) error
+	Delete(classroomId string, userID string) error
 	GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error)
 	GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error)
 }
 
 func NewClassroomService(classroomRepository repositories.ClassroomRepositoryInterface,
-	userRepository repositories.UserRepositoryInterface, submissionService SubmissionServiceInterface, assignmentService AssignmentServiceInterface) ClassroomServiceInterface {
-	return &ClassroomService{classroomRepository: classroomRepository, userRepository: userRepository, submissionService: submissionService, assignmentService: assignmentService}
+	userRepository repositories.UserRepositoryInterface, submissionService SubmissionServiceInterface, assignmentService AssignmentServiceInterface, classroomPolicyRepository repositories.ClassroomPolicyRepositoryInterface) ClassroomServiceInterface {
+	return &ClassroomService{classroomRepository: classroomRepository, userRepository: userRepository, submissionService: submissionService, assignmentService: assignmentService, classroomPolicyRepository: classroomPolicyRepository}
 }
 
 func (c *ClassroomService) Create(classroomRequest data.CreateClassroomRequest) error {
-	classroom := model.Classroom{
-		ClassCover:  classroomRequest.ClassCover,
-		ClassName:   classroomRequest.ClassName,
-		Term:        classroomRequest.Term,
-		RoomNumber:  classroomRequest.RoomNumber,
-		Day:         classroomRequest.Day,
-		ClassStart:  classroomRequest.ClassStart,
-		ClassEnd:    classroomRequest.ClassEnd,
-		Prodi:       classroomRequest.Prodi,
-		TahunAjaran: classroomRequest.TahunAjaran,
-		DosenId:     classroomRequest.DosenId,
-	}
-	return c.classroomRepository.Create(classroom)
+	return c.classroomRepository.Transaction(func(repo repositories.ClassroomRepositoryInterface) error {
+		classroom := model.Classroom{
+			ClassCover:  classroomRequest.ClassCover,
+			ClassName:   classroomRequest.ClassName,
+			Term:        classroomRequest.Term,
+			RoomNumber:  classroomRequest.RoomNumber,
+			Day:         classroomRequest.Day,
+			ClassStart:  classroomRequest.ClassStart,
+			ClassEnd:    classroomRequest.ClassEnd,
+			Prodi:       classroomRequest.Prodi,
+			TahunAjaran: classroomRequest.TahunAjaran,
+			DosenId:     classroomRequest.DosenId,
+		}
+		created, err := repo.Create(classroom)
+		if err != nil {
+			return err
+		}
+		policy := model.ClassroomPolicy{
+			ClassroomID:       created.ID,
+			LateSubmission:    model.LateSubmissionAllow,
+			ForumPermission:   model.ForumPermissionComment,
+			CommentPermission: model.CommentPermissionActive,
+		}
+		return repo.DB().Create(&policy).Error
+	})
 }
 
 func (c *ClassroomService) FindAllByDosenId(dosenId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult data.PaginationWithData, err error) {
@@ -257,8 +270,8 @@ func (c *ClassroomService) Update(classroomUpdateRequest data.UpdateClassroomReq
 	return c.classroomRepository.Update(classroom)
 }
 
-func (c *ClassroomService) Delete(classroomId string, userId string) error {
-	return c.classroomRepository.Delete(classroomId, userId)
+func (c *ClassroomService) Delete(classroomId string, userID string) error {
+	return c.classroomRepository.Delete(classroomId, userID)
 
 }
 

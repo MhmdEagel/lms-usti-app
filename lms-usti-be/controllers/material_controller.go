@@ -35,7 +35,7 @@ func (m *MaterialController) Create(c *gin.Context) {
 	}
 	classroomId := c.Param("id")
 	req.ClassroomId = classroomId
-	req.DosenId = user.UserId
+	req.DosenId = user.ID
 	err := m.materialService.Create(req)
 	if err != nil {
 		handleError(c, err)
@@ -69,7 +69,17 @@ func (m *MaterialController) FindAll(c *gin.Context) {
 func (m *MaterialController) FindById(c *gin.Context) {
 	classroomId := c.Param("id")
 	materialId := c.Param("materialId")
-	material, err := m.materialService.FindById(materialId, classroomId)
+	val, exist := c.Get("user")
+	if !exist {
+		handleError(c, data.ErrInternalServer(nil))
+		return
+	}
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		handleError(c, data.ErrInternalServer(nil))
+		return
+	}
+	material, err := m.materialService.FindById(materialId, classroomId, user.ID)
 	if err != nil {
 		handleError(c, err)
 		return

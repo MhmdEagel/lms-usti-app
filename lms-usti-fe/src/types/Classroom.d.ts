@@ -73,6 +73,7 @@ interface IMaterial {
   id: string
   title: string;
   description: string;
+  view_count: number;
   attachments: IAttachment[];
   created_at: string;
   updated_at: string
@@ -100,6 +101,7 @@ interface IAssignment {
   classroom_name: string;
   deadline?: string?;
   instruction?: string?;
+  view_count: number;
   attachments?: IAttachment[];
   stats?: SubmissionStats | null;
   my_submission_status?: string;
@@ -122,7 +124,7 @@ interface IUpdateAssignment {
 interface IClassroomMemberDetail {
   class_name: string;
   member: {
-    userId: string;
+    id: string;
     fullname: string;
     email: string;
     profile?: string;
@@ -134,7 +136,7 @@ interface IClassroomMemberDetail {
 
 interface ISubmissionDetail {
   mahasiswa: {
-    userId: string;
+    id: string;
     fullname: string;
   };
   attachments: { name: string; type: string; url: string; unique_name: string }[];
@@ -148,7 +150,7 @@ interface ISubmission {
   score: number | null;
   feedback: string | null;
   mahasiswa: {
-    userId: string;
+    id: string;
     profile: string;
     fullname: string;
   };
@@ -194,6 +196,12 @@ interface IAssignmentWaitingGrade {
   submission_date: string;
 }
 
+interface IClassroomPolicies {
+  late_submission: string;
+  forum_permission: string;
+  comment_permission: string;
+}
+
 interface IComment {
   id: string;
   content: string;
@@ -229,4 +237,5 @@ export type {
   IComment,
   IMahasiswaAssignmentItem,
   IMahasiswaDashboardStats,
+  IClassroomPolicies,
 };

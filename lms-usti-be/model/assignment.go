@@ -18,6 +18,7 @@ type Assignment struct {
 	DosenId     string
 	Dosen       User      `gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE"`
 	ClassroomId string
+	ViewCount   int64 `json:"view_count" gorm:"default:0"`
 	Attachments []AssignmentAttachment `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
 	Submissions []Submission           `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
 }

@@ -67,9 +67,9 @@ export default function JoinClassroom() {
               </DialogClose>
               <Button disabled={isPending} type="submit">
                 {isPending ? (
-                  <Spinner variant="circle" color="white" />
+                  "Bergabung..."
                 ) : (
-                  "Submit"
+                  "Gabung"
                 )}
               </Button>
             </DialogFooter>

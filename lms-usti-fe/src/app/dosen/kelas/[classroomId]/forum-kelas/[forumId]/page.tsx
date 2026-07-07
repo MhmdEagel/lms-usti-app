@@ -54,7 +54,7 @@ export default async function DosenAnnouncementDetailPage(props: {
       <AnnouncementDetailPageContent
         classroomId={classroomId}
         announcementId={announcementId}
-        userId={user.userId}
+        userId={user.id}
         role={user.role}
       />
     </Suspense>

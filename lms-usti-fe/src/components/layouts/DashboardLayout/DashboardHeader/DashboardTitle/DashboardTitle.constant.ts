@@ -26,6 +26,10 @@ export const DASHBOARD_TITLE_MAHASISWA = [
         title: "Kelas",
     },
     {
+        path: "/mahasiswa/forum",
+        title: "Forum",
+    },
+    {
         path: "/mahasiswa/pengaturan",
         title: "Pengaturan"
     }

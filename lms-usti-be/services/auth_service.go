@@ -24,10 +24,10 @@ type AuthServiceInterface interface {
 	Login(loginRequest data.LoginRequest) (loginResponse data.LoginResponse, err error)
 	SendVerificationEmail(req data.SendVerificationRequest) error
 	ResetPassword(req data.NewPasswordRequest) error
-	GetUserById(userId string) (*data.MeResponse, error)
-	UpdateProfile(userId string, req data.UpdateProfileRequest) error
-	SendOTP(userId string, req data.SendOTPRequest) error
-	VerifyOTPAndChangePassword(userId string, req data.VerifyOTPRequest) error
+	GetUserById(userID string) (*data.MeResponse, error)
+	UpdateProfile(userID string, req data.UpdateProfileRequest) error
+	SendOTP(userID string, req data.SendOTPRequest) error
+	VerifyOTPAndChangePassword(userID string, req data.VerifyOTPRequest) error
 }
 func (a *AuthService) Login(loginRequest data.LoginRequest) (loginResponse data.LoginResponse, err error) {
 	user, err := a.userRepository.FindByEmail(loginRequest.Email)
@@ -90,13 +90,13 @@ func (a *AuthService) ResetPassword(req data.NewPasswordRequest) error {
 	}
 	return nil
 }
-func (a *AuthService) GetUserById(userId string) (*data.MeResponse, error) {
-	user, err := a.userRepository.FindById(userId)
+func (a *AuthService) GetUserById(userID string) (*data.MeResponse, error) {
+	user, err := a.userRepository.FindById(userID)
 	if err != nil {
 		return nil, err
 	}
 	return &data.MeResponse{
-		UserId:   user.ID,
+		ID:   user.ID,
 		Email:    user.Email,
 		Role:     user.Role,
 		Fullname: user.Fullname,
@@ -106,8 +106,8 @@ func (a *AuthService) GetUserById(userId string) (*data.MeResponse, error) {
 	}, nil
 }
 
-func (a *AuthService) UpdateProfile(userId string, req data.UpdateProfileRequest) error {
-	user, err := a.userRepository.FindById(userId)
+func (a *AuthService) UpdateProfile(userID string, req data.UpdateProfileRequest) error {
+	user, err := a.userRepository.FindById(userID)
 	if err != nil {
 		return err
 	}
@@ -129,14 +129,14 @@ func (a *AuthService) UpdateProfile(userId string, req data.UpdateProfileRequest
 	return nil
 }
 
-func (a *AuthService) SendOTP(userId string, req data.SendOTPRequest) error {
-	user, err := a.userRepository.FindById(userId)
+func (a *AuthService) SendOTP(userID string, req data.SendOTPRequest) error {
+	user, err := a.userRepository.FindById(userID)
 	if err != nil {
 		log.Printf("SendOTP: user not found: %v", err)
 		return data.NewAppError(404, "user tidak ditemukan", err)
 	}
 	if !lib.IsPasswordMatch(user.Password, req.OldPassword) {
-		log.Printf("SendOTP: password mismatch for userId %s", userId)
+		log.Printf("SendOTP: password mismatch for userId %s", userID)
 		return data.ErrInvalidCredentials(nil)
 	}
 	otp := lib.GenerateOTP()
@@ -156,8 +156,8 @@ func (a *AuthService) SendOTP(userId string, req data.SendOTPRequest) error {
 	return nil
 }
 
-func (a *AuthService) VerifyOTPAndChangePassword(userId string, req data.VerifyOTPRequest) error {
-	user, err := a.userRepository.FindById(userId)
+func (a *AuthService) VerifyOTPAndChangePassword(userID string, req data.VerifyOTPRequest) error {
+	user, err := a.userRepository.FindById(userID)
 	if err != nil {
 		log.Printf("VerifyOTP: user not found: %v", err)
 		return data.NewAppError(404, "user tidak ditemukan", err)

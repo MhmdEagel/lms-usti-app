@@ -16,11 +16,11 @@ dayjs.locale("id");
 
 interface PropTypes {
   post: IForumPostDetail;
-  currentUserId: string;
+  currentId: string;
   currentRole: string;
 }
 
-export default function ForumPostDetail({ post, currentUserId, currentRole }: PropTypes) {
+export default function ForumPostDetail({ post, currentId, currentRole }: PropTypes) {
   const initials = post.author_name
     .split(" ")
     .map((n) => n[0])
@@ -46,8 +46,8 @@ export default function ForumPostDetail({ post, currentUserId, currentRole }: Pr
             <div>
               <div className="text-sm font-semibold">{post.author_name}</div>
               <div className="text-xs text-gray-500">
-                {dayjs(post.created_at).fromNow()}
-              </div>
+                  {dayjs(post.created_at).fromNow()}
+                </div>
             </div>
             {post.is_pinned && (
               <div className="flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
@@ -56,9 +56,9 @@ export default function ForumPostDetail({ post, currentUserId, currentRole }: Pr
               </div>
             )}
           </div>
-          <div className="text-base font-bold mt-2">{post.title}</div>
         </CardHeader>
         <CardContent>
+          <div className="text-base font-bold mt-2">{post.title}</div>
           <div
             className="prose max-w-none"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
@@ -69,7 +69,7 @@ export default function ForumPostDetail({ post, currentUserId, currentRole }: Pr
       <ForumCommentSection
         postId={post.id}
         initialComments={post.comments}
-        currentUserId={currentUserId}
+        currentId={currentId}
         currentRole={currentRole}
       />
     </div>

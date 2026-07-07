@@ -21,6 +21,8 @@ type AssignmentRepositoryInterface interface {
 	Update(assignment model.Assignment) error
 	Delete(assignmentId string, classroomId string) error
 	DeleteAttachments(assignmentId string) error
+	IncrementViewCount(assignmentID string) error
+	GetViewCountBatch(assignmentIDs []string) (map[string]int64, error)
 	Transaction(fn func(repo AssignmentRepositoryInterface) error) error
 	FindWaitingGrade(dosenId string) ([]data.AssignmentWaitingGradeResponse, error)
 }
@@ -118,6 +120,32 @@ func (a *AssignmentRepository) FindWaitingGrade(dosenId string) ([]data.Assignme
 		return nil, err
 	}
 	return result, nil
+}
+
+func (a *AssignmentRepository) IncrementViewCount(assignmentID string) error {
+	return a.Db.Model(&model.Assignment{}).
+		Where("id = ?", assignmentID).
+		UpdateColumn("view_count", gorm.Expr("view_count + 1")).Error
+}
+
+func (a *AssignmentRepository) GetViewCountBatch(assignmentIDs []string) (map[string]int64, error) {
+	type viewResult struct {
+		ID    string
+		Count int64
+	}
+	var rows []viewResult
+	result := a.Db.Model(&model.Assignment{}).
+		Select("id, view_count as count").
+		Where("id IN ?", assignmentIDs).
+		Scan(&rows)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	counts := make(map[string]int64, len(assignmentIDs))
+	for _, r := range rows {
+		counts[r.ID] = r.Count
+	}
+	return counts, nil
 }
 
 func (a *AssignmentRepository) withTx(tx *gorm.DB) AssignmentRepositoryInterface {

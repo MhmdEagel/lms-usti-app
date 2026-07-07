@@ -23,12 +23,17 @@ func (a *AnnouncementController) FindAll(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 	search := ctx.Query("search")
 	pagination := data.Pagination{Current: page, Limit: limit}
-	announcements, err := a.announcementService.FindAll(classroomId, search, pagination)
+	paginatedResult, err := a.announcementService.FindAll(classroomId, search, pagination)
 	if err != nil {
+		if appErr, ok := err.(*data.AppError); ok {
+			res := data.NewResponseFromError(appErr)
+			ctx.JSON(appErr.Code, res)
+			return
+		}
 		handleError(ctx, err)
 		return
 	}
-	res := data.NewResponse(http.StatusOK, "berhasil mengambil semua announcement", announcements)
+	res := data.NewPaginationResponse(http.StatusOK, "berhasil mengambil semua announcement", paginatedResult.Pagination, paginatedResult.Data)
 	ctx.JSON(http.StatusOK, res)
 }
 
@@ -51,7 +56,7 @@ func (a *AnnouncementController) Create(ctx *gin.Context) {
 	}
 	classroomId := ctx.Param("id")
 	req.ClassroomId = classroomId
-	req.DosenId = user.UserId
+	req.DosenId = user.ID
 	err := a.announcementService.Create(req)
 	if err != nil {
 		handleError(ctx, err)

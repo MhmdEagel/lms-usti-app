@@ -14,7 +14,7 @@ type ClassroomRepository struct {
 }
 
 type ClassroomRepositoryInterface interface {
-	Create(classroom model.Classroom) error
+	Create(classroom model.Classroom) (model.Classroom, error)
 	FindById(classroomId string) (classroom model.Classroom, err error)
 	FindByClassCode(classCode string) (classroom model.Classroom, err error)
 	FindAllByDosenId(dosenId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error)
@@ -27,17 +27,19 @@ type ClassroomRepositoryInterface interface {
 	RemoveMember(classroomId string, memberId string) error
 	GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error)
 	GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error)
+	Transaction(fn func(repo ClassroomRepositoryInterface) error) error
+	DB() *gorm.DB
 }
 
 func NewClassroomRepository(Db *gorm.DB) ClassroomRepositoryInterface {
 	return &ClassroomRepository{Db: Db}
 }
-func (c *ClassroomRepository) Create(classroom model.Classroom) error {
+func (c *ClassroomRepository) Create(classroom model.Classroom) (model.Classroom, error) {
 	result := c.Db.Create(&classroom)
 	if result.Error != nil {
-		return result.Error
+		return model.Classroom{}, result.Error
 	}
-	return nil
+	return classroom, nil
 }
 func (u *ClassroomRepository) FindById(classroomId string) (classroom model.Classroom, err error) {
 	result := u.Db.Preload("Dosen").Where("id = ?", classroomId).First(&classroom)
@@ -268,4 +270,26 @@ func (c *ClassroomRepository) GetDashboardStats(dosenId string) (data.DashboardS
 	}
 
 	return stats, nil
+}
+
+func (c *ClassroomRepository) withTx(tx *gorm.DB) ClassroomRepositoryInterface {
+	return &ClassroomRepository{Db: tx}
+}
+
+func (c *ClassroomRepository) Transaction(fn func(repo ClassroomRepositoryInterface) error) error {
+	tx := c.Db.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+	repo := c.withTx(tx)
+	err := fn(repo)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
+}
+
+func (c *ClassroomRepository) DB() *gorm.DB {
+	return c.Db
 }

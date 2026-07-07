@@ -5,12 +5,16 @@ export default async function ClassSettings({
 }: {
   classroomId: string;
 }) {
-  const res = await classroomServices.getDetail(classroomId);
-  const classDetail = res.data?.data;
+  const [classroomRes, policiesRes] = await Promise.all([
+    classroomServices.getDetail(classroomId),
+    classroomServices.getPolicies(classroomId),
+  ]);
+  const classDetail = classroomRes.data?.data;
+  const policies = policiesRes.data?.data ?? null;
 
   return (
     <div className="flex min-h-[450px]">
-      <Content classroomId={classroomId} classDetail={classDetail!} />
+      <Content classroomId={classroomId} classDetail={classDetail!} policies={policies} />
     </div>
   );
 }
