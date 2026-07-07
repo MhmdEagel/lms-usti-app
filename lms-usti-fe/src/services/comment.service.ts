@@ -16,10 +16,10 @@ export const commentServices = {
   deleteAssignmentComment: (classroomId: string, assignmentId: string, commentId: string) =>
     instance.delete(`${endpoint.CLASSROOM}/${classroomId}/assignments/${assignmentId}/comments/${commentId}`),
 
-  getAnnouncementComments: (classroomId: string, announcementId: string) =>
+  getForumPostComments: (classroomId: string, announcementId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}/comments`),
-  createAnnouncementComment: (classroomId: string, announcementId: string, payload: { content: string }) =>
+  createForumPostComment: (classroomId: string, announcementId: string, payload: { content: string }) =>
     instance.post(`${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}/comments`, payload),
-  deleteAnnouncementComment: (classroomId: string, announcementId: string, commentId: string) =>
+  deleteForumPostComment: (classroomId: string, announcementId: string, commentId: string) =>
     instance.delete(`${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}/comments/${commentId}`),
 };

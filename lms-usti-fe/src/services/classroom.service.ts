@@ -1,7 +1,8 @@
 import instance from "@/lib/axios";
 import endpoint from "./endpoint.constant";
 import type {
-  ICreateAnnouncement,
+  IClassroomPolicies,
+  ICreateClassroomDetailForum,
   ICreateClassroom,
   IJoinClassroom,
   IUpdateClassroom,
@@ -20,20 +21,20 @@ export const classroomServices = {
     instance.get(`${endpoint.CLASSROOM}/mahasiswa/classrooms`, { params }),
   getDetail: (classroomId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}`),
-  createAnnouncement: (payload: ICreateAnnouncement, classroomId: string) =>
+  createForumPost: (payload: ICreateClassroomDetailForum, classroomId: string) =>
     instance.post(
       `${endpoint.CLASSROOM}/${classroomId}/announcements`,
       payload,
     ),
-  getAnnouncement: (classroomId: string, params?: { page?: number; limit?: number; search?: string }) =>
+  getForumPosts: (classroomId: string, params?: { page?: number; limit?: number; search?: string }) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/announcements`, { params }),
-  getAnnouncementById: (classroomId: string, announcementId: string) =>
+  getForumPostById: (classroomId: string, announcementId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}`),
-  deleteAnnouncement: (classroomId: string, announcementId: string) =>
+  deleteForumPost: (classroomId: string, announcementId: string) =>
     instance.delete(
       `${endpoint.CLASSROOM}/${classroomId}/announcements/${announcementId}`,
     ),
-  updateAnnouncement: (
+  updateForumPost: (
     classroomId: string,
     announcementId: string,
     payload: { is_pinned?: boolean; title?: string; content?: string },
@@ -52,4 +53,8 @@ export const classroomServices = {
     instance.get(`${endpoint.CLASSROOM}/dosen/dashboard-stats`),
   getMahasiswaDashboardStats: () =>
     instance.get(`${endpoint.CLASSROOM}/mahasiswa/dashboard-stats`),
+  getPolicies: (classroomId: string) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}${endpoint.POLICIES}`),
+  updatePolicies: (classroomId: string, payload: IClassroomPolicies) =>
+    instance.put(`${endpoint.CLASSROOM}/${classroomId}${endpoint.POLICIES}`, payload),
 };

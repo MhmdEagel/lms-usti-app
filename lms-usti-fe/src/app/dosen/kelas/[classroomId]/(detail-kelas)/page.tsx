@@ -1,5 +1,5 @@
-import ForumSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/ClassroomForum/ForumSkeleton/ForumSkeleton";
-import ClassroomForum from "@/components/views/Dashboard/DashboardDosen/Classroom/ClassroomForum/ClassroomForum";
+import ForumSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/ClassroomDetailForum/ForumSkeleton/ForumSkeleton";
+import ClassroomDetailForum from "@/components/views/Dashboard/DashboardDosen/Classroom/ClassroomDetailForum/ClassroomDetailForum";
 import { Suspense } from "react";
 
 export default async function ClassDetailPage({
@@ -11,7 +11,7 @@ export default async function ClassDetailPage({
   return (
     <>
       <Suspense fallback={<ForumSkeleton />}>
-        <ClassroomForum classroomId={classroomId} />
+        <ClassroomDetailForum classroomId={classroomId} />
       </Suspense>
     </>
   );

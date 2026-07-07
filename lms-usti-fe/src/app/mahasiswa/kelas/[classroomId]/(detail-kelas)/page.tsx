@@ -1,4 +1,4 @@
-import ClassroomForum from "@/components/views/Dashboard/DashboardDosen/Classroom/ClassroomForum/ClassroomForum";
+import ClassroomDetailForum from "@/components/views/Dashboard/DashboardDosen/Classroom/ClassroomDetailForum/ClassroomDetailForum";
 
 export default async function ClassDetailPage({
   params,
@@ -6,5 +6,5 @@ export default async function ClassDetailPage({
   params: Promise<{ classroomId: string }>;
 }) {
   const { classroomId } = await params;
-  return <ClassroomForum classroomId={classroomId} />;
+  return <ClassroomDetailForum classroomId={classroomId} />;
 }

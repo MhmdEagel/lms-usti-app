@@ -3,18 +3,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { createAnnouncementComment } from "@/actions/create-announcement-comment";
-import { deleteAnnouncementComment } from "@/actions/delete-announcement-comment";
+import { createAnnouncementComment } from "@/actions/create-forum-post-comment";
+import { deleteAnnouncementComment } from "@/actions/delete-forum-post-comment";
 import ContentEditor from "@/components/ui/content-editor";
 import CommentItem from "@/components/common/MaterialDetail/Comment/CommentItem";
-import type { IComment, IAnnouncement } from "@/types/Classroom";
+import type { IComment, IClassroomDetailForum } from "@/types/Classroom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User as UserIcon, ArrowLeft } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
 import Link from "next/link";
 
 interface PropTypes {
-  announcement: IAnnouncement;
+  announcement: IClassroomDetailForum;
   initialComments: IComment[];
   classroomId: string;
   currentUserId: string;

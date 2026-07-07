@@ -20,13 +20,13 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { deleteAnnoucement } from "@/actions/delete-announcement";
 import { updateAnnouncement } from "@/actions/update-announcement";
-import { IAnnouncement } from "@/types/Classroom";
+import { IClassroomDetailForum } from "@/types/Classroom";
 import { EllipsisVertical, Pin, PinOff, Pencil, Trash } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 interface PropTypes {
-  announcement: IAnnouncement;
+  announcement: IClassroomDetailForum;
   classroomId: string;
   onEdit?: () => void;
 }

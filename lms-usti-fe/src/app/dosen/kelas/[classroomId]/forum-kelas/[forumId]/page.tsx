@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { classroomServices } from "@/services/classroom.service";
 import { commentServices } from "@/services/comment.service";
-import AnnouncementDetailSection from "@/components/common/AnnouncementDetail/AnnouncementDetailSection";
-import type { IAnnouncement, IComment } from "@/types/Classroom";
+import ClassroomDetailForumSection from "@/components/common/ClassroomDetailForum/ClassroomDetailForumSection";
+import type { IClassroomDetailForum, IComment } from "@/types/Classroom";
 
 async function AnnouncementDetailPageContent({
   classroomId,
@@ -17,11 +17,11 @@ async function AnnouncementDetailPageContent({
   role: string;
 }) {
   const [announcementRes, commentsRes] = await Promise.all([
-    classroomServices.getAnnouncementById(classroomId, announcementId),
-    commentServices.getAnnouncementComments(classroomId, announcementId),
+    classroomServices.getForumPostById(classroomId, announcementId),
+    commentServices.getForumPostComments(classroomId, announcementId),
   ]);
 
-  const announcement = announcementRes.data?.data as IAnnouncement | undefined;
+  const announcement = announcementRes.data?.data as IClassroomDetailForum | undefined;
   const comments = commentsRes.data?.data as IComment[] | undefined;
 
   if (!announcement) {
@@ -33,7 +33,7 @@ async function AnnouncementDetailPageContent({
   }
 
   return (
-    <AnnouncementDetailSection
+    <ClassroomDetailForumSection
       announcement={announcement}
       initialComments={comments ?? []}
       classroomId={classroomId}

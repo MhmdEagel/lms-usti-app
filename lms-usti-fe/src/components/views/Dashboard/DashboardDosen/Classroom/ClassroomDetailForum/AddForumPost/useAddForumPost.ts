@@ -1,6 +1,6 @@
 import { createNewAnnouncement } from "@/actions/new-announcement";
-import { newAnnouncementSchema } from "@/schemas/schemas";
-import { ICreateAnnouncement } from "@/types/Classroom";
+import { newForumPostSchema } from "@/schemas/schemas";
+import { ICreateClassroomDetailForum } from "@/types/Classroom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 const useAddForumPost = () => {
   const form = useForm({
-    resolver: zodResolver(newAnnouncementSchema),
+    resolver: zodResolver(newForumPostSchema),
   });
 
   const [open, setOpen] = useState(false);
@@ -18,7 +18,7 @@ const useAddForumPost = () => {
   };
 
   const handleAddAnnouncement = async (
-    data: ICreateAnnouncement,
+    data: ICreateClassroomDetailForum,
     classroomId: string,
   ) => {
     try {

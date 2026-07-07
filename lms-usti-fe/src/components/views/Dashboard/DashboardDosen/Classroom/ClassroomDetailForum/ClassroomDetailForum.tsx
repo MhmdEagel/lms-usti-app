@@ -2,11 +2,11 @@ import AddForumPost from "./AddForumPost/AddForumPost";
 import ForumItem from "./ForumItem/ForumItem";
 import { getCurrentUser } from "@/lib/auth";
 import { classroomServices } from "@/services/classroom.service";
-import { IAnnouncement } from "@/types/Classroom";
+import { IClassroomDetailForum } from "@/types/Classroom";
 import PaginationControls from "@/components/common/PaginationControls/PaginationControls";
 import PaginationNav from "@/components/common/PaginationControls/PaginationNav";
 
-export default async function ClassroomForum({
+export default async function ClassroomDetailForum({
   classroomId,
   page = 1,
   limit = 10,
@@ -18,9 +18,9 @@ export default async function ClassroomForum({
   search?: string;
 }) {
   const user = await getCurrentUser();
-  const res = await classroomServices.getAnnouncement(classroomId, { page, limit, search });
+  const res = await classroomServices.getForumPosts(classroomId, { page, limit, search });
   const pagination: PaginationInfo = res.data?.pagination;
-  const listPengumuman: IAnnouncement[] | null = res.data?.data;
+  const listPengumuman: IClassroomDetailForum[] | null = res.data?.data;
 
   return (
     <>

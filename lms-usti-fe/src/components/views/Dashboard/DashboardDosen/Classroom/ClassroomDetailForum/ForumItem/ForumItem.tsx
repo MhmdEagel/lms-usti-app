@@ -11,7 +11,7 @@ import DOMPurify from "isomorphic-dompurify";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import type { IAnnouncement as IForumPost } from "@/types/Classroom";
+import type { IClassroomDetailForum as IForumPost } from "@/types/Classroom";
 import ForumAction from "./ForumAction";
 import { updateAnnouncement } from "@/actions/update-announcement";
 
@@ -31,7 +31,7 @@ export default function ForumItem({
   const [editContent, setEditContent] = useState(announcement.content);
   const [isPending, startTransition] = useTransition();
 
-  const detailPath = `/${userRole?.toLowerCase() ?? "dosen"}/kelas/${classroomId}/pengumuman/${announcement.id}`;
+  const detailPath = `/${userRole?.toLowerCase() ?? "dosen"}/kelas/${classroomId}/forum-kelas/${announcement.id}`;
 
   const handleCancel = () => {
     setEditTitle(announcement.title);

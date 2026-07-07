@@ -1,15 +1,15 @@
 "use server";
 
 import { classroomServices } from "@/services/classroom.service";
-import { ICreateAnnouncement } from "@/types/Classroom";
+import { ICreateClassroomDetailForum } from "@/types/Classroom";
 import { revalidatePath } from "next/cache";
 
 export const createNewAnnouncement = async (
-  payload: ICreateAnnouncement,
+  payload: ICreateClassroomDetailForum,
   classroomId: string,
 ) => {
   try {
-    await classroomServices.createAnnouncement(payload, classroomId);
+    await classroomServices.createForumPost(payload, classroomId);
     revalidatePath(".");
     return { success: "Pengumuman berhasil dibuat", error: null };
   } catch (e) {

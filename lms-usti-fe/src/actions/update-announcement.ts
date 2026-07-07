@@ -15,7 +15,7 @@ export const updateAnnouncement = async (
   payload: UpdateAnnouncementPayload,
 ) => {
   try {
-    await classroomServices.updateAnnouncement(
+    await classroomServices.updateForumPost(
       classroomId,
       announcementId,
       payload,

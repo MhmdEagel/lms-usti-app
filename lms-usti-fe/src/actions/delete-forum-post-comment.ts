@@ -9,9 +9,9 @@ export async function deleteAnnouncementComment(
   commentId: string,
 ) {
   try {
-    await commentServices.deleteAnnouncementComment(classroomId, announcementId, commentId);
-    revalidatePath(`/dosen/kelas/${classroomId}/pengumuman/${announcementId}`);
-    revalidatePath(`/mahasiswa/kelas/${classroomId}/pengumuman/${announcementId}`);
+    await     commentServices.deleteForumPostComment(classroomId, announcementId, commentId);
+    revalidatePath(`/dosen/kelas/${classroomId}/forum-kelas/${announcementId}`);
+    revalidatePath(`/mahasiswa/kelas/${classroomId}/forum-kelas/${announcementId}`);
     return { success: "Komentar berhasil dihapus", error: null };
   } catch (e) {
     return { success: null, error: (e as Error).message };

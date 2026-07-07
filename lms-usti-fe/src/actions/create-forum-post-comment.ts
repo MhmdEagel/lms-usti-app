@@ -9,9 +9,9 @@ export async function createAnnouncementComment(
   payload: { content: string },
 ) {
   try {
-    await commentServices.createAnnouncementComment(classroomId, announcementId, payload);
-    revalidatePath(`/dosen/kelas/${classroomId}/pengumuman/${announcementId}`);
-    revalidatePath(`/mahasiswa/kelas/${classroomId}/pengumuman/${announcementId}`);
+    await     commentServices.createForumPostComment(classroomId, announcementId, payload);
+    revalidatePath(`/dosen/kelas/${classroomId}/forum-kelas/${announcementId}`);
+    revalidatePath(`/mahasiswa/kelas/${classroomId}/forum-kelas/${announcementId}`);
     return { success: "Komentar berhasil dibuat", error: null };
   } catch (e) {
     return { success: null, error: (e as Error).message };
