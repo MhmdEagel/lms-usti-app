@@ -58,7 +58,7 @@ func (a *AnnouncementController) Create(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
 	req.ClassroomId = classroomId
 	req.DosenId = user.ID
-	err := a.announcementService.Create(req)
+	err := a.announcementService.Create(req, user.Role)
 	if err != nil {
 		handleError(ctx, err)
 		return

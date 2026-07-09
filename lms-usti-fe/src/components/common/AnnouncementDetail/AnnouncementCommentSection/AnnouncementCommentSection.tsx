@@ -16,6 +16,7 @@ interface PropTypes {
   currentId: string;
   currentRole: string;
   commentPermission: string;
+  forumPermission?: string;
 }
 
 export default function AnnouncementCommentSection({
@@ -25,13 +26,14 @@ export default function AnnouncementCommentSection({
   currentId,
   currentRole,
   commentPermission,
+  forumPermission = "comment_only",
 }: PropTypes) {
   const [comments, setComments] = useState<IComment[]>(initialComments ?? []);
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const isCommentDisabled = commentPermission === "inactive" && currentRole === "MAHASISWA";
+  const isCommentDisabled = currentRole === "MAHASISWA" && (commentPermission === "inactive" || forumPermission === "dosen_only");
 
   const handleSubmit = async () => {
     if (!content.trim() || content === "<p></p>") return;

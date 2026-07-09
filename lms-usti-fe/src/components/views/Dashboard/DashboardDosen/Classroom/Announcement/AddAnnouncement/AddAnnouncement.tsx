@@ -23,10 +23,12 @@ export default function AddAnnouncement({
   id,
   userRole,
   classroomId,
+  canCreatePost,
 }: {
   id: string | undefined;
   userRole: string | undefined;
   classroomId: string;
+  canCreatePost: boolean;
 }) {
   const { form, open, handleOpen, handleAddAnnouncement } =
     useAddAnnouncement();
@@ -37,7 +39,7 @@ export default function AddAnnouncement({
     <>
       <div className="pb-4 border-b-2 flex items-center">
         <div className="text-base md:text-xl font-semibold">Forum Kelas</div>
-        {userRole === "DOSEN" && !open ? (
+        {canCreatePost && !open ? (
           <Tooltip>
             <TooltipTrigger className="ml-auto" asChild>
               <Button onClick={() => handleOpen(true)} size={"icon"}>

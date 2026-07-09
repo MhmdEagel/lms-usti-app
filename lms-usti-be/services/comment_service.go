@@ -79,8 +79,13 @@ func (c *CommentService) Create(req data.CommentRequest, commentableType, commen
 			if err != nil && err != gorm.ErrRecordNotFound {
 				return data.ErrInternalServer(err)
 			}
-			if err == nil && policy.CommentPermission == model.CommentPermissionInactive {
-				return data.NewAppError(403, "komentar dinonaktifkan untuk kelas ini", nil)
+			if err == nil {
+				if policy.CommentPermission == model.CommentPermissionInactive {
+					return data.NewAppError(403, "komentar dinonaktifkan untuk kelas ini", nil)
+				}
+				if commentableType == model.CommentableTypeAnnouncement && policy.ForumPermission == model.ForumPermissionDosen {
+					return data.NewAppError(403, "hanya dosen yang dapat berkomentar di forum kelas ini", nil)
+				}
 			}
 		}
 	}

@@ -79,6 +79,7 @@ export default function AnnouncementDetail({
         currentId={currentId}
         currentRole={currentRole}
         commentPermission={policies?.comment_permission ?? "active"}
+        forumPermission={policies?.forum_permission ?? "comment_only"}
       />
     </div>
   );
