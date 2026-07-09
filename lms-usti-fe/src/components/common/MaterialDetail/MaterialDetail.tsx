@@ -12,13 +12,12 @@ import { getCurrentUser } from "@/lib/auth";
 import { ArrowLeft, Book, Eye } from "lucide-react";
 import { materialServices } from "@/services/material.service";
 import { IMaterial } from "@/types/Classroom";
-import LinkMaterialItem from "./LinkMaterialItem";
 import MaterialAction from "./MaterialAction";
 import MaterialBreadcrumb from "./MaterialBreadcrumb";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import FileAttachmentSection from "./FileAttachmentSection/FileAttachmentSection";
 import MaterialTabNavigation from "./MaterialTabNavigation";
+import MaterialAttachmentSection from "./MaterialAttachmentSection";
 interface PropTypes {
 classroomId: string;
 materiId: string;
@@ -32,7 +31,6 @@ export default async function MaterialDetail(props: PropTypes) {
   dayjs.extend(localizedFormat);
   dayjs.locale("id");
   const role: string = user.role;
-  console.log(data)
 
   if (!data) {
     return (
@@ -133,45 +131,9 @@ export default async function MaterialDetail(props: PropTypes) {
             <div className="text-base md:text-xl font-bold">LAMPIRAN</div>
           </CardHeader>
           <CardContent>
-            {data.attachments &&
-            data.attachments.filter(
-              (a) => a.type === "FILE",
-            ).length > 0 ? (
-              <FileAttachmentSection
-                attachments={data.attachments.filter(
-                  (a) => a.type === "FILE",
-                )}
-              />
-            ) : (
-              <div className="h-23 flex items-center justify-center">
-                Tidak ada lampiran
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      <div className="p-4 w-full">
-        <Card>
-          <CardHeader className="border-b-2 pb-2">
-            <div className="text-base md:text-xl font-bold">Link Referensi</div>
-          </CardHeader>
-          <CardContent>
-            {data.attachments &&
-            data.attachments.filter((a) => a.type === "LINK").length > 0 ? (
-              <div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  {data.attachments
-                    .filter((a) => a.type === "LINK")
-                    .map((item) => (
-                      <LinkMaterialItem key={item.id} linkMateri={item} />
-                    ))}
-                </div>
-              </div>
-            ) : (
-              <div className="h-23 flex items-center justify-center">
-                Tidak ada link referensi
-              </div>
-            )}
+            <MaterialAttachmentSection
+              attachments={data.attachments || []}
+            />
           </CardContent>
         </Card>
       </div>

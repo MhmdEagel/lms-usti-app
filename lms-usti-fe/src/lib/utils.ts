@@ -3,8 +3,9 @@ import { clsx, type ClassValue } from "clsx";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import {v4 as uuidv4} from "uuid"
+import { v4 as uuidv4 } from "uuid";
 import { twMerge } from "tailwind-merge";
+import { IAttachment } from "@/types/Classroom";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -69,4 +70,16 @@ const VIDEO_EXTENSIONS = ["mp4", "mov", "avi", "webm", "mkv"];
 export function isVideoFile(filename: string): boolean {
   const ext = filename.split(".").pop()?.toLowerCase() ?? "";
   return VIDEO_EXTENSIONS.includes(ext);
+}
+
+export type AttachmentCategory = "pdf" | "word" | "presentation" | "video" | "link" | "other";
+
+export function getAttachmentCategory(attachment: IAttachment): AttachmentCategory {
+  if (attachment.type === "LINK") return "link";
+  const ext = getFileExtension(attachment.name).toLowerCase();
+  if (ext === "pdf") return "pdf";
+  if (["docx", "doc"].includes(ext)) return "word";
+  if (["pptx", "ppt"].includes(ext)) return "presentation";
+  if (isVideoFile(attachment.name)) return "video";
+  return "other";
 }

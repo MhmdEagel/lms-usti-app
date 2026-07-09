@@ -9,7 +9,6 @@ import { ArrowLeft, Eye, FileText } from "lucide-react";
 import { assignmentServices } from "@/services/assignment.service";
 import type { IAssignment, IMySubmission } from "@/types/Classroom";
 import AssignmentAttachmentSection from "./AssignmentAttachmentSection";
-import LinkMaterialItem from "../MaterialDetail/LinkMaterialItem/LinkMaterialItem";
 import AssignmentAction from "./AssignmentAction";
 import SubmitAssignmentDialog from "./SubmitAssignmentDialog/SubmitAssignmentDialog";
 import AssignmentBreadcrumb from "./AssignmentBreadcrumb";
@@ -39,7 +38,6 @@ export default async function AssignmentDetail(props: PropTypes) {
   const mySubmission: IMySubmission | null =
     mySubmissionRes?.data?.data || null;
   dayjs.locale("id");
-  console.log(data);
   if (!data) {
     return (
       <div className="p-4 flex flex-col justify-center items-center h-128">
@@ -284,40 +282,14 @@ export default async function AssignmentDetail(props: PropTypes) {
       <div className="p-4 w-full">
         <Card>
           <CardHeader className="border-b-2 pb-2">
-            <div className="text-base md:text-xl font-bold">Lampiran</div>
+            <div className="text-base md:text-xl font-bold">LAMPIRAN</div>
           </CardHeader>
           <CardContent>
-            {data.attachments &&
-            data.attachments.filter((a) => a.type === "FILE").length > 0 ? (
-              <AssignmentAttachmentSection
-                attachments={data.attachments.filter((a) => a.type === "FILE")}
-              />
+            {data.attachments && data.attachments.length > 0 ? (
+              <AssignmentAttachmentSection attachments={data.attachments} />
             ) : (
               <div className="h-23 flex items-center justify-center">
                 Tidak ada lampiran
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      <div className="p-4 w-full">
-        <Card>
-          <CardHeader className="border-b-2 pb-2">
-            <div className="text-base md:text-xl font-bold">Link Referensi</div>
-          </CardHeader>
-          <CardContent>
-            {data.attachments &&
-            data.attachments.filter((a) => a.type === "LINK").length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {data.attachments
-                  .filter((a) => a.type === "LINK")
-                  .map((item) => (
-                    <LinkMaterialItem key={item.id} linkMateri={item} />
-                  ))}
-              </div>
-            ) : (
-              <div className="h-23 flex items-center justify-center">
-                Tidak ada link referensi
               </div>
             )}
           </CardContent>
