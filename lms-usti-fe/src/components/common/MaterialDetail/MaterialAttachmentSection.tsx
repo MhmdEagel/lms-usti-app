@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { IAttachment } from "@/types/Classroom";
-import { getAttachmentCategory, type AttachmentCategory } from "@/lib/utils";
+import { IAttachment } from "@/types/Classroom";
+import { AttachmentCategory, getAttachmentCategory } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import FileAttachmentSection from "../../MaterialDetail/FileAttachmentSection/FileAttachmentSection";
-import LinkMaterialItem from "../../MaterialDetail/LinkMaterialItem/LinkMaterialItem";
+import FileAttachmentSection from "./FileAttachmentSection/FileAttachmentSection";
+import LinkMaterialItem from "./LinkMaterialItem";
 
 interface ChipDef {
   key: "all" | AttachmentCategory;
@@ -13,11 +13,11 @@ interface ChipDef {
   count: number;
 }
 
-interface PropTypes {
+export default function MaterialAttachmentSection({
+  attachments,
+}: {
   attachments: IAttachment[];
-}
-
-export default function AssignmentAttachmentSection({ attachments }: PropTypes) {
+}) {
   const [selectedFilter, setSelectedFilter] = useState<
     "all" | AttachmentCategory
   >("all");
@@ -32,21 +32,15 @@ export default function AssignmentAttachmentSection({ attachments }: PropTypes) 
       { key: "all", label: "Semua", count: attachments.length },
       { key: "pdf", label: "PDF", count: counts["pdf"] || 0 },
       { key: "word", label: "Word", count: counts["word"] || 0 },
-      { key: "presentation", label: "Presentasi", count: counts["presentation"] || 0 },
+      {
+        key: "presentation",
+        label: "Presentasi",
+        count: counts["presentation"] || 0,
+      },
       { key: "video", label: "Video", count: counts["video"] || 0 },
       { key: "link", label: "Link", count: counts["link"] || 0 },
     ];
   }, [attachments]);
-
-  const fileAttachments = useMemo(
-    () => attachments.filter((a) => a.type === "FILE"),
-    [attachments],
-  );
-
-  const linkAttachments = useMemo(
-    () => attachments.filter((a) => a.type === "LINK"),
-    [attachments],
-  );
 
   const filteredAttachments = useMemo(() => {
     if (selectedFilter === "all") return attachments;
@@ -56,12 +50,12 @@ export default function AssignmentAttachmentSection({ attachments }: PropTypes) 
     });
   }, [attachments, selectedFilter]);
 
-  const filteredFiles = useMemo(
+  const fileAttachments = useMemo(
     () => filteredAttachments.filter((a) => a.type === "FILE"),
     [filteredAttachments],
   );
 
-  const filteredLinks = useMemo(
+  const linkAttachments = useMemo(
     () => filteredAttachments.filter((a) => a.type === "LINK"),
     [filteredAttachments],
   );
@@ -100,34 +94,19 @@ export default function AssignmentAttachmentSection({ attachments }: PropTypes) 
 
       {filteredAttachments.length === 0 ? (
         <div className="h-23 flex items-center justify-center">
-          Tidak ada lampiran untuk kategori ini
+          Tidak ada lampiran
         </div>
       ) : (
         <>
-          {selectedFilter === "all" ? (
-            <>
-              {fileAttachments.length > 0 && (
-                <FileAttachmentSection attachments={fileAttachments} />
-              )}
-              {linkAttachments.length > 0 && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
-                  <div className="col-span-full">
-                    <div className="font-bold text-gray-500 text-sm mb-4">LINK</div>
-                  </div>
-                  {linkAttachments.map((item) => (
-                    <LinkMaterialItem key={item.id} linkMateri={item} />
-                  ))}
-                </div>
-              )}
-            </>
-          ) : selectedFilter === "link" ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {filteredLinks.map((item) => (
+          {fileAttachments.length > 0 && (
+            <FileAttachmentSection attachments={fileAttachments} />
+          )}
+          {linkAttachments.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+              {linkAttachments.map((item) => (
                 <LinkMaterialItem key={item.id} linkMateri={item} />
               ))}
             </div>
-          ) : (
-            <FileAttachmentSection attachments={filteredFiles} />
           )}
         </>
       )}

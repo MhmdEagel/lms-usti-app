@@ -9,18 +9,18 @@ import (
 )
 
 type Assignment struct {
-	ID          string `gorm:"not null"`
-	Title       string `gorm:"not null"`
-	Deadline    sql.NullTime
-	Instruction string `gorm:"not null"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DosenId     string
-	Dosen       User      `gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE"`
-	ClassroomId string
-	ViewCount   int64 `json:"view_count" gorm:"default:0"`
-	Attachments []AssignmentAttachment `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
-	Submissions []Submission           `gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
+	ID          string    `json:"id" gorm:"primaryKey"`
+	Title       string    `json:"title" gorm:"not null"`
+	Deadline    sql.NullTime `json:"deadline"`
+	Instruction string    `json:"instruction" gorm:"not null"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	DosenId     string    `json:"dosen_id"`
+	Dosen       User      `json:"dosen" gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE"`
+	ClassroomId string    `json:"classroom_id"`
+	ViewCount   int64     `json:"view_count" gorm:"default:0"`
+	Attachments []AssignmentAttachment `json:"attachments" gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
+	Submissions []Submission           `json:"submissions" gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
 }
 
 func (assignment *Assignment) BeforeCreate(tx *gorm.DB) error {
