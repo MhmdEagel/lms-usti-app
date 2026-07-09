@@ -1,5 +1,5 @@
-import AnnouncementSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/Announcement/AnnouncementSkeleton/AnnouncementSkeleton";
-import ClassroomAnnouncement from "@/components/views/Dashboard/DashboardDosen/Classroom/Announcement/ClassroomAnnouncement";
+import ClassroomForumPostSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/ClassroomDetailForum/ClassroomForumPostSkeleton/ClassroomForumPostSkeleton";
+import ClassroomDetailForum from "@/components/views/Dashboard/DashboardDosen/Classroom/ClassroomDetailForum/ClassroomDetailForum";
 import { Suspense } from "react";
 
 export default async function ClassDetailPage({
@@ -13,8 +13,8 @@ export default async function ClassDetailPage({
   const { page, limit, search } = await searchParams;
   return (
     <>
-      <Suspense fallback={<AnnouncementSkeleton />}>
-        <ClassroomAnnouncement
+      <Suspense fallback={<ClassroomForumPostSkeleton />}>
+        <ClassroomDetailForum
           classroomId={classroomId}
           page={page ? Number(page) : 1}
           limit={limit ? Number(limit) : 10}

@@ -100,7 +100,7 @@ const joinClassroomSchema = z.object({
   classroom_code: z.string().min(4, "Kode kelas wajib diisi"),
 });
 
-const newAnnouncementSchema = z.object({
+const newForumPostSchema = z.object({
   title: z.string({ required_error: "Judul wajib diisi" }),
   content: z
     .string()
@@ -157,7 +157,7 @@ export {
   changePasswordSchema,
   joinClassroomSchema,
   newClassroomSchema,
-  newAnnouncementSchema,
+  newForumPostSchema,
   editClassroomSchema,
   newMaterialSchema,
 };

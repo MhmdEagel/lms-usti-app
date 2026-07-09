@@ -121,7 +121,6 @@ func (c *ClassroomController) FindAllByMahasiswaId(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-
 	search := ctx.Query("search")
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
@@ -133,7 +132,6 @@ func (c *ClassroomController) FindAllByMahasiswaId(ctx *gin.Context) {
 		TahunAjaran: ctx.Query("tahun_ajaran"),
 		RoomNumber:  ctx.Query("room_number"),
 	}
-
 	pagination := data.Pagination{Limit: limit, Current: page}
 	paginationResult, err := c.classroomService.FindAllByMahasiswaId(user.ID, filter, pagination)
 	if err != nil {
@@ -142,7 +140,6 @@ func (c *ClassroomController) FindAllByMahasiswaId(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-
 	res := data.NewPaginationResponse(http.StatusOK, "successfully find all mahasiswa classrooms", paginationResult.Pagination, paginationResult.Data)
 	ctx.JSON(http.StatusOK, res)
 }

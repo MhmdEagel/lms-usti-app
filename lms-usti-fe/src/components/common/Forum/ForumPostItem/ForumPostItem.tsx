@@ -8,7 +8,7 @@ import DOMPurify from "isomorphic-dompurify";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/id";
-import { deleteForumPost } from "@/actions/delete-forum-post";
+import { deletePublicForumPost } from "@/actions/delete-public-forum-post";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
@@ -44,7 +44,7 @@ export default function ForumPostItem({ post, currentId, currentRole }: PropType
   const forumPath = `/${currentRole.toLowerCase()}/forum/${post.id}`;
 
   const handleDelete = async () => {
-    const res = await deleteForumPost(post.id);
+    const res = await deletePublicForumPost(post.id);
     if (res.success) {
       toast.success(res.success);
     } else if (res.error) {

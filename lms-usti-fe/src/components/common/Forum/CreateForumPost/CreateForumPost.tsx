@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { createForumPost } from "@/actions/create-forum-post";
 import ContentEditor from "@/components/ui/content-editor";
+import { createForumPost } from "@/actions/create-public-forum-post";
 
 export default function CreateForumPost() {
   const [open, setOpen] = useState(false);

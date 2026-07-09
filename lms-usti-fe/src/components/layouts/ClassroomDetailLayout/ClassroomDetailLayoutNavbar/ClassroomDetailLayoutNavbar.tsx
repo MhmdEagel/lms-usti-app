@@ -46,6 +46,7 @@ export default function ClassroomDetailLayoutNavbar({
             <Users size={16} />
             <span>Anggota</span>
           </ClassroomDetailLayoutNavbarItem>
+          {type === "dosen" && (
           <ClassroomDetailLayoutNavbarItem
             isActive={url === `/${type}/kelas/${classroomId}/pengaturan`}
             href={`/${type}/kelas/${classroomId}/pengaturan`}
@@ -53,6 +54,7 @@ export default function ClassroomDetailLayoutNavbar({
             <Settings size={16} />
             <span>Pengaturan</span>
           </ClassroomDetailLayoutNavbarItem>
+          )}
         </div>
       </div> 
     </nav>

@@ -10,12 +10,13 @@ func ErrClassroomNotFound(err error) *AppError { return NewAppError(404, "kelas 
 func ErrAlreadyEnrolled(err error) *AppError   { return NewAppError(409, "sudah bergabung di kelas ini", err) }
 func ErrAssignmentNotFound(err error) *AppError  { return NewAppError(404, "assignment tidak ditemukan", err) }
 func ErrMaterialNotFound(err error) *AppError      { return NewAppError(404, "material tidak ditemukan", err) }
-func ErrAnnouncementNotFound(err error) *AppError  { return NewAppError(404, "announcement tidak ditemukan", err) }
+func ErrClassroomForumPostNotFound(err error) *AppError  { return NewAppError(404, "postingan forum tidak ditemukan", err) }
 func ErrInternalServer(err error) *AppError      { return NewAppError(500, "terjadi kesalahan", err) }
 func ErrBadRequest(err error) *AppError           { return NewAppError(400, "invalid request", err) }
 func ErrCommentNotFound(err error) *AppError      { return NewAppError(404, "komentar tidak ditemukan", err) }
 func ErrForumPostNotFound(err error) *AppError    { return NewAppError(404, "postingan forum tidak ditemukan", err) }
 func ErrUnauthorized(err error) *AppError         { return NewAppError(401, "tidak memiliki akses", err) }
+func ErrForumPermissionDenied(err error) *AppError { return NewAppError(403, "tidak memiliki izin membuat postingan forum", err) }
 
 type AppError struct {
 	Code    int

@@ -1,18 +1,13 @@
 "use server";
 
-import { forumServices } from "@/services/forum.service";
+import { classroomServices } from "@/services/classroom.service";
 import { revalidatePath } from "next/cache";
 
-export async function deleteForumPost(postId: string) {
+export const deleteForumPost = async (classroomId: string, forumPostId: string) => {
   try {
-    await forumServices.deletePost(postId);
-    revalidatePath("/prodi/forum");
-    revalidatePath("/dosen/forum");
-    revalidatePath("/mahasiswa/forum");
-    revalidatePath(`/prodi/forum/${postId}`);
-    revalidatePath(`/dosen/forum/${postId}`);
-    return { success: "Postingan berhasil dihapus", error: null };
+    await classroomServices.deleteForumPost(classroomId, forumPostId);
+    revalidatePath(".");
   } catch (e) {
-    return { success: null, error: (e as Error).message };
+    throw(e);
   }
-}
+};

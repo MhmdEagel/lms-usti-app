@@ -26,12 +26,12 @@ interface IUpdateClassroom {
   tahun_ajaran?: string?;
 }
 
-interface ICreateAnnouncement {
+interface ICreateClassroomForumPost {
   title: string;
   content: string;
 }
 
-interface IAnnouncement extends ICreateAnnouncement {
+interface IClassroomForumPost extends ICreateClassroomForumPost {
   id: string;
   classroom_name: string;
   created_by: string;
@@ -217,8 +217,8 @@ export type {
   IClassroom,
   IClassroomMembers,
 
-  ICreateAnnouncement,
-  IAnnouncement,
+  ICreateClassroomForumPost,
+  IClassroomForumPost,
 
   IMaterial,
   INewMaterial,
