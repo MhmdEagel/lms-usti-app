@@ -26,18 +26,18 @@ export default function ClassroomDetailLayout({
         classroomName={classroom.class_name}
         classroomId={classroomId}
       />
-      <Link href="/dosen/kelas">
+      <Link href={`/${type}/kelas`}>
         <Button className="rounded-full text-xs sm:text-sm" variant={"ghost"}>
           <ArrowLeft /> Kembali
         </Button>
       </Link>
-      <Card className="min-h-[200px] bg-blue-100 relative pt-1 mt-4 overflow-hidden">
-        <div className="flex justify-center items-center w-full h-32 sm:h-48 md:h-56 lg:h-64 relative">
+      <Card className="min-h-[200px] bg-blue-100 relative pt-1 mt-4 overflow-hidden pb-20 sm:pb-24 flex flex-col">
+        <div className="flex-1 min-h-0 flex justify-center items-center w-full relative">
           <Image
-            className="object-contain"
+            className="object-contain max-w-[50%] sm:max-w-[60%] md:max-w-full"
             src={`/images/ilustration/classroom/${classroom.class_cover}.svg`}
-            width={250}
-            height={250}
+            width={220}
+            height={220}
             alt="Classroom Cover"
           />
         </div>

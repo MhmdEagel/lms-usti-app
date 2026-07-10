@@ -26,7 +26,7 @@ export default function MaterialBreadcrumb(props: PropTypes) {
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbLink href={`/${type}/kelas/${classroomId}`}>
+          <BreadcrumbLink href={`/${type}/kelas/${classroomId}`} className="max-w-[120px] sm:max-w-[200px] truncate inline-block">
             {classroomName}
           </BreadcrumbLink>
         </BreadcrumbItem>
@@ -44,7 +44,7 @@ export default function MaterialBreadcrumb(props: PropTypes) {
         <BreadcrumbItem>
           <BreadcrumbLink
             href={`/${type}/kelas/${classroomId}/materi/${materialId}`}
-            className="capitalize"
+            className="capitalize max-w-[120px] sm:max-w-[200px] truncate inline-block"
           >
             {materialName}
           </BreadcrumbLink>

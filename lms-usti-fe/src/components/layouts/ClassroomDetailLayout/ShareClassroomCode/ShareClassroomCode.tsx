@@ -29,8 +29,8 @@ export default function ShareClassroomCode(props: PropTypes) {
     <>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button onClick={() => setOpen(true)} size={"icon"}>
-            <Link />
+          <Button onClick={() => setOpen(true)} size={"icon"} className="size-8 sm:size-10">
+            <Link className="size-4 sm:size-5" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
@@ -46,7 +46,7 @@ export default function ShareClassroomCode(props: PropTypes) {
               bergabung
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="sm:text-4xl font-bold text-center">{classroomCode}</div>
+          <div className="text-2xl sm:text-4xl font-bold text-center">{classroomCode}</div>
           <AlertDialogFooter>
             <AlertDialogAction>Oke</AlertDialogAction>
           </AlertDialogFooter>

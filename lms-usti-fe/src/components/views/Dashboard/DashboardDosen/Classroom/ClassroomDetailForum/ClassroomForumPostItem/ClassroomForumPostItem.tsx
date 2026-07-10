@@ -60,19 +60,19 @@ export default function ForumItem({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="px-4 sm:px-6">
         <div className="flex items-center justify-between">
           <div className="flex gap-2 items-center">
-            <Avatar className="size-10">
+            <Avatar className="size-8 sm:size-10">
               <AvatarFallback>
                 <UserIcon />
               </AvatarFallback>
             </Avatar>
-            <div>
-              <div className="text-primary font-bold">
+            <div className="min-w-0">
+              <div className="text-primary font-bold text-sm truncate">
                 {announcement.created_by}
               </div>
-              <div className="capitalize">Dosen</div>
+              <div className="capitalize text-xs sm:text-sm">Dosen</div>
             </div>
           </div>
           {announcement.is_pinned && (
@@ -90,7 +90,7 @@ export default function ForumItem({
           )}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 sm:px-6">
         {isEditing ? (
           <div className="space-y-4">
             <Input
@@ -118,13 +118,13 @@ export default function ForumItem({
           </div>
         ) : (
           <>
-            <div className="text-lg font-bold mt-2">{announcement.title}</div>
+            <div className="text-sm sm:text-base md:text-lg font-bold mt-2">{announcement.title}</div>
             <div
               className="prose max-w-none"
               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.content) }}
             />
             <div className="mt-4">
-              <Link href={detailPath} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+              <Link href={detailPath} className="inline-flex items-center gap-1 text-xs sm:text-sm text-gray-500 hover:text-gray-700">
                 <MessageSquare className="h-4 w-4" />
                 {announcement.comment_count && announcement.comment_count > 0 ? announcement.comment_count : "0"}
               </Link>

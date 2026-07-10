@@ -11,8 +11,8 @@ export default function ClassroomSkeleton() {
         <div className="flex gap-4 items-center">
           <Skeleton className="size-12 rounded-full" />
           <div className="space-y-2">
-            <Skeleton className="h-5 w-[180px] sm:w-[270px]" />
-            <Skeleton className="h-4 w-[160px] sm:w-[240px]" />
+            <Skeleton className="h-5 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
           </div>
         </div>
       </CardContent>

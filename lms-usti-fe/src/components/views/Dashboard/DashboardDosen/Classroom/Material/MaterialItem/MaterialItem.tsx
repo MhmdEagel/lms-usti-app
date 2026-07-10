@@ -27,7 +27,7 @@ export default function MaterialItem({
           </div>
           <div>
             <div className="text-sm sm:text-base font-bold">{title}</div>
-            <div className="text-xs sm:text-base">
+            <div className="text-xs sm:text-sm">
               {dayjs(createdAt).format("lll")}
             </div>
           </div>

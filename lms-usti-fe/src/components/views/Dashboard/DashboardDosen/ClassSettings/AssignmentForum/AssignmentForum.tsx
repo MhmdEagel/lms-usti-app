@@ -27,7 +27,7 @@ export default function AssignmentForum({ classroomId, policies }: PropTypes) {
             <FormItem>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Pengumpulan Setelah Tenggat</CardTitle>
+                  <CardTitle className="text-sm sm:text-base">Pengumpulan Setelah Tenggat</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <RadioGroup onValueChange={field.onChange} value={field.value}>
@@ -53,7 +53,7 @@ export default function AssignmentForum({ classroomId, policies }: PropTypes) {
             <FormItem>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Izin Forum Kelas</CardTitle>
+                  <CardTitle className="text-sm sm:text-base">Izin Forum Kelas</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <RadioGroup onValueChange={field.onChange} value={field.value}>
@@ -83,7 +83,7 @@ export default function AssignmentForum({ classroomId, policies }: PropTypes) {
             <FormItem>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Izin Komentar Materi dan Tugas</CardTitle>
+                  <CardTitle className="text-sm sm:text-base">Izin Komentar Materi dan Tugas</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <RadioGroup onValueChange={field.onChange} value={field.value}>

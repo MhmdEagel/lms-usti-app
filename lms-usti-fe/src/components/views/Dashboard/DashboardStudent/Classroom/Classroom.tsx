@@ -16,7 +16,7 @@ import PaginationNav from "@/components/common/PaginationControls/PaginationNav"
 
 function ClassroomListSkeleton() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto">
       {Array.from({ length: 6 }).map((_, i) => (
         <Card key={i} className="pt-3 space-y-8">
           <CardHeader className="px-3">
@@ -26,8 +26,8 @@ function ClassroomListSkeleton() {
             <div className="flex gap-4 items-center">
               <Skeleton className="size-12 rounded-full" />
               <div className="space-y-2">
-                <Skeleton className="h-5 w-[180px] sm:w-[270px]" />
-                <Skeleton className="h-4 w-[160px] sm:w-[240px]" />
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
               </div>
             </div>
           </CardContent>
@@ -54,7 +54,7 @@ async function ClassroomList({ searchParams: params, page = 1, limit = 10 }: { s
   if (classes && classes.length > 0) {
     return (
       <>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto">
           {classes.map((classroom) => (
             <ClassroomItem
               type="mahasiswa"
@@ -64,7 +64,7 @@ async function ClassroomList({ searchParams: params, page = 1, limit = 10 }: { s
           ))}
         </div>
         {pagination && (
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex flex-wrap gap-2 items-center justify-between mt-4">
             <PaginationControls
               current={pagination.current}
               limit={pagination.limit}
@@ -84,6 +84,7 @@ async function ClassroomList({ searchParams: params, page = 1, limit = 10 }: { s
   return (
     <div className="flex flex-col items-center justify-center h-[500px] gap-4 select-none">
       <Image
+        className="w-48 h-48 sm:w-64 sm:h-64"
         src={"/images/ilustration/empty-class.svg"}
         alt="Kelas Kosong"
         width={300}
@@ -114,8 +115,10 @@ export default function Classroom({
   return (
     <Suspense fallback={<ClassroomListSkeleton />}>
       <div className="p-4">
-        <div className="mb-4 flex gap-4 items-center">
-          <SearchBar />
+        <div className="mb-4 flex flex-wrap gap-2 sm:gap-4 items-center">
+          <div className="w-full sm:w-auto sm:flex-1 min-w-0">
+            <SearchBar />
+          </div>
           <FilterSheet>
             <Button className="cursor-pointer" variant={"outline"}>
               <Filter />

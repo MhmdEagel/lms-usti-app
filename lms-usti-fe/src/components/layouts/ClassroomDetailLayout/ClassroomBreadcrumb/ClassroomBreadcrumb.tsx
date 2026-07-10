@@ -29,7 +29,7 @@ export default function ClassroomBreadcrumb(props: PropTypes) {
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbLink href={`/${type}/kelas/${classroomId}`}>
+          <BreadcrumbLink href={`/${type}/kelas/${classroomId}`} className="max-w-[120px] sm:max-w-[200px] truncate inline-block">
             {classroomName}
           </BreadcrumbLink>
         </BreadcrumbItem>

@@ -22,12 +22,12 @@ export default function Classroom({
     <Suspense
       fallback={
         <div className="p-4">
-          <div className="mb-4 flex gap-4 items-center">
+          <div className="mb-4 flex flex-wrap gap-2 sm:gap-4 items-center">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-10" />
             <Skeleton className="h-10 w-10" />
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto">
             {Array.from({ length: 6 }).map((_, i) => (
               <ClassroomSkeleton key={i} />
             ))}
@@ -36,8 +36,10 @@ export default function Classroom({
       }
     >
       <div className="p-4">
-        <div className="mb-4 flex gap-4 items-center">
-          <SearchBar />
+        <div className="mb-4 flex flex-wrap gap-2 sm:gap-4 items-center">
+          <div className="w-full sm:w-auto sm:flex-1 min-w-0">
+            <SearchBar />
+          </div>
           <FilterSheet>
             <Button className="cursor-pointer" variant={"outline"}>
               <Filter />

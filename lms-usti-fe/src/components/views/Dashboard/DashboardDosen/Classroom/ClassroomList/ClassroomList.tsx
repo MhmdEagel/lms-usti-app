@@ -29,7 +29,7 @@ export default async function ClassroomList({
   if (classes && classes.length > 0) {
     return (
       <>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto">
         {classes.map((classroom) => (
           <ClassroomItem
             type="dosen"
@@ -39,18 +39,18 @@ export default async function ClassroomList({
         ))}
       </div>
       {pagination && (
-        <div className="flex items-center justify-between mt-4">
-          <PaginationControls
-            current={pagination.current}
-            limit={pagination.limit}
-          />
-          <PaginationNav
-            current={pagination.current}
-            totalPages={pagination.total_pages}
-            total={pagination.total}
-            limit={pagination.limit}
-          />
-        </div>
+          <div className="flex flex-wrap gap-2 items-center justify-between mt-4">
+            <PaginationControls
+              current={pagination.current}
+              limit={pagination.limit}
+            />
+            <PaginationNav
+              current={pagination.current}
+              totalPages={pagination.total_pages}
+              total={pagination.total}
+              limit={pagination.limit}
+            />
+          </div>
       )}
       </>
     );
@@ -61,7 +61,7 @@ export default async function ClassroomList({
       <div className="flex flex-col h-[500px]  items-center justify-center gap-4 select-none">
         <Image
           src={"/images/ilustration/empty-class-dosen.svg"}
-          className="aspect-square"
+          className="w-48 h-48 sm:w-64 sm:h-64"
           alt="Kelas Kosong"
           width={300}
           height={300}
