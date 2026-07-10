@@ -42,7 +42,7 @@ func (s *SubmissionRepository) FindAllByAssignmentId(classroomId string, assignm
 
 	if filter == "belum_mengirim" {
 		var submissions []model.Submission
-		query := s.Db.Preload("User").Where("submissions.assignment_id = ? AND submissions.status = ?", assignmentId, "not_submitted").Order("created_at DESC")
+		query := s.Db.Preload("User").Where("submissions.assignment_id = ? AND submissions.status = ?", assignmentId, "not_submitted")
 		if search != "" {
 			query = query.Where("submissions.student_id IN (?)",
 				s.Db.Model(&model.User{}).Select("id").Where("fullname LIKE ?", "%"+search+"%"),
@@ -57,7 +57,7 @@ func (s *SubmissionRepository) FindAllByAssignmentId(classroomId string, assignm
 	}
 
 	var submissions []model.Submission
-	query := s.Db.Preload("User").Where("submissions.assignment_id = ?", assignmentId).Order("created_at DESC")
+	query := s.Db.Preload("User").Where("submissions.assignment_id = ?", assignmentId)
 	if search != "" {
 		query = query.Where("submissions.student_id IN (?)",
 			s.Db.Model(&model.User{}).Select("id").Where("fullname LIKE ?", "%"+search+"%"),

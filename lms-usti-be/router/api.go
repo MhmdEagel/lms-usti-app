@@ -6,6 +6,7 @@ import (
 	"github.com/MhmdEagel/lms-usti-be/middleware"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
 	"github.com/MhmdEagel/lms-usti-be/services"
+	"github.com/MhmdEagel/lms-usti-be/websocket"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -15,8 +16,12 @@ func InitRouter() *gin.Engine {
 	config.SeedAdmin(Db)
 	r := gin.Default()
 	r.MaxMultipartMemory = 8 << 20
-	// TODO: Set CORS to be more secured
-	r.Use(cors.Default())
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		AllowCredentials: true,
+	}))
 	authMiddleware := middleware.NewAuthMiddleware()
 	aclMiddleware := middleware.NewAclMiddleware()
 	globalErrMiddleware := middleware.NewGlobalErrMiddleware()
@@ -169,6 +174,29 @@ func InitRouter() *gin.Engine {
 			forum.GET("/posts/:postId/comments", commentController.FindAll)
 			forum.POST("/posts/:postId/comments", commentController.Create)
 			forum.DELETE("/posts/:postId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA", "PRODI"}), commentController.Delete)
+		}
+
+		conversationRepository := repositories.NewConversationRepository(Db)
+		messageRepository := repositories.NewMessageRepository(Db)
+		chatService := services.NewChatService(conversationRepository, messageRepository, userRepository)
+
+		hub := websocket.NewHub(chatService)
+		go hub.Run()
+
+		wsHandler := websocket.NewWebSocketHandler(hub)
+		api.GET("/ws/chat", wsHandler.HandleUpgrade)
+
+		chatController := controllers.NewChatController(chatService, hub)
+
+		chat := api.Group("/chat")
+		chat.Use(authMiddleware.Handle())
+		{
+			chat.GET("/conversations", chatController.GetConversations)
+			chat.POST("/conversations", chatController.CreateConversation)
+			chat.GET("/conversations/:id/messages", chatController.GetMessages)
+			chat.POST("/conversations/:id/messages", chatController.SendMessage)
+			chat.POST("/conversations/:id/read", chatController.MarkConversationAsRead)
+			chat.GET("/users", chatController.SearchUsers)
 		}
 
 		media := api.Group("/media")
