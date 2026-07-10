@@ -24,7 +24,7 @@ export default async function ClassroomMembers({
   return (
     <div className="mt-4 space-y-6">
       <div className="flex flex-col gap-4 border-b-2 pb-6">
-        <div className="text-lg font-bold">
+        <div className="text-base sm:text-lg font-bold">
           {user?.role !== "DOSEN" ? "Dosen" : "Anda"}
         </div>
         <MemberItem
@@ -38,7 +38,7 @@ export default async function ClassroomMembers({
       </div>
 
       <div className="flex flex-col gap-4">
-        <div className="text-lg font-bold">Mahasiswa</div>
+        <div className="text-base sm:text-lg font-bold">Mahasiswa</div>
         {members.mahasiswa && members.mahasiswa.length > 0 ? (
           members.mahasiswa?.map((mahasiswa) => (
             <MemberItem

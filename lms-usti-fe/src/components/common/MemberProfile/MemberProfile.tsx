@@ -83,7 +83,7 @@ export default function MemberProfile({
                 {fullname?.charAt(0)?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
-            <div className="text-lg font-semibold">{fullname}</div>
+            <div className="text-base sm:text-lg font-semibold">{fullname}</div>
           </div>
 
           <div>

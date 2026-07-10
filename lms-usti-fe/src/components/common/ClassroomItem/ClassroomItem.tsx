@@ -36,11 +36,11 @@ export default function ClassroomItem(props: PropTypes) {
                 {classroom?.dosen.fullname?.charAt(0)?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <div className="sm:text-lg font-bold w-[180px]  sm:w-[270px] text-primary truncate">
+            <div className="min-w-0">
+              <div className="sm:text-lg font-bold w-full text-primary truncate">
                 {classroom?.class_name}
               </div>
-              <div className="w-[180px] sm:w-[270px]">
+              <div className="w-full truncate">
                 {classroom?.dosen.fullname}
               </div>
             </div>

@@ -36,10 +36,10 @@ export default function PaginationNav({
         onClick={() => navigate(current - 1)}
       >
         <ChevronLeft className="h-4 w-4" />
-        Sebelumnya
+        <span className="hidden sm:inline">Sebelumnya</span>
       </Button>
       <span className="text-sm text-muted-foreground">
-        {current} dari {totalPages}
+        {current} / {totalPages}
       </span>
       <Button
         variant="outline"
@@ -47,10 +47,10 @@ export default function PaginationNav({
         disabled={current >= totalPages}
         onClick={() => navigate(current + 1)}
       >
-        Selanjutnya
+        <span className="hidden sm:inline">Selanjutnya</span>
         <ChevronRight className="h-4 w-4" />
       </Button>
-      <p className="text-sm text-muted-foreground ml-2">Total: {total}</p>
+      <p className="hidden sm:block text-sm text-muted-foreground ml-2">Total: {total}</p>
     </div>
   );
 }

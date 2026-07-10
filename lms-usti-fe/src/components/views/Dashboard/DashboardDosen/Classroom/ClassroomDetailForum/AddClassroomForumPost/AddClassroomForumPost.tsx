@@ -40,7 +40,7 @@ export default function AddForumPost({
         {canCreatePost && !open ? (
           <Tooltip>
             <TooltipTrigger className="ml-auto" asChild>
-              <Button onClick={() => handleOpen(true)} size={"icon"}>
+              <Button onClick={() => handleOpen(true)} size={"icon"} className="size-7 md:size-9">
                 <Plus />
               </Button>
             </TooltipTrigger>

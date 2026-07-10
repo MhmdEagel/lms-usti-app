@@ -117,7 +117,7 @@ export default async function AssignmentDetail(props: PropTypes) {
                       </div>
                       {hasDeadline && (
                         <div
-                          className={`text-lg ${isOverdue ? "text-red-500" : "text-gray-500"}`}
+                          className={`text-sm sm:text-lg ${isOverdue ? "text-red-500" : "text-gray-500"}`}
                         >
                           Batas pengumpulan:{" "}
                           {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
@@ -205,7 +205,7 @@ export default async function AssignmentDetail(props: PropTypes) {
                       </div>
                       {hasDeadline && (
                         <div
-                          className={`text-lg ${isOverdue ? "text-red-500" : "text-gray-500"}`}
+                          className={`text-sm sm:text-lg ${isOverdue ? "text-red-500" : "text-gray-500"}`}
                         >
                           Batas pengumpulan:{" "}
                           {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}

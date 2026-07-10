@@ -29,8 +29,8 @@ export default async function Assignment({
   return (
     <>
       <AssignmentHeader />
-      <div className="mt-4 flex items-center gap-4">
-        <div className="flex-1">
+      <div className="mt-4 flex flex-wrap gap-2 items-center">
+        <div className="w-full sm:w-auto sm:flex-1">
           <SearchBar placeholder="Cari tugas..." />
         </div>
         {user?.role === "DOSEN" ? <CreateAssignmentDialog classroomId={classroomId} /> : null}
@@ -57,7 +57,7 @@ export default async function Assignment({
         )}
       </div>
       {pagination && (
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-wrap gap-2 items-center justify-between mt-4">
           <PaginationControls
             current={pagination.current}
             limit={pagination.limit}

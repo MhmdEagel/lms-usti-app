@@ -50,7 +50,7 @@ export default async function ClassroomDetailForum({
         )}
       </div>
       {pagination && (
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-wrap gap-2 items-center justify-between mt-4">
           <PaginationControls
             current={pagination.current}
             limit={pagination.limit}

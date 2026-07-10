@@ -13,7 +13,7 @@ export default async function ClassSettings({
   const policies = policiesRes.data?.data ?? null;
 
   return (
-    <div className="flex min-h-[450px]">
+    <div className="flex flex-col md:flex-row min-h-[450px]">
       <Content classroomId={classroomId} classDetail={classDetail!} policies={policies} />
     </div>
   );

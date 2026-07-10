@@ -31,22 +31,22 @@ export default function ClassroomHeader(props: PropTypes) {
 
   return (
     <div>
-      <CardContent className="bg-white/80 pt-4 pb-8 border mt-0 absolute bottom-0 left-0 right-0">
+      <CardContent className="bg-white/80 pt-3 pb-6 sm:pt-4 sm:pb-8 border mt-0 absolute bottom-0 left-0 right-0">
         <>
-          <div className="font-bold text-primary text-lg truncate">
+          <div className="font-bold text-primary text-xs sm:text-sm md:text-lg truncate">
             {class_name}
           </div>
-          <div className="font-bold truncate mb-2">{dosen.fullname}</div>
-          <div className="text-sm sm:text-base">Semester {term}</div>
-          <div className="text-sm sm:text-base">Ruangan {room_number}</div>
-          <div className="text-sm sm:text-base">
+          <div className="font-bold truncate mb-1 sm:mb-2 text-[10px] sm:text-sm md:text-base">{dosen.fullname}</div>
+          <div className="text-[10px] sm:text-sm md:text-base">Semester {term}</div>
+          <div className="text-[10px] sm:text-sm md:text-base">Ruangan {room_number}</div>
+          <div className="text-[10px] sm:text-sm md:text-base">
             {getDayName(day)}, {getTimeString(class_start)} -{" "}
             {getTimeString(class_end)}
           </div>
-          <div className="text-sm sm:text-base">Prodi {prodi}</div>
+          <div className="text-[10px] sm:text-sm md:text-base">Prodi {prodi}</div>
         </>
       </CardContent>
-      <div className="absolute top-2 right-2 flex gap-2">
+      <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-2">
         {type === "dosen" ? (
           <ShareClassroomCode classroomCode={class_code} />
         ) : null}
