@@ -25,20 +25,31 @@ export default async function AssignmentDetailLayout({
   children: React.ReactNode;
   classroomId: string;
   assignmentId: string;
+  type?: string;
 }) {
+  const user = await getCurrentUser();
+  const role = user.role.toLowerCase();
+
+  const [classroomRes, assignmentRes] = await Promise.all([
+    classroomServices.getDetail(classroomId).catch(() => null),
+    assignmentServices.findAssignmentById(classroomId, assignmentId).catch(() => null),
+  ]);
+  const classroomData = classroomRes?.data?.data as IClassroom | undefined;
+  const data = assignmentRes?.data?.data as IAssignment | undefined;
+  const tabType = role === "mahasiswa" ? "mahasiswa" : "dosen";
 
   return (
     <div className="p-4">
       <AssignmentBreadcrumb
         classroomId={classroomId}
         assignmentId={assignmentId}
-        classroomName={classroomData.class_name}
-        assignmentTitle={data.title}
+        classroomName={classroomData?.class_name || "Kelas"}
+        assignmentTitle={data?.title || "Tugas"}
         role={role}
       />
       <Link
         className="mb-2"
-        href={`/${role.toLowerCase()}/kelas/${classroomId}/tugas`}
+        href={`/${role}/kelas/${classroomId}/tugas`}
       >
         <Button className="rounded-full" variant="ghost">
           <ArrowLeft /> Kembali
@@ -47,7 +58,7 @@ export default async function AssignmentDetailLayout({
       <AssignmentDetailTabNavbar
         classroomId={classroomId}
         assignmentId={assignmentId}
-        type={type}
+        type={tabType}
       />
       {children}
     </div>

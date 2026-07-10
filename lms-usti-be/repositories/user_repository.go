@@ -24,6 +24,7 @@ type UserRepositoryInterface interface {
 	UpdatePassword(user model.User) error
 	Delete(userID string) error
 	FindAllClassrooms(userID string) (classrooms []model.Classroom, err error)
+	FindBySearch(search string) ([]model.User, error)
 }
 
 func (u *UserRepository) Create(user model.User) error {
@@ -87,6 +88,15 @@ func (u *UserRepository) Delete(userID string) error {
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+func (u *UserRepository) FindBySearch(search string) ([]model.User, error) {
+	var users []model.User
+	err := u.Db.
+		Where("fullname LIKE ? OR email LIKE ?", "%"+search+"%", "%"+search+"%").
+		Limit(20).
+		Find(&users).Error
+	return users, err
 }
 
 func (u *UserRepository) FindAllClassrooms(userID string) (classrooms []model.Classroom, err error) {

@@ -80,7 +80,7 @@ func (a *AssignmentRepository) Delete(assignmentId, classroomId string) error {
 	return nil
 }
 func (a *AssignmentRepository) FindAllClassroomMahasiswa(classroomId string) (mahasiswa []model.ClassroomMahasiswa, err error) {
-	result := a.Db.Where("classroom_id = ?", classroomId).Order("created_at DESC").Find(&mahasiswa)
+	result := a.Db.Where("classroom_id = ?", classroomId).Find(&mahasiswa)
 	if result.Error != nil {
 		return []model.ClassroomMahasiswa{}, result.Error
 	}

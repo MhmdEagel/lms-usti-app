@@ -16,6 +16,6 @@ func ConnectDatabase() *gorm.DB {
 	if err != nil {
 		panic(err.Error())
 	}
-	database.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.ClassroomForumPost{}, &model.Material{}, &model.MaterialAttachment{}, &model.Assignment{}, &model.AssignmentAttachment{}, model.Submission{}, model.SubmissionAttachment{}, &model.AuditLogs{}, &model.Comment{}, &model.ForumPost{}, &model.ContentView{}, &model.ClassroomPolicy{})
+	database.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.ClassroomForumPost{}, &model.Material{}, &model.MaterialAttachment{}, &model.Assignment{}, &model.AssignmentAttachment{}, model.Submission{}, model.SubmissionAttachment{}, &model.AuditLogs{}, &model.Comment{}, &model.ForumPost{}, &model.ContentView{}, &model.ClassroomPolicy{}, &model.Conversation{}, &model.ConversationParticipant{}, &model.Message{}, &model.MessageReadBy{})
 	return database
 }
