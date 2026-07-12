@@ -83,7 +83,7 @@ export default function CreateMaterialDialog({
 
   return (
     <>
-      <Button onClick={() => setOpen("open")} type="button">
+      <Button onClick={() => setOpen("open")} type="button" size="sm">
         <Plus /> Tambah Materi
       </Button>
       <div
@@ -107,18 +107,20 @@ export default function CreateMaterialDialog({
         overflow-y-auto duration-300 transition-opacity
         "
       >
-        <div className="sticky top-0 left-0 right-0 z-60 bg-white px-4 flex items-center gap-4 border-b-[3px] pb-4">
+        <div className="fixed top-0 left-0 right-0 z-60 bg-white flex items-center gap-2 sm:gap-4 border-b-[3px] p-4">
           <Button
             onClick={() => handleClose()}
             type="button"
             variant={"secondary"}
+            size="icon"
+            className="size-8 md:size-9"
           >
             <X />
           </Button>
-          <Book />
+          <Book className="size-5 sm:size-6" />
           <div>
-            <div className="text-lg md:text-xl font-bold">Buat Materi</div>
-            <div>Silahkan isi form di bawah ini untuk membuat materi</div>
+            <div className="text-base sm:text-lg md:text-xl font-bold">Buat Materi</div>
+            
           </div>
           <Button
             disabled={isPending}
@@ -128,6 +130,7 @@ export default function CreateMaterialDialog({
                 handleMaterialForm(data, classroomId),
               )()
             }
+            size="sm"
             className="ml-auto"
           >
             Simpan
@@ -135,12 +138,12 @@ export default function CreateMaterialDialog({
         </div>
         <Form {...materialForm}>
           <form
-            className="space-y-4 max-w-3xl mx-auto mt-4"
+            className="space-y-4 max-w-3xl mx-auto mt-16"
             encType="multipart/form-data"
           >
             <Card>
               <CardHeader>
-                <div className="font-bold">Detail Kelas</div>
+                <div className="font-bold text-sm sm:text-base">Detail Kelas</div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -194,7 +197,7 @@ export default function CreateMaterialDialog({
               <CardContent>
                 <div className="mb-4">
                   <div className="flex items-center justify-between">
-                    <div className="font-bold">Lampiran</div>
+                    <div className="font-bold text-sm sm:text-base">Lampiran</div>
                     <div className="flex items-center gap-2">
                       <input
                         ref={fileInputRef}
@@ -208,18 +211,20 @@ export default function CreateMaterialDialog({
                         onClick={() => fileInputRef.current?.click()}
                         type="button"
                         variant="outline"
+                        className="text-xs sm:text-base"
                         size="sm"
                       >
-                        <UploadIcon className="mr-1 size-4" />
+                        <UploadIcon className="mr-1 size-3 sm:size-4" />
                         Upload
                       </Button>
                       <Button
                         onClick={() => setLinkDialogOpen(true)}
                         type="button"
                         variant="outline"
+                        className="text-xs sm:text-base"
                         size="sm"
                       >
-                        <Link className="mr-1 size-4" />
+                        <Link className="mr-1 size-3 sm:size-4" />
                         Link
                       </Button>
                     </div>
@@ -228,7 +233,7 @@ export default function CreateMaterialDialog({
                 </div>
 
                 {attachments.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-2 mt-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 mt-4">
                     {attachments.map((item) =>
                       item.type === "FILE" ? (
                         <FileItem
@@ -250,7 +255,7 @@ export default function CreateMaterialDialog({
                     )}
                   </div>
                 ) : (
-                  <div className="mt-4 text-center text-muted-foreground text-sm py-8 border border-dashed rounded-lg">
+                  <div className="mt-4 text-center text-muted-foreground text-xs sm:text-sm py-8 border border-dashed rounded-lg">
                     Belum ada lampiran. Klik tombol Upload atau Link untuk menambahkan.
                   </div>
                 )}

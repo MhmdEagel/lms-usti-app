@@ -111,7 +111,7 @@ export default function EditAssignmentDialog(props: PropTypes) {
         className="
         fixed
         z-50 inset-0
-        bg-white p-4 space-y-4 
+        bg-white pt-16 px-4 
 
         opacity-0 pointer-events-none
 
@@ -127,18 +127,20 @@ export default function EditAssignmentDialog(props: PropTypes) {
         overflow-y-auto duration-300 transition-opacity
         "
       >
-        <div className="sticky top-0 left-0 right-0 z-60 bg-white px-4 flex items-center gap-4 border-b-[3px] pb-4">
+        <div className="fixed top-0 left-0 right-0 z-60 bg-white p-4 flex items-center gap-2 sm:gap-4 border-b-[3px]">
           <Button
             onClick={() => handleClose(setOpen)}
             type="button"
             variant={"secondary"}
+            size="icon"
+            className="size-8 md:size-9"
           >
             <X />
           </Button>
-          <FileText />
+          <FileText className="size-5 sm:size-6" />
           <div>
-            <div className="text-lg md:text-xl font-bold">Edit Tugas</div>
-            <div>Silahkan edit form di bawah ini</div>
+            <div className="text-base sm:text-lg md:text-xl font-bold">Edit Tugas</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Silahkan edit form di bawah ini</div>
           </div>
           <Button
             disabled={isPending}
@@ -153,16 +155,17 @@ export default function EditAssignmentDialog(props: PropTypes) {
                 ),
               )()
             }
+            size="sm"
             className="ml-auto"
           >
             Simpan
           </Button>
         </div>
         <Form {...assignmentForm}>
-          <form className="space-y-4 max-w-3xl mx-auto mt-4">
+          <form className="space-y-4 max-w-3xl mx-auto">
             <Card>
               <CardHeader>
-                <div className="font-bold">Detail Tugas</div>
+                <div className="font-bold text-sm sm:text-base">Detail Tugas</div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -247,7 +250,7 @@ export default function EditAssignmentDialog(props: PropTypes) {
               <CardContent>
                 <div className="mb-4">
                   <div className="flex items-center justify-between">
-                    <div className="font-bold">Lampiran</div>
+                    <div className="font-bold text-sm sm:text-base">Lampiran</div>
                     <div className="flex items-center gap-2">
                       <input
                         ref={fileInputRef}
@@ -262,8 +265,9 @@ export default function EditAssignmentDialog(props: PropTypes) {
                         type="button"
                         variant="outline"
                         size="sm"
+                        className="text-xs sm:text-base"
                       >
-                        <UploadIcon className="mr-1 size-4" />
+                        <UploadIcon className="mr-1 size-3 sm:size-4" />
                         Upload
                       </Button>
                       <Button
@@ -271,8 +275,9 @@ export default function EditAssignmentDialog(props: PropTypes) {
                         type="button"
                         variant="outline"
                         size="sm"
+                        className="text-xs sm:text-base"
                       >
-                        <Link className="mr-1 size-4" />
+                        <Link className="mr-1 size-3 sm:size-4" />
                         Link
                       </Button>
                     </div>
@@ -281,7 +286,7 @@ export default function EditAssignmentDialog(props: PropTypes) {
                 </div>
 
                 {currentAttachments.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-2 mt-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 mt-4">
                     {currentAttachments.map((item) =>
                       item.type === "FILE" ? (
                         <FileItem
@@ -302,7 +307,7 @@ export default function EditAssignmentDialog(props: PropTypes) {
                     )}
                   </div>
                 ) : (
-                  <div className="text-center text-muted-foreground text-sm py-8 border border-dashed rounded-lg">
+                  <div className="text-center text-muted-foreground text-xs sm:text-sm py-8 border border-dashed rounded-lg">
                     Belum ada lampiran. Klik tombol Upload atau Link untuk menambahkan.
                   </div>
                 )}

@@ -38,7 +38,7 @@ export default function Login() {
               Login
             </h1>
             <p className="text-sm text-gray-500">
-              Selamat Datang! Mulai peng alaman belajar mengajar anda bersama
+              Selamat Datang! Mulai pengalaman belajar mengajar anda bersama
               USTI.
             </p>
           </div>
