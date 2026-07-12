@@ -83,7 +83,7 @@ export default function ClassroomForumPostDetailSection({
     .slice(0, 2);
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4">
       <Link href={`/${rolePath}/kelas/${classroomId}`}>
         <Button className="rounded-full" variant="ghost">
           <ArrowLeft /> Kembali
@@ -100,7 +100,7 @@ export default function ClassroomForumPostDetailSection({
               <div className="text-sm font-semibold">
                 {announcement.created_by}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-muted-foreground">
                 {dayjs(announcement.created_at).fromNow()}
               </div>
             </div>
@@ -113,7 +113,7 @@ export default function ClassroomForumPostDetailSection({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-base font-bold mt-2">{announcement.title}</div>
+          <div className="text-base sm:text-lg font-bold mt-2">{announcement.title}</div>
           <div
             className="prose max-w-none mt-2"
             dangerouslySetInnerHTML={{
@@ -143,7 +143,7 @@ export default function ClassroomForumPostDetailSection({
         )}
 
         {comments.length === 0 ? (
-          <p className="text-gray-400 text-center py-4">Belum ada komentar.</p>
+          <p className="text-muted-foreground text-center py-4 text-sm">Belum ada komentar.</p>
         ) : (
           <div className="space-y-4">
             {comments.map((comment) => (

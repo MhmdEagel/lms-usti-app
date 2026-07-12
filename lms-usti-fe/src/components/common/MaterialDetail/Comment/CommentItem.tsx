@@ -56,7 +56,7 @@ export default function CommentItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-semibold text-sm">{comment.user.fullname}</span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-muted-foreground">
             {dayjs(comment.created_at).fromNow()}
           </span>
         </div>
@@ -72,7 +72,7 @@ export default function CommentItem({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-gray-400 hover:text-red-500"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive"
                 disabled={isDeleting}
               >
                 <Trash2 className="h-4 w-4" />
@@ -90,7 +90,7 @@ export default function CommentItem({
                 <AlertDialogCancel>Batal</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => onDelete(comment.id)}
-                  className="bg-red-500 hover:bg-red-600"
+                  className="bg-destructive hover:bg-destructive/90"
                 >
                   Hapus
                 </AlertDialogAction>

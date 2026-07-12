@@ -37,12 +37,12 @@ export default async function DashboardStatsCards() {
           <UICard key={card.title} className={card.bg}>
             <CardHeader className="flex-row items-center gap-4">
               <div className={`p-2 text-white border rounded-full h-fit w-fit ${card.iconBg}`}>
-                <Icon size={30} />
+                <Icon size={24} className="sm:size-[30px]" />
               </div>
               <CardTitle className="text-lg md:text-xl">
                 <div>
-                  <h3 className="font-bold">{card.title}</h3>
-                  <p className="font-normal">{card.value}</p>
+                  <h3 className="text-sm font-medium">{card.title}</h3>
+                  <p className="font-bold text-2xl">{card.value}</p>
                 </div>
               </CardTitle>
             </CardHeader>

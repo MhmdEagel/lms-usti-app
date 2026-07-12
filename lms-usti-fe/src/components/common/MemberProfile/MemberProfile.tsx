@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, ExternalLink, ArrowLeft } from "lucide-react";
+import { Mail, ExternalLink, ArrowLeft, MessageSquare } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +20,7 @@ import MemberProfileBreadcrumb from "./MemberProfileBreadcrumb";
 import Link from "next/link";
 import { removeMember } from "@/actions/remove-member";
 import { useState } from "react";
+import { chatServices } from "@/services/chat.service";
 
 export default function MemberProfile({
   id,
@@ -31,6 +32,7 @@ export default function MemberProfile({
   classroomId,
   className,
   viewerRole,
+  currentUserId,
 }: {
   id: string;
   fullname: string;
@@ -41,9 +43,23 @@ export default function MemberProfile({
   classroomId: string;
   className: string;
   viewerRole: "DOSEN" | "MAHASISWA";
+  currentUserId?: string;
 }) {
   const router = useRouter();
   const [removing, setRemoving] = useState(false);
+  const [isStartingChat, setIsStartingChat] = useState(false);
+
+  const handleStartChat = async () => {
+    setIsStartingChat(true);
+    try {
+      const res = await chatServices.createConversation({ participant_ids: [id] });
+      const conv: { id: string } | undefined = res.data?.data;
+      const query = conv?.id ? `?conversationId=${conv.id}` : "";
+      router.push(`/${viewerRole.toLowerCase()}/percakapan${query}`);
+    } catch {
+      setIsStartingChat(false);
+    }
+  };
 
   const handleRemove = async () => {
     setRemoving(true);
@@ -114,7 +130,18 @@ export default function MemberProfile({
             <div className="font-bold text-sm mb-1">AKSI</div>
             <hr className="mb-3" />
 
-            <div className="space-x-2">
+            <div className="flex flex-wrap gap-2">
+              {currentUserId !== id && (
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleStartChat}
+                  disabled={isStartingChat}
+                >
+                  <MessageSquare className="size-4" />
+                  {isStartingChat ? "Memuat..." : "Mulai Percakapan"}
+                </Button>
+              )}
               <Button variant="outline" asChild className="flex-1">
                 <a href={`mailto:${email}`}>
                   <Mail className="size-4" />

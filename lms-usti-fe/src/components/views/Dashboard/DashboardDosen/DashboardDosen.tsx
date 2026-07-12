@@ -12,7 +12,7 @@ import WeeklySchedule from "@/components/common/WeeklySchedule/WeeklySchedule";
 
 export default async function DashboardDosen() {
   return (
-    <div className="p-4">
+    <div className="p-4 space-y-8">
       <section>
         <Card>
           <CardContent>
@@ -22,7 +22,7 @@ export default async function DashboardDosen() {
           </CardContent>
         </Card>
       </section>
-      <section className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Suspense fallback={<WaitingGradeListSkeleton />}>
           <WaitingGradeList />
         </Suspense>
@@ -30,7 +30,7 @@ export default async function DashboardDosen() {
           <RecentForumPosts />
         </Suspense>
       </section>
-      <section className="mt-8">
+      <section>
         <Suspense fallback={<ScheduleSkeleton />}>
           <WeeklySchedule />
         </Suspense>

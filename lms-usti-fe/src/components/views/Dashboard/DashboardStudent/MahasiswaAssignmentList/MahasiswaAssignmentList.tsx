@@ -18,7 +18,7 @@ export default async function MahasiswaAssignmentList() {
   if (!stats) return null
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
           <ClipboardList size={24} />

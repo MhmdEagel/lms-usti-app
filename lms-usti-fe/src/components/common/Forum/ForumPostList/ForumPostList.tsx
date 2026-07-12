@@ -11,7 +11,7 @@ export default async function ForumPostList({ currentId, currentRole }: PropType
 
   if (!posts || posts.length === 0) {
     return (
-      <div className="text-gray-400 text-center py-12">
+      <div className="text-muted-foreground text-center py-12 text-sm">
         Belum ada postingan.
       </div>
     );

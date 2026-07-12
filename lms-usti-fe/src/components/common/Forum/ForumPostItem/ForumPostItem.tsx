@@ -55,7 +55,7 @@ export default function ForumPostItem({ post, currentId, currentRole }: PropType
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="px-4 sm:px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Avatar className="size-10">
@@ -64,7 +64,7 @@ export default function ForumPostItem({ post, currentId, currentRole }: PropType
             </Avatar>
             <div>
               <div className="text-sm font-semibold">{post.author_name}</div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-muted-foreground">
                 {dayjs(post.created_at).fromNow()}
               </div>
             </div>
@@ -78,7 +78,7 @@ export default function ForumPostItem({ post, currentId, currentRole }: PropType
           {canDelete && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-500">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>
@@ -91,7 +91,7 @@ export default function ForumPostItem({ post, currentId, currentRole }: PropType
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Batal</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
                     Hapus
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -100,14 +100,14 @@ export default function ForumPostItem({ post, currentId, currentRole }: PropType
           )}
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-lg font-bold mt-2">{post.title}</div>
+      <CardContent className="px-4 sm:px-6">
+        <div className="text-base sm:text-lg font-bold mt-2">{post.title}</div>
         <div
           className="prose max-w-none"
           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
         />
         <div className="mt-4">
-          <Link href={forumPath} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+            <Link href={forumPath} className="inline-flex items-center gap-1 text-xs sm:text-sm text-muted-foreground hover:text-foreground">
             <MessageSquare className="h-4 w-4" />
             {post.comment_count > 0 ? post.comment_count : "0"}
           </Link>

@@ -14,12 +14,12 @@ export default function SettingsSidebarItem({
   return (
     <div
       onClick={() => handleClick(lable)}
-      className={cn("p-3 rounded-xl min-w-[220px] max-w-[220px] cursor-pointer", {
-        "bg-accent border-r-3 border-primary": isActiveNavbar === lable,
+      className={cn("p-2 md:p-3 rounded-xl md:min-w-[220px] md:max-w-[220px] cursor-pointer whitespace-nowrap md:whitespace-normal shrink-0", {
+        "bg-accent md:border-r-3 md:border-primary border-b-2 border-primary md:border-b-0": isActiveNavbar === lable,
       })}
     >
       <div className="font-bold text-sm">{lable}</div>
-      <div className="text-xs text-gray-500">{description}</div>
+      <div className="text-xs text-muted-foreground">{description}</div>
     </div>
   );
 }

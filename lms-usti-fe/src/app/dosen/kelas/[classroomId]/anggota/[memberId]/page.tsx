@@ -1,3 +1,4 @@
+import { getCurrentUser } from "@/lib/auth";
 import { classroomServices } from "@/services/classroom.service";
 import { IClassroomMemberDetail } from "@/types/Classroom";
 import MemberProfile from "@/components/common/MemberProfile";
@@ -8,6 +9,7 @@ export default async function MemberProfilePage({
   params: Promise<{ classroomId: string; memberId: string }>;
 }) {
   const { classroomId, memberId } = await params;
+  const user = await getCurrentUser();
   const res = await classroomServices.getMemberDetail(classroomId, memberId);
   const data: IClassroomMemberDetail = res.data.data;
 
@@ -25,6 +27,7 @@ export default async function MemberProfilePage({
       classroomId={classroomId}
       className={class_name}
       viewerRole="DOSEN"
+      currentUserId={user?.id}
     />
   );
 }

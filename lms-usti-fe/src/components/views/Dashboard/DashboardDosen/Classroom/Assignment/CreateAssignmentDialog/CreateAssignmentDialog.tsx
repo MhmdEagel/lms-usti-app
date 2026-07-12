@@ -81,7 +81,7 @@ export default function CreateAssignmentDialog({
 
   return (
     <>
-      <Button onClick={() => setOpen("open")} type="button">
+      <Button onClick={() => setOpen("open")} type="button" size={"sm"}>
         <Plus /> Tambah Tugas
       </Button>
       <div

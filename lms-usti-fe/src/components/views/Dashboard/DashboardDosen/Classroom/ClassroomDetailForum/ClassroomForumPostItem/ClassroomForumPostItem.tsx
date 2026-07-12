@@ -124,7 +124,7 @@ export default function ForumItem({
               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(announcement.content) }}
             />
             <div className="mt-4">
-              <Link href={detailPath} className="inline-flex items-center gap-1 text-xs sm:text-sm text-gray-500 hover:text-gray-700">
+              <Link href={detailPath} className="inline-flex items-center gap-1 text-xs sm:text-sm text-muted-foreground hover:text-foreground">
                 <MessageSquare className="h-4 w-4" />
                 {announcement.comment_count && announcement.comment_count > 0 ? announcement.comment_count : "0"}
               </Link>
