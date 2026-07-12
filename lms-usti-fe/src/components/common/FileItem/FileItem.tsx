@@ -28,14 +28,14 @@ export default function FileItem({
 
   return (
     <div
-      className={`p-4 border rounded-lg flex ${onClick ? "cursor-pointer hover:bg-gray-50" : ""}`}
+      className={`p-3 sm:p-4 border rounded-lg flex ${onClick ? "cursor-pointer hover:bg-gray-50" : ""}`}
       onClick={onClick}
     >
-      <div className="flex gap-2 items-center">
-        <div className="rounded-full bg-gray-600 p-2">
-          <FileText size={"24"} color="white" />
+      <div className="flex gap-2 items-center min-w-0">
+        <div className="rounded-full bg-gray-600 p-1.5 sm:p-2 shrink-0">
+          <FileText color="white" className="size-4 sm:size-6" />
         </div>
-        <span className="text-sm max-w-[100px] truncate">{fileName}</span>
+        <span className="text-sm max-w-[100px] sm:max-w-[150px] truncate">{fileName}</span>
       </div>
       <Button
         onClick={(e) => {
@@ -44,7 +44,8 @@ export default function FileItem({
         }}
         type="button"
         variant={"ghost"}
-        className="rounded-full cursor-pointer ml-auto"
+        size="icon"
+        className="rounded-full cursor-pointer ml-auto size-7 md:size-8"
         disabled={isPending}
       >
         <X />

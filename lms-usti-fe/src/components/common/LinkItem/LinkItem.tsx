@@ -13,18 +13,19 @@ interface LinkItemProps {
 export default function LinkItem({ linkName, onDelete, url }: LinkItemProps) {
   return (
     <Link target="_blank" href={url}>
-      <div className="p-4 border rounded-lg flex">
-        <div className="flex gap-2 items-center truncate max-w-[100]">
-          <div className="rounded-full bg-gray-600 p-2">
-            <FileText size={"24"} color="white" />
+      <div className="p-3 sm:p-4 border rounded-lg flex">
+        <div className="flex gap-2 items-center max-w-[100px] sm:max-w-[150px] min-w-0">
+          <div className="rounded-full bg-gray-600 p-1.5 sm:p-2 shrink-0">
+            <FileText color="white" className="size-4 sm:size-6" />
           </div>
-          {linkName}
+          <span className="truncate">{linkName}</span>
         </div>
         <Button
           onClick={onDelete}
           type="button"
           variant={"ghost"}
-          className="rounded-full cursor-pointer ml-auto "
+          size="icon"
+          className="rounded-full cursor-pointer ml-auto size-7 md:size-8"
         >
           <X />
         </Button>

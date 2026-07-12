@@ -102,25 +102,27 @@ export default function EditMaterialDialog(props: PropTypes) {
       <div
         data-state={open}
         className="
-        fixed inset-0 z-[9999] bg-white
+        fixed inset-0 z-[9999] bg-white pt-16 px-4
         opacity-0 pointer-events-none
         data-[state=open]:opacity-100
         data-[state=open]:pointer-events-auto
-        overflow-y-auto flex flex-col
+        overflow-y-auto
         "
       >
-        <div className="sticky top-0 z-10 bg-white px-4 flex items-center gap-4 border-b-[3px] pb-4 shrink-0">
+        <div className="fixed top-0 left-0 right-0 z-60 bg-white p-4 flex items-center gap-2 sm:gap-4 border-b-[3px]">
           <Button
             onClick={() => handleClose(setOpen)}
             type="button"
             variant={"secondary"}
+            size="icon"
+            className="size-8 md:size-9"
           >
             <X />
           </Button>
-          <Book />
+          <Book className="size-5 sm:size-6" />
           <div>
-            <div className="text-lg md:text-xl font-bold">Edit Materi</div>
-            <div>Silahkan edit form di bawah ini</div>
+            <div className="text-base sm:text-lg md:text-xl font-bold">Edit Materi</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Silahkan edit form di bawah ini</div>
           </div>
           <Button
             disabled={isPending}
@@ -130,20 +132,20 @@ export default function EditMaterialDialog(props: PropTypes) {
                 handleMaterialForm(data, classroomId, material.id, setOpen),
               )()
             }
+            size="sm"
             className="ml-auto"
           >
             Simpan
           </Button>
         </div>
-        <div className="flex-1 px-4">
-          <Form {...materialForm}>
+        <Form {...materialForm}>
             <form
-              className="space-y-4 max-w-3xl mx-auto mt-4"
+              className="space-y-4 max-w-3xl mx-auto"
               encType="multipart/form-data"
             >
               <Card>
                 <CardHeader>
-                  <div className="font-bold">Detail Kelas</div>
+                  <div className="font-bold text-sm sm:text-base">Detail Kelas</div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <FormField
@@ -196,7 +198,7 @@ export default function EditMaterialDialog(props: PropTypes) {
                 <CardContent>
                   <div className="mb-4">
                     <div className="flex items-center justify-between">
-                      <div className="font-bold">Lampiran</div>
+                      <div className="font-bold text-sm sm:text-base">Lampiran</div>
                       <div className="flex items-center gap-2">
                         <input
                           ref={fileInputRef}
@@ -211,8 +213,9 @@ export default function EditMaterialDialog(props: PropTypes) {
                           type="button"
                           variant="outline"
                           size="sm"
+                          className="text-xs sm:text-base"
                         >
-                          <UploadIcon className="mr-1 size-4" />
+                          <UploadIcon className="mr-1 size-3 sm:size-4" />
                           Upload
                         </Button>
                         <Button
@@ -220,8 +223,9 @@ export default function EditMaterialDialog(props: PropTypes) {
                           type="button"
                           variant="outline"
                           size="sm"
+                          className="text-xs sm:text-base"
                         >
-                          <Link className="mr-1 size-4" />
+                          <Link className="mr-1 size-3 sm:size-4" />
                           Link
                         </Button>
                       </div>
@@ -230,7 +234,7 @@ export default function EditMaterialDialog(props: PropTypes) {
                   </div>
 
                   {currentAttachments.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-2 mt-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 mt-4">
                       {currentAttachments.map((item) =>
                         item.type === "FILE" ? (
                           <FileItem
@@ -252,7 +256,7 @@ export default function EditMaterialDialog(props: PropTypes) {
                       )}
                     </div>
                   ) : (
-                    <div className="text-center text-muted-foreground text-sm py-8 border border-dashed rounded-lg">
+                    <div className="text-center text-muted-foreground text-xs sm:text-sm py-8 border border-dashed rounded-lg">
                       Belum ada lampiran. Klik tombol Upload atau Link untuk menambahkan.
                     </div>
                   )}
@@ -260,7 +264,6 @@ export default function EditMaterialDialog(props: PropTypes) {
               </Card>
             </form>
           </Form>
-        </div>
       </div>
       {previewFile && (
         <ViewPdf

@@ -45,7 +45,7 @@ function SearchBar({ placeholder = "Cari kelas..." }: { placeholder?: string }) 
     <div className="space-y-2 w-full">
       <div className="relative">
         <Input
-          className="peer ps-9 pe-9"
+          className="peer ps-9 pe-9 max-md:h-8"
           placeholder={placeholder}
           type="text"
           value={value}
