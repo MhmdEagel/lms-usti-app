@@ -17,12 +17,12 @@ export default function Keamanan() {
 
   return (
     <Card className="shadow-sm rounded-xl">
-      <CardHeader className="border-b px-6 py-4">
-        <h3 className="text-base md:text-lg font-bold text-primary">
+      <CardHeader className="border-b px-4 py-3 md:px-6 md:py-4">
+        <h3 className="text-sm md:text-base font-bold text-primary">
           Ubah Password
         </h3>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent className="p-4 md:p-6">
         {step === "otp" ? (
           <OTPVerification
             onSubmit={handleSubmitOTP}

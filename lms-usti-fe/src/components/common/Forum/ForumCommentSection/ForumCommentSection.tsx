@@ -70,7 +70,7 @@ export default function ForumCommentSection({
       </div>
 
       {comments && comments.length === 0 ? (
-        <p className="text-gray-400 text-center py-4">Belum ada komentar.</p>
+        <p className="text-muted-foreground text-center py-4 text-sm">Belum ada komentar.</p>
       ) : (
         <div className="space-y-4">
           {comments && comments.map((comment) => (

@@ -13,14 +13,16 @@ import { Loader2 } from "lucide-react"
 interface PropTypes {
   user: { id: string; fullname: string; email: string; role: string; profile?: string }
   token: string
+  initialConversationId?: string
 }
 
-export default function ChatPage({ user, token }: PropTypes) {
+export default function ChatPage({ user, token, initialConversationId }: PropTypes) {
   const isMobile = useIsMobile()
   const [showMobileChat, setShowMobileChat] = useReducer((_: boolean, action: boolean) => action, false)
   const chatState = useChatState()
   const chatRef = useRef(chatState)
   chatRef.current = chatState
+  const hasAutoSelected = useRef(false)
 
   const handleIncomingMessage = useCallback(
     (message: IChatMessage) => {
@@ -174,6 +176,15 @@ export default function ChatPage({ user, token }: PropTypes) {
   const handleBack = useCallback(() => {
     setShowMobileChat(false)
   }, [])
+
+  useEffect(() => {
+    if (!initialConversationId || !chatState.conversations.length || hasAutoSelected.current) return
+    const conv = chatState.conversations.find((c) => c.id === initialConversationId)
+    if (conv) {
+      hasAutoSelected.current = true
+      handleSelectConversation(conv.id)
+    }
+  }, [initialConversationId, chatState.conversations, handleSelectConversation])
 
   return (
     <div className="flex flex-1 min-h-0 max-h-full border-border border rounded-lg">

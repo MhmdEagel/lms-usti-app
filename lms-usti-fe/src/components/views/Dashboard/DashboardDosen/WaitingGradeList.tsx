@@ -43,13 +43,13 @@ export default async function WaitingGradeList() {
             {Object.entries(grouped).map(([classroomId, items]) => (
               <Card key={classroomId}>
                 <CardHeader>
-                  <CardTitle className="text-base">{items[0].classroom_name}</CardTitle>
+                  <CardTitle className="text-sm font-semibold">{items[0].classroom_name}</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 gap-3">
                   {items.map((wg) => (
                     <Link key={wg.submission_id} href={`/dosen/kelas/${classroomId}/tugas/${wg.assignment_id}/penilaian`}>
                       <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-                        <CardContent className="pl-4 pr-8">
+                        <CardContent className="px-4">
                           <div className="flex items-center gap-3">
                             <Avatar className="size-10 shrink-0">
                               <AvatarImage src={wg.mahasiswa_profile ? `${environtment.API_URL}/media/profiles/${wg.mahasiswa_profile}` : undefined} alt={wg.mahasiswa_name} />

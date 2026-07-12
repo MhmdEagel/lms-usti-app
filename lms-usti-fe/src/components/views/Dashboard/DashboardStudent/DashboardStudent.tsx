@@ -6,13 +6,13 @@ import MahasiswaAssignmentListSkeleton from "./MahasiswaAssignmentList/Mahasiswa
 
 export default async function DashboardStudent() {
   return (
-    <div className="p-4">
-      <section className="mt-4">
+    <div className="p-4 space-y-8">
+      <section>
         <Suspense fallback={<MahasiswaAssignmentListSkeleton />}>
           <MahasiswaAssignmentList />
         </Suspense>
       </section>
-      <section className="mt-8">
+      <section>
         <Suspense fallback={<ScheduleSkeleton />}>
           <WeeklySchedule />
         </Suspense>

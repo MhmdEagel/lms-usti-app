@@ -8,112 +8,103 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import useAddClassroomForumPost from "./useAddClassroomForumPost";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Plus } from "lucide-react";
 import ContentEditor from "@/components/ui/content-editor";
-export default function AddForumPost({
-  id,
-  classroomId,
-  canCreatePost,
-}: {
+
+interface PropTypes {
   id: string | undefined;
   classroomId: string;
   canCreatePost: boolean;
-}) {
-  const { form, open, handleOpen, handleAddForumPost } =
+}
+
+export default function AddForumPost({ id, classroomId, canCreatePost }: PropTypes) {
+  const { form, open, handleOpen, handleClose, handleAddForumPost, isPending } =
     useAddClassroomForumPost();
-
-
 
   return (
     <>
       <div className="pb-4 border-b-2 flex items-center">
         <div className="text-base md:text-xl font-semibold">Forum Kelas</div>
-        {canCreatePost && !open ? (
-          <Tooltip>
-            <TooltipTrigger className="ml-auto" asChild>
-              <Button onClick={() => handleOpen(true)} size={"icon"} className="size-7 md:size-9">
+        {canCreatePost && (
+          <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else handleOpen(v); }}>
+            <DialogTrigger asChild>
+              <Button size="icon" className="size-7 md:size-9 ml-auto">
                 <Plus />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Buat Forum</p>
-            </TooltipContent>
-          </Tooltip>
-        ) : null}
-      </div>
-      {open ? (
-        <Card className="mt-4">
-          <CardContent>
-            <Form {...form}>
-              <form
-                className="space-y-4"
-                onSubmit={form.handleSubmit((data) =>
-                  handleAddForumPost(data, classroomId),
-                )}
-              >
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Judul</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Judul postingan..."
-                          {...field}
-                          value={field.value ?? ""}
-                          autoComplete="off"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg" resetForm={handleClose}>
+              <DialogHeader>
+                <DialogTitle>Buat Postingan Forum</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form
+                  className="space-y-4"
+                  onSubmit={form.handleSubmit((data) =>
+                    handleAddForumPost(data, classroomId),
                   )}
-                />
-                <FormField
-                  name="content"
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel>Konten</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <ContentEditor
-                            value={field.value}
-                            onChange={field.onChange}
-                            isInvalid={!!fieldState.error}
+                >
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Judul</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Judul postingan..."
+                            {...field}
+                            value={field.value ?? ""}
+                            autoComplete="off"
+                            disabled={isPending}
                           />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    onClick={() => {
-                      handleOpen(false);
-                      form.reset();
-                    }}
-                    variant={"outline"}
-                  >
-                    Batal
-                  </Button>
-                  <Button type="submit">Submit</Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      ) : null}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="content"
+                    render={({ field, fieldState }) => (
+                      <FormItem>
+                        <FormLabel>Konten</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <ContentEditor
+                              value={field.value}
+                              onChange={field.onChange}
+                              isInvalid={!!fieldState.error}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <DialogFooter>
+                    <Button variant="outline" type="button" onClick={handleClose} disabled={isPending}>
+                      Batal
+                    </Button>
+                    <Button type="submit" disabled={isPending}>
+                      {isPending ? "Mengirim..." : "Submit"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
     </>
   );
 }

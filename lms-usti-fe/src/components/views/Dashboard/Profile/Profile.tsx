@@ -47,13 +47,10 @@ export default function Profile({ user }: ProfileProps) {
 
   return (
     <div className="bg-white">
-      <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-primary">
-          Profil Saya
-        </h1>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-1 py-4 md:py-6 space-y-6">
         {/* Card 1 — Info Pengguna */}
         <Card className="shadow-sm rounded-xl">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex flex-col items-center gap-4">
               <div className="relative">
                 <Avatar className="size-24 md:size-[96px]">
@@ -83,10 +80,10 @@ export default function Profile({ user }: ProfileProps) {
                 />
               </div>
               <div className="text-center">
-                <h2 className="text-lg md:text-xl font-bold">
+                <h2 className="text-base md:text-lg font-bold truncate max-w-[280px]">
                   {user.fullname}
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {user.role === "MAHASISWA"
                     ? "Mahasiswa"
                     : user.role === "DOSEN"
@@ -111,9 +108,9 @@ export default function Profile({ user }: ProfileProps) {
           />
         ) : (
           <Card className="shadow-sm rounded-xl">
-            <CardHeader className="border-b px-6 py-4">
+            <CardHeader className="border-b px-4 py-3 md:px-6 md:py-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-base md:text-lg font-bold text-primary">
+                <h3 className="text-sm md:text-base font-bold text-primary">
                   Informasi Pribadi
                 </h3>
                 <Button variant="default" size="sm" onClick={() => setIsEditing(true)}>
@@ -122,27 +119,27 @@ export default function Profile({ user }: ProfileProps) {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <CardContent className="p-4 md:p-6">
+              <div className="space-y-5">
                 {user.role === "MAHASISWA" && (
                   <div>
-                    <p className="text-sm text-muted-foreground">NIM</p>
-                    <p className="text-base font-semibold">{user.nim || "-"}</p>
+                    <p className="text-xs text-muted-foreground">NIM</p>
+                    <p className="text-sm font-semibold">{user.nim || "-"}</p>
                   </div>
                 )}
                 {user.role === "DOSEN" && (
                   <div>
-                    <p className="text-sm text-muted-foreground">NIDN</p>
-                    <p className="text-base font-semibold">{user.nidn || "-"}</p>
+                    <p className="text-xs text-muted-foreground">NIDN</p>
+                    <p className="text-sm font-semibold">{user.nidn || "-"}</p>
                   </div>
                 )}
                 <div>
-                  <p className="text-sm text-muted-foreground">Nama Lengkap</p>
-                  <p className="text-base font-semibold">{user.fullname}</p>
+                  <p className="text-xs text-muted-foreground">Nama Lengkap</p>
+                  <p className="text-sm font-semibold">{user.fullname}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="text-base font-semibold">{user.email}</p>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-sm font-semibold break-all">{user.email}</p>
                 </div>
               </div>
             </CardContent>

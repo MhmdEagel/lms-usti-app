@@ -37,7 +37,7 @@ export default function ForumPostDetail({ post, currentId, currentRole }: PropTy
       </Link>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="px-4 sm:px-6">
           <div className="flex items-center gap-2">
             <Avatar className="size-10">
               <AvatarImage src={post.author_profile} alt={post.author_name} />
@@ -45,7 +45,7 @@ export default function ForumPostDetail({ post, currentId, currentRole }: PropTy
             </Avatar>
             <div>
               <div className="text-sm font-semibold">{post.author_name}</div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-muted-foreground">
                   {dayjs(post.created_at).fromNow()}
                 </div>
             </div>
@@ -57,8 +57,8 @@ export default function ForumPostDetail({ post, currentId, currentRole }: PropTy
             )}
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="text-base font-bold mt-2">{post.title}</div>
+        <CardContent className="px-4 sm:px-6">
+          <div className="text-base sm:text-lg font-bold mt-2">{post.title}</div>
           <div
             className="prose max-w-none"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}

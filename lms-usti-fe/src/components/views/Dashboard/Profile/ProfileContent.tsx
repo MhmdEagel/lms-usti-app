@@ -32,9 +32,9 @@ export default function ProfileContent({
     }
   };
   return (
-    <div className="flex min-h-[450px]">
+    <div className="flex flex-col md:flex-row min-h-[450px] p-4">
       <SettingsSidebar isActive={isActive} handleActiveBar={handleActiveBar} />
-      <div className="flex-1 px-6 pt-6">{renderContent()}</div>
+      <div className="flex-1 px-4 pt-4 md:px-6 md:pt-6">{renderContent()}</div>
     </div>
   );
 }

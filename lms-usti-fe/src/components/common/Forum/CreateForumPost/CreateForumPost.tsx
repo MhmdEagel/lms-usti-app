@@ -1,94 +1,96 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { toast } from "sonner";
 import ContentEditor from "@/components/ui/content-editor";
-import { createForumPost } from "@/actions/create-public-forum-post";
+import { useCreateForumPost } from "./useCreateForumPost";
 
 export default function CreateForumPost() {
-  const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async () => {
-    if (!title.trim()) {
-      toast.error("Judul harus diisi");
-      return;
-    }
-    setSubmitting(true);
-    const res = await createForumPost({ title, content });
-    setSubmitting(false);
-    if (res.success) {
-      toast.success(res.success);
-      setTitle("");
-      setContent("");
-      setOpen(false);
-    } else if (res.error) {
-      toast.error(res.error);
-    }
-  };
+  const { form, open, setOpen, isPending, handleSubmit, handleClose } = useCreateForumPost();
 
   return (
     <>
       <div className="flex items-center justify-between pb-4 border-b-2">
         <div className="text-base md:text-xl font-semibold">Forum Publik</div>
-        {!open && (
+        <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else setOpen(v); }}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={() => setOpen(true)} size="icon">
-                <Plus />
-              </Button>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus /> Buat Postingan
+                </Button>
+              </DialogTrigger>
             </TooltipTrigger>
             <TooltipContent>Buat postingan baru</TooltipContent>
           </Tooltip>
-        )}
+          <DialogContent className="sm:max-w-lg" resetForm={handleClose}>
+            <DialogHeader>
+              <DialogTitle>Buat Postingan Baru</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Judul</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Judul postingan..." {...field} autoComplete="off" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Konten</FormLabel>
+                      <FormControl>
+                        <ContentEditor
+                          onChange={field.onChange}
+                          isInvalid={false}
+                          placeholder="Tulis postingan..."
+                          className="min-h-[100px]"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button variant="outline" type="button" onClick={handleClose}>
+                    Batal
+                  </Button>
+                  <Button type="submit" disabled={isPending}>
+                    {isPending ? "Memposting..." : "Posting"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
-      {open && (
-        <Card className="mt-4">
-          <CardContent className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label>Judul</Label>
-              <Input
-                placeholder="Judul postingan..."
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                autoComplete="off"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Konten</Label>
-              <ContentEditor
-                onChange={setContent}
-                isInvalid={false}
-                placeholder="Tulis postingan..."
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setOpen(false);
-                  setTitle("");
-                  setContent("");
-                }}
-              >
-                Batal
-              </Button>
-              <Button onClick={handleSubmit} disabled={submitting}>
-                {submitting ? "Memposting..." : "Posting"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </>
   );
 }

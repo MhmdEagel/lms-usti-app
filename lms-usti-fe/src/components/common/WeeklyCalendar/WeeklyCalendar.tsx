@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
 const HOURS = Array.from({ length: 14 }, (_, i) => `${String(i + 8).padStart(2, "0")}:00`);
@@ -52,12 +53,18 @@ export default function WeeklyCalendar({ events, role }: PropTypes) {
   }, [events]);
 
   return (
-    <div className="border border-border rounded-xl bg-card">
-      <div className="overflow-y-auto" style={{ maxHeight: "70vh" }}>
-        <div
-          className="grid"
-          style={{
-            gridTemplateColumns: "60px repeat(5, 1fr)",
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg md:text-xl">Jadwal Perkuliahan</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <div className="overflow-y-auto" style={{ maxHeight: "70vh" }}>
+            <div
+              className="grid"
+              style={{
+                minWidth: "600px",
+                gridTemplateColumns: "60px repeat(5, 1fr)",
             gridTemplateRows: `auto repeat(${ROWS}, ${ROW_HEIGHT}px)`,
           }}
         >
@@ -145,8 +152,10 @@ export default function WeeklyCalendar({ events, role }: PropTypes) {
               </div>
             );
           })}
+          </div>
         </div>
       </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

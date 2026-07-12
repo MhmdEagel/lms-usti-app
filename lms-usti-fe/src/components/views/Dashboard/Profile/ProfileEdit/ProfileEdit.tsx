@@ -43,9 +43,9 @@ export default function ProfileEdit({
 }: ProfileEditProps) {
   return (
     <Card className="shadow-sm rounded-xl">
-      <CardHeader className="border-b px-6 py-4">
+      <CardHeader className="border-b px-4 py-3 md:px-6 md:py-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-base md:text-lg font-bold text-primary">
+          <h3 className="text-sm md:text-base font-bold text-primary">
             Informasi Pribadi
           </h3>
           <Button variant="outline" size="sm" onClick={onCancel} disabled={isPending}>
@@ -54,20 +54,20 @@ export default function ProfileEdit({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent className="p-4 md:p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-5">
               {(role === "MAHASISWA") && (
                 <div>
-                  <p className="text-sm text-muted-foreground">NIM</p>
-                  <p className="text-base font-semibold">{nim || "-"}</p>
+                  <p className="text-xs text-muted-foreground">NIM</p>
+                  <p className="text-sm font-semibold">{nim || "-"}</p>
                 </div>
               )}
               {(role === "DOSEN") && (
                 <div>
-                  <p className="text-sm text-muted-foreground">NIDN</p>
-                  <p className="text-base font-semibold">{nidn || "-"}</p>
+                  <p className="text-xs text-muted-foreground">NIDN</p>
+                  <p className="text-sm font-semibold">{nidn || "-"}</p>
                 </div>
               )}
               <FormField

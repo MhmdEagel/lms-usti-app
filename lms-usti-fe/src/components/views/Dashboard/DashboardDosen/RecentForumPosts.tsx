@@ -30,7 +30,7 @@ export default async function RecentForumPosts() {
             {posts.slice(0, 5).map((post) => (
               <Link key={post.id} href={`/dosen/forum/${post.id}`}>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-                  <CardContent className="pl-4 pr-8 py-3">
+                  <CardContent className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <Avatar className="size-10 shrink-0">
                         <AvatarImage src={`${environtment.API_URL}/media/profiles/${post.author_profile}`} alt={post.author_name} />

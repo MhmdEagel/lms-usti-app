@@ -9,7 +9,7 @@ async function ForumDetailSection({ postId, userId, role }: { postId: string; us
   const post = res.data?.data as IForumPostDetail | undefined;
 
   if (!post) {
-    return <div className="text-center py-12 text-gray-400">Postingan tidak ditemukan.</div>;
+    return <div className="text-muted-foreground text-center py-12 text-sm">Postingan tidak ditemukan.</div>;
   }
 
   return <ForumPostDetail post={post} currentId={userId} currentRole={role} />;
