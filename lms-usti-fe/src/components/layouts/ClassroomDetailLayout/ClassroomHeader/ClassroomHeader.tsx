@@ -14,6 +14,7 @@ interface PropTypes {
   dosen: UserDetail;
   type: "mahasiswa" | "dosen";
   term: number;
+  isArchived?: boolean;
 }
 export default function ClassroomHeader(props: PropTypes) {
   const {
@@ -27,6 +28,7 @@ export default function ClassroomHeader(props: PropTypes) {
     prodi,
     type,
     term,
+    isArchived,
   } = props;
 
   return (
@@ -47,7 +49,7 @@ export default function ClassroomHeader(props: PropTypes) {
         </>
       </CardContent>
       <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex gap-2">
-        {type === "dosen" ? (
+        {type === "dosen" && !isArchived ? (
           <ShareClassroomCode classroomCode={class_code} />
         ) : null}
       </div>

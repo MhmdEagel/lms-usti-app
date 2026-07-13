@@ -12,7 +12,6 @@ import AttachmentCard from "./AttachmentCard";
 import GradingCard from "./GradingCard";
 import PaginationControls from "@/components/common/PaginationControls/PaginationControls";
 import PaginationNav from "@/components/common/PaginationControls/PaginationNav";
-import { findSubmissionById } from "@/actions/find-submission";
 interface PaginationInfo {
   limit: number;
   total_pages: number;
@@ -48,13 +47,18 @@ export default function GradingContent({
     }
     const fetchDetail = async () => {
       setLoadingDetail(true);
-      const { data } = await findSubmissionById(
-        classroomId,
-        assignmentId,
-        selectedSubmission.id,
-      );
-      setSubmissionDetail(data);
-      setLoadingDetail(false);
+      try {
+        const res = await assignmentServices.findSubmissionDetail(
+          classroomId,
+          assignmentId,
+          selectedSubmission.id,
+        );
+        setSubmissionDetail(res.data?.data as ISubmissionDetail | null);
+      } catch {
+        setSubmissionDetail(null);
+      } finally {
+        setLoadingDetail(false);
+      }
     };
     fetchDetail();
   }, [selectedSubmission, classroomId, assignmentId]);

@@ -15,9 +15,9 @@ export const classroomServices = {
     instance.post(`${endpoint.CLASSROOM}/create`, payload),
   update: (payload: IUpdateClassroom, classroomId: string) =>
     instance.put(`${endpoint.CLASSROOM}/${classroomId}`, payload),
-  findAllDosenClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string; page?: number; limit?: number }) =>
+  findAllDosenClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string; is_archived?: string; page?: number; limit?: number }) =>
     instance.get(`${endpoint.CLASSROOM}/dosen/classrooms`, { params }),
-  findAllMahasiswaClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string; page?: number; limit?: number }) =>
+  findAllMahasiswaClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string; is_archived?: string; page?: number; limit?: number }) =>
     instance.get(`${endpoint.CLASSROOM}/mahasiswa/classrooms`, { params }),
   getDetail: (classroomId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}`),
@@ -57,4 +57,10 @@ export const classroomServices = {
     instance.get(`${endpoint.CLASSROOM}/${classroomId}${endpoint.POLICIES}`),
   updatePolicies: (classroomId: string, payload: IClassroomPolicies) =>
     instance.put(`${endpoint.CLASSROOM}/${classroomId}${endpoint.POLICIES}`, payload),
+  delete: (classroomId: string) =>
+    instance.delete(`${endpoint.CLASSROOM}/${classroomId}`),
+  archive: (classroomId: string) =>
+    instance.patch(`${endpoint.CLASSROOM}/${classroomId}/archive`),
+  unarchive: (classroomId: string) =>
+    instance.patch(`${endpoint.CLASSROOM}/${classroomId}/unarchive`),
 };

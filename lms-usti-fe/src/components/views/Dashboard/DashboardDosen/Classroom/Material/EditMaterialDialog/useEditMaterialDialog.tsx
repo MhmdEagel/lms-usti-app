@@ -4,12 +4,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { IAttachment } from "@/types/Classroom";
 import { createMaterialSchema } from "@/schemas/material";
-import { uploadMaterial } from "@/actions/upload-material";
 import { z } from "zod";
 import { newMaterialSchema } from "@/schemas/schemas";
-import { deleteMaterialBatch } from "@/actions/delete-material-batch";
-import { editMaterial } from "@/actions/edit-material";
-import { deleteFileMaterial } from "@/actions/delete-file-material";
+import { materialServices } from "@/services/material.service";
+import { mediaServices } from "@/services/media.service";
+import { useRouter } from "next/navigation";
 
 type TrackStatus = "original" | "new" | "deleted";
 
@@ -18,6 +17,7 @@ export interface TrackedAttachment extends IAttachment {
 }
 
 const useEditMaterialDialog = () => {
+  const router = useRouter();
   const [trackedAttachments, setTrackedAttachments] = useState<TrackedAttachment[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
@@ -64,22 +64,23 @@ const useEditMaterialDialog = () => {
         ...data,
         attachments: trackedAttachments.filter((f) => f.status !== "deleted"),
       };
-      await editMaterial(payload, classroomId, materialId);
+      await materialServices.update(payload, classroomId, materialId);
       const deletedFiles = trackedAttachments.filter(
         (f) => f.status === "deleted" && f.unique_name,
       );
       if (deletedFiles.length > 0) {
-        await deleteMaterialBatch(deletedFiles);
+        await mediaServices.deleteBatch({ files: deletedFiles.map(f => f.url) });
       }
       for (const uniqueName of orphanedNewFilesRef.current) {
         try {
-          await deleteFileMaterial(uniqueName);
+          await mediaServices.deleteMaterial(uniqueName);
         } catch {
           console.error("Failed to delete orphaned file:", uniqueName);
         }
       }
       orphanedNewFilesRef.current.clear();
       toast.success("Berhasil mengubah materi");
+      router.refresh();
       resetState(setOpen);
     } catch (e) {
       toast.error("Gagal mengubah materi");
@@ -101,7 +102,7 @@ const useEditMaterialDialog = () => {
     if (allOrphans.length > 0) {
       try {
         for (const file of allOrphans) {
-          await deleteFileMaterial(file.unique_name);
+          await mediaServices.deleteMaterial(file.unique_name);
         }
       } catch {
         console.error("Failed to delete new files");
@@ -116,11 +117,11 @@ const useEditMaterialDialog = () => {
     formData.append("file", blob, file.name);
     try {
       setIsPendingUploadFile(true);
-      const res = await uploadMaterial(formData);
+      const res = await mediaServices.uploadMaterial(formData);
       const newFile: TrackedAttachment = {
-        name: res.data?.file_name || file.name,
-        url: res.data?.file_url || "",
-        unique_name: res.data?.unique_file_name || "",
+        name: res.data?.data?.file_name || file.name,
+        url: res.data?.data?.file_url || "",
+        unique_name: res.data?.data?.unique_file_name || "",
         type: "FILE",
         status: "new",
       };

@@ -1,4 +1,4 @@
-import { getForumPosts } from "@/actions/get-forum-posts";
+import { forumServices } from "@/services/forum.service";
 import ForumPostItem from "../ForumPostItem/ForumPostItem";
 
 interface PropTypes {
@@ -7,7 +7,7 @@ interface PropTypes {
 }
 
 export default async function ForumPostList({ currentId, currentRole }: PropTypes) {
-  const { data: posts } = await getForumPosts();
+  const res = await forumServices.getPosts(); const posts = res.data?.data as IForumPost[] | undefined;
 
   if (!posts || posts.length === 0) {
     return (

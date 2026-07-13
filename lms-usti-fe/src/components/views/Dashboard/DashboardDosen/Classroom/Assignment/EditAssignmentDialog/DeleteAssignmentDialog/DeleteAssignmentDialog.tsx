@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteAssignment } from "@/actions/delete-assignment";
+import { assignmentServices } from "@/services/assignment.service";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,7 +41,7 @@ export default function DeleteAssignmentDialog(props: PropTypes) {
           <AlertDialogAction
             onClick={() =>
               startTransition(async () => {
-                await deleteAssignment(classroomId, assignmentId);
+                await assignmentServices.delete(classroomId, assignmentId);
                 router.push(`/dosen/kelas/${classroomId}/tugas`);
                 toast.success("Tugas berhasil dihapus");
               })

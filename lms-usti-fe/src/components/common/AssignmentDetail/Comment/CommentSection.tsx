@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { MessageSquare } from "lucide-react";
 import { toast } from "sonner";
-import { createComment } from "@/actions/create-comment";
-import { deleteComment } from "@/actions/delete-comment";
+import { commentServices } from "@/services/comment.service";
 import ContentEditor from "@/components/ui/content-editor";
 import CommentItem from "@/components/common/MaterialDetail/Comment/CommentItem";
 import type { IComment } from "@/types/Classroom";
+import { useRouter } from "next/navigation";
 
 interface PropTypes {
   initialComments: IComment[];
@@ -22,8 +22,8 @@ export default function CommentSection({
   currentId,
   currentRole,
 }: PropTypes) {
+  const router = useRouter();
   const params = useParams();
-  const pathname = usePathname();
   const classroomId = params.classroomId as string;
   const assignmentId = params.assignmentId as string;
 
@@ -39,36 +39,28 @@ export default function CommentSection({
   const handleSubmit = async () => {
     if (!content.trim() || content === "<p></p>") return;
     setSubmitting(true);
-    const res = await createComment(
-      classroomId,
-      assignmentId,
-      { content },
-      pathname,
-      "assignment",
-    );
-    setContent("");
-    setSubmitting(false);
-    if (res.success) {
-      toast.success(res.success);
-    } else if (res.error) {
-      toast.error(res.error);
+    try {
+      await commentServices.createAssignmentComment(classroomId, assignmentId, { content });
+      setContent("");
+      toast.success("Komentar berhasil dibuat");
+      router.refresh();
+    } catch {
+      toast.error("Gagal membuat komentar");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleDelete = async (commentId: string) => {
     setDeletingId(commentId);
-    const res = await deleteComment(
-      classroomId,
-      assignmentId,
-      commentId,
-      pathname,
-      "assignment",
-    );
-    setDeletingId(null);
-    if (res.success) {
-      toast.success(res.success);
-    } else if (res.error) {
-      toast.error(res.error);
+    try {
+      await commentServices.deleteAssignmentComment(classroomId, assignmentId, commentId);
+      toast.success("Komentar berhasil dihapus");
+      router.refresh();
+    } catch {
+      toast.error("Gagal menghapus komentar");
+    } finally {
+      setDeletingId(null);
     }
   };
 

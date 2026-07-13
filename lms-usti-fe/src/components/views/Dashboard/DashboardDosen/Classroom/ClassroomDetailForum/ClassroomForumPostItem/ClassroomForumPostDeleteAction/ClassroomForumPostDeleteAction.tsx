@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteForumPost } from "@/actions/delete-forum-post";
+import { classroomServices } from "@/services/classroom.service";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +18,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Trash } from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface PropTypes {
   forumPostId: string;
@@ -26,6 +27,7 @@ interface PropTypes {
 
 export default function DeleteAction(props: PropTypes) {
   const { forumPostId, classroomId } = props;
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   return (
     <AlertDialog>
@@ -52,8 +54,9 @@ export default function DeleteAction(props: PropTypes) {
           <AlertDialogAction
             onClick={() =>
               startTransition(async () => {
-                await deleteForumPost(classroomId, forumPostId);
-                toast.success("Pengumuman berhasil dihapus")
+                await classroomServices.deleteForumPost(classroomId, forumPostId);
+                toast.success("Pengumuman berhasil dihapus");
+                router.refresh();
               })
             }
             disabled={isPending}

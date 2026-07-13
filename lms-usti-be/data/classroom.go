@@ -37,6 +37,7 @@ type ClassroomFilter struct {
 	Term        string
 	TahunAjaran string
 	RoomNumber  string
+	IsArchived  *bool
 }
 
 type JoinClassroomRequest struct {
@@ -77,6 +78,7 @@ type ClassroomResponse struct {
 	ClassEnd    time.Time  `json:"class_end"`
 	Prodi       string     `json:"prodi"`
 	TahunAjaran string     `json:"tahun_ajaran"`
+	IsArchived  bool       `json:"is_archived"`
 	Dosen       model.User `json:"dosen"`
 }
 
@@ -92,6 +94,7 @@ type ClassroomDetailResponse struct {
 	ClassEnd    time.Time  `json:"class_end"`
 	Prodi       string     `json:"prodi"`
 	TahunAjaran string     `json:"tahun_ajaran"`
+	IsArchived  bool       `json:"is_archived"`
 	Dosen       model.User `json:"dosen"`
 }
 

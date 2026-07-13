@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import MemberProfileBreadcrumb from "./MemberProfileBreadcrumb";
 import Link from "next/link";
-import { removeMember } from "@/actions/remove-member";
+import { classroomServices } from "@/services/classroom.service";
 import { useState } from "react";
 import { chatServices } from "@/services/chat.service";
 
@@ -64,8 +64,9 @@ export default function MemberProfile({
   const handleRemove = async () => {
     setRemoving(true);
     try {
-      await removeMember(classroomId, id);
+      await classroomServices.removeMember(classroomId, id);
       router.push(`/${viewerRole.toLowerCase()}/kelas/${classroomId}/anggota`);
+      router.refresh();
     } catch {
       setRemoving(false);
     }

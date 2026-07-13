@@ -18,6 +18,10 @@ export const DASHBOARD_TITLE_DOSEN = [
     {
         path: "/dosen/percakapan",
         title: "Percakapan"
+    },
+    {
+        path: "/dosen/arsip",
+        title: "Kelas Yang Diarsipkan"
     }
 ]
 export const DASHBOARD_TITLE_MAHASISWA = [
@@ -40,6 +44,10 @@ export const DASHBOARD_TITLE_MAHASISWA = [
     {
         path: "/mahasiswa/percakapan",
         title: "Percakapan"
+    },
+    {
+        path: "/mahasiswa/arsip",
+        title: "Kelas Yang Diarsipkan"
     }
 ]
 export const DASHBOARD_TITLE_ADMIN = [
@@ -85,4 +93,8 @@ export const DASHBOARD_TITLE_PRODI = [
         path: "/prodi/percakapan",
         title: "Percakapan",
     },
+    {
+        path: "/prodi/arsip",
+        title: "Kelas Yang Diarsipkan"
+    }
 ]

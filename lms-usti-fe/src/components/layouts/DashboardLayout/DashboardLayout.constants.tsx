@@ -1,4 +1,4 @@
-import { Grid2x2, ListTodo, School, Settings, Users, ScrollText, MessageSquare, Calendar, MessageCircle } from "lucide-react";
+import { Archive, Grid2x2, School, Settings, Users, ScrollText, MessageSquare, Calendar, MessageCircle } from "lucide-react";
 
 const SIDEBAR_MAHASISWA = [
   {
@@ -20,16 +20,16 @@ const SIDEBAR_MAHASISWA = [
     icon: <School />,
   },
   {
+    key: "arsip",
+    label: "Arsip",
+    href: "/mahasiswa/arsip",
+    icon: <Archive />,
+  },
+  {
     key: "percakapan",
     label: "Percakapan",
     href: "/mahasiswa/percakapan",
     icon: <MessageCircle />,
-  },
-  {
-    key: "tugas",
-    label: "Tugas",
-    href: "/mahasiswa/tugas",
-    icon: <ListTodo />,
   },
   {
     key: "pengaturan",
@@ -57,6 +57,12 @@ const SIDEBAR_DOSEN = [
     label: "Kelas",
     href: "/dosen/kelas",
     icon: <School />,
+  },
+  {
+    key: "arsip",
+    label: "Arsip",
+    href: "/dosen/arsip",
+    icon: <Archive />,
   },
   {
     key: "percakapan",

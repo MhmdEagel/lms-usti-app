@@ -4,10 +4,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { createForumPost } from "@/actions/create-public-forum-post";
+import { forumServices } from "@/services/forum.service";
 import { createForumPostSchema, type CreateForumPostForm } from "@/schemas/forum";
+import { useRouter } from "next/navigation";
 
 export function useCreateForumPost() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
@@ -18,17 +20,19 @@ export function useCreateForumPost() {
 
   const handleSubmit = async (values: CreateForumPostForm) => {
     setIsPending(true);
-    const res = await createForumPost({
-      title: values.title,
-      content: values.content ?? "",
-    });
-    setIsPending(false);
-    if (res.success) {
-      toast.success(res.success);
+    try {
+      await forumServices.createPost({
+        title: values.title,
+        content: values.content ?? "",
+      });
+      toast.success("Postingan berhasil dibuat");
       form.reset();
       setOpen(false);
-    } else if (res.error) {
-      toast.error(res.error);
+      router.refresh();
+    } catch {
+      toast.error("Gagal membuat postingan");
+    } finally {
+      setIsPending(false);
     }
   };
 

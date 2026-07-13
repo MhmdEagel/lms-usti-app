@@ -2,7 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { updateUserSchema } from "@/schemas/admin";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
-import { getUserById, updateUser } from "@/actions/admin";
+import adminServices from "@/services/admin.service";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 
 type UseEditUserDialogProps = {
@@ -13,6 +14,7 @@ type UseEditUserDialogProps = {
 };
 
 const useEditUserDialog = ({ id, isOpen, setIsOpen, onSuccess }: UseEditUserDialogProps) => {
+  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,8 +27,8 @@ const useEditUserDialog = ({ id, isOpen, setIsOpen, onSuccess }: UseEditUserDial
     const fetchUser = async () => {
       setIsLoading(true);
       try {
-        const res = await getUserById(id);
-        const user = res.data as IUser;
+        const res = await adminServices.getUserById(id);
+        const user = res.data.data as IUser;
         editUserForm.reset({
           fullname: user.fullname,
           email: user.email,
@@ -51,10 +53,11 @@ const useEditUserDialog = ({ id, isOpen, setIsOpen, onSuccess }: UseEditUserDial
   const handleUpdateUser = async (data: z.infer<typeof updateUserSchema>) => {
     try {
       setIsPending(true);
-      const res = await updateUser(id, data);
-      if (res.meta?.status === 200) {
+      const res = await adminServices.updateUser(id, data);
+      if (res.data.meta?.status === 200) {
         handleCloseForm();
         onSuccess?.();
+        router.refresh();
       }
     } catch (e) {
       editUserForm.setError("root", {

@@ -12,7 +12,7 @@ import FileItem from "@/components/common/FileItem/FileItem";
 import LinkItem from "@/components/common/LinkItem/LinkItem";
 import { Spinner } from "@/components/ui/spinner";
 import { Dropzone, DropzoneEmptyState } from "@/components/ui/dropzone";
-import { submitAssignment } from "@/actions/submit-assignment";
+import { assignmentServices } from "@/services/assignment.service";
 import useSubmitAssignmentDialog from "./useSubmitAssignmentDialog";
 import type { IMySubmission } from "@/types/Classroom";
 
@@ -64,15 +64,16 @@ export default function SubmitAssignmentDialog({
       url: a.url,
       unique_name: a.unique_name,
     }));
-    const res = await submitAssignment(classroomId, assignmentId, active);
-    if (res.success) {
-      toast.success(res.success);
+    try {
+      await assignmentServices.createSubmission(classroomId, assignmentId, { attachments: active });
+      toast.success("Tugas berhasil dikumpulkan");
       await handleClose();
       router.refresh();
-    } else {
-      toast.error(res.error);
+    } catch {
+      toast.error("Gagal mengumpulkan tugas");
+    } finally {
+      setIsPending(false);
     }
-    setIsPending(false);
   };
 
   return (

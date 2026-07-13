@@ -120,6 +120,8 @@ func InitRouter() *gin.Engine {
 			classroom.GET("/:id/members/:memberId", classroomController.FindClassroomMemberById)
 			classroom.DELETE("/:id/members/:memberId", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.RemoveMember)
 			classroom.DELETE("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Delete)
+			classroom.PATCH("/:id/archive", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Archive)
+			classroom.PATCH("/:id/unarchive", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Unarchive)
 			classroom.PUT("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Update)
 
 			classroom.GET("/:id/announcements", classroomForumPostController.FindAll)

@@ -26,6 +26,7 @@ type Classroom struct {
 	Dosen                 User           `gorm:"foreignKey:DosenId"`
 	Prodi                 string         `gorm:"not null"`
 	TahunAjaran           string         `gorm:"not null"`
+	IsArchived            bool           `gorm:"default:false"`
 	ClassroomMahasiswa    []User         `gorm:"many2many:classroom_mahasiswas;constraint:OnDelete:CASCADE;"`
 	ClassroomForumPosts []ClassroomForumPost `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE;"`
 	Materials             []Material     `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE;"`

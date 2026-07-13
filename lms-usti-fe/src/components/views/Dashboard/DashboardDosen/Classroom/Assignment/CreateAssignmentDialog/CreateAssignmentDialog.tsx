@@ -20,7 +20,7 @@ import useCreateAssignmentDialog from "./useCreateAssignmentDialog";
 import FileItem from "@/components/common/FileItem/FileItem";
 import LinkItem from "@/components/common/LinkItem/LinkItem";
 import AddLinkDialog from "@/components/common/AddLinkDialog/AddLinkDialog";
-import { deleteFileAssignment } from "@/actions/delete-file-assignment";
+import { mediaServices } from "@/services/media.service";
 import { DatePickerTime } from "@/components/ui/calendar-time-picker";
 import { Spinner } from "@/components/ui/spinner";
 import type { IAttachment } from "@/types/Classroom";
@@ -54,7 +54,7 @@ export default function CreateAssignmentDialog({
       setIsPending(true);
       setIsPendingUploadFile(true);
       try {
-        await deleteFileAssignment(item.unique_name);
+        await mediaServices.deleteAssignment(item.unique_name);
         setAttachments((prev) =>
           prev.filter((a) => a.unique_name !== item.unique_name),
         );

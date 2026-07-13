@@ -3,7 +3,8 @@ import { ClipboardList, Clock, ChevronRight } from "lucide-react"
 import dayjs from "dayjs"
 import relativeTime from "dayjs/plugin/relativeTime"
 import "dayjs/locale/id"
-import { getWaitingGrade } from "@/actions/get-waiting-grade"
+import { assignmentServices } from "@/services/assignment.service"
+import type { IAssignmentWaitingGrade } from "@/types/Classroom"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getCurrentUser } from "@/lib/auth"
@@ -17,9 +18,9 @@ export default async function WaitingGradeList() {
   const user = await getCurrentUser()
   if (!user) redirect("/auth/login")
 
-  const waitingGrades = await getWaitingGrade()
+  const res = await assignmentServices.findWaitingGrade(); const waitingGrades: IAssignmentWaitingGrade[] = res.data?.data ?? []
 
-  const grouped = waitingGrades.reduce<Record<string, typeof waitingGrades>>((acc, wg) => {
+  const grouped = waitingGrades.reduce<Record<string, IAssignmentWaitingGrade[]>>((acc, wg) => {
     if (!acc[wg.classroom_id]) {
       acc[wg.classroom_id] = []
     }

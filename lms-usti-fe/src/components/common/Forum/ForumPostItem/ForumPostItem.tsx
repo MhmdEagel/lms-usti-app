@@ -8,9 +8,10 @@ import DOMPurify from "isomorphic-dompurify";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/id";
-import { deletePublicForumPost } from "@/actions/delete-public-forum-post";
+import { forumServices } from "@/services/forum.service";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +34,7 @@ interface PropTypes {
 }
 
 export default function ForumPostItem({ post, currentId, currentRole }: PropTypes) {
+  const router = useRouter();
   const initials = post.author_name
     .split(" ")
     .map((n: string) => n[0])
@@ -44,11 +46,12 @@ export default function ForumPostItem({ post, currentId, currentRole }: PropType
   const forumPath = `/${currentRole.toLowerCase()}/forum/${post.id}`;
 
   const handleDelete = async () => {
-    const res = await deletePublicForumPost(post.id);
-    if (res.success) {
-      toast.success(res.success);
-    } else if (res.error) {
-      toast.error(res.error);
+    try {
+      await forumServices.deletePost(post.id);
+      toast.success("Postingan berhasil dihapus");
+      router.refresh();
+    } catch {
+      toast.error("Gagal menghapus postingan");
     }
   };
 

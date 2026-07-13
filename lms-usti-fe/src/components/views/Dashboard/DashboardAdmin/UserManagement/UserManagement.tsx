@@ -1,4 +1,4 @@
-import { getAllUsers } from "@/actions/admin";
+import adminServices from "@/services/admin.service";
 import UserTable from "./UserTable";
 
 export default async function UserManagement({
@@ -18,7 +18,8 @@ export default async function UserManagement({
   let error: string | null = null;
 
   try {
-    const result = await getAllUsers({ page, limit });
+    const res = await adminServices.getAllUsers({ page, limit });
+    const result = res.data;
     users = result.data || [];
     pagination = result.pagination || {
       limit,

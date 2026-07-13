@@ -4,13 +4,13 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { IAttachment } from "@/types/Classroom";
 import { createMaterialSchema } from "@/schemas/material";
-import { uploadMaterial } from "@/actions/upload-material";
 import { AxiosError } from "axios";
 import { ErrorResponse } from "@/types/Response";
 import { z } from "zod";
 import { newMaterialSchema } from "@/schemas/schemas";
-import { newMaterial } from "@/actions/new-material";
-import { deleteMaterialBatch } from "@/actions/delete-material-batch";
+import { materialServices } from "@/services/material.service";
+import { mediaServices } from "@/services/media.service";
+import { useRouter } from "next/navigation";
 
 const useCreateMaterialDialog = () => {
   const [open, setOpen] = useState("closed");
@@ -18,6 +18,7 @@ const useCreateMaterialDialog = () => {
   const [attachments, setAttachments] = useState<IAttachment[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
+  const router = useRouter();
   const materialForm = useForm({
     defaultValues: {
       attachments: [],
@@ -34,17 +35,19 @@ const useCreateMaterialDialog = () => {
       ...data,
       attachments,
     };
-    const res = await newMaterial(payload, classroomId);
-    if (!res.success && res.error) {
-      toast.error(res.error);
+    try {
+      await materialServices.create(payload, classroomId);
+      toast.success("Berhasil menambahkan materi");
+      router.refresh();
+      setAttachments([]);
+      materialForm.reset();
+      setOpen("closed");
+    } catch (e) {
+      const err = e as AxiosError<ErrorResponse>;
+      toast.error(err.response?.data.meta.message);
+    } finally {
       setIsPending(false);
-      return;
     }
-    setIsPending(false);
-    toast.success(res.success);
-    setAttachments([]);
-    materialForm.reset();
-    setOpen("closed");
   };
 
   const handleClose = async () => {
@@ -54,7 +57,7 @@ const useCreateMaterialDialog = () => {
         (a) => a.type === "FILE",
       );
       if (filesToDelete.length > 0) {
-        await deleteMaterialBatch(filesToDelete);
+        await mediaServices.deleteBatch({ files: filesToDelete.map(f => f.url) });
       }
     } catch (e) {
       const err = e as AxiosError<ErrorResponse>;
@@ -72,11 +75,11 @@ const useCreateMaterialDialog = () => {
     formData.append("file", blob, file.name);
     try {
       setIsPendingUploadFile(true);
-      const res = await uploadMaterial(formData);
+      const res = await mediaServices.uploadMaterial(formData);
       const newFile: IAttachment = {
-        name: res.data?.file_name,
-        url: res.data?.file_url,
-        unique_name: res.data?.unique_file_name,
+        name: res.data?.data?.file_name,
+        url: res.data?.data?.file_url,
+        unique_name: res.data?.data?.unique_file_name,
         type: "FILE",
       };
       setAttachments((prev) => [...prev, newFile]);

@@ -52,6 +52,7 @@ interface IClassroom {
   class_end: string;
   prodi: string;
   tahun_ajaran: string;
+  is_archived: boolean;
   dosen: User;
 }
 

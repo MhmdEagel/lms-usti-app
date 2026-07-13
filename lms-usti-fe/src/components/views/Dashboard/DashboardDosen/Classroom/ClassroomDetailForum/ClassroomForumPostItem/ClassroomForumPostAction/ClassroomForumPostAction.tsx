@@ -18,12 +18,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Spinner } from "@/components/ui/spinner";
-import { deleteForumPost } from "@/actions/delete-forum-post";
-import { updateForumPost } from "@/actions/update-forum-post";
+import { classroomServices } from "@/services/classroom.service";
 import { IClassroomForumPost } from "@/types/Classroom";
 import { EllipsisVertical, Pin, PinOff, Pencil, Trash } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface PropTypes {
   announcement: IClassroomForumPost;
@@ -33,6 +33,7 @@ interface PropTypes {
 
 export default function ForumAction(props: PropTypes) {
   const { announcement, classroomId, onEdit } = props;
+  const router = useRouter();
   const [openPopOver, setOpenPopOver] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -40,7 +41,7 @@ export default function ForumAction(props: PropTypes) {
   const handlePinToggle = () => {
     startTransition(async () => {
       try {
-        await updateForumPost(
+        await classroomServices.updateForumPost(
           classroomId,
           announcement.id,
           { is_pinned: !announcement.is_pinned },
@@ -51,6 +52,7 @@ export default function ForumAction(props: PropTypes) {
             : "Pengumuman di-pin",
         );
         setOpenPopOver(false);
+        router.refresh();
       } catch {
         toast.error("Gagal mengubah status pin");
       }
@@ -130,8 +132,9 @@ export default function ForumAction(props: PropTypes) {
             <AlertDialogAction
               onClick={() =>
                 startTransition(async () => {
-                  await deleteForumPost(classroomId, announcement.id);
+                  await classroomServices.deleteForumPost(classroomId, announcement.id);
                   toast.success("Pengumuman berhasil dihapus");
+                  router.refresh();
                 })
               }
               disabled={isPending}

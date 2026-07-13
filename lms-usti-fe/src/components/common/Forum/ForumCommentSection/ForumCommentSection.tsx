@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { createForumComment } from "@/actions/create-forum-comment";
-import { deleteForumComment } from "@/actions/delete-forum-comment";
+import { forumServices } from "@/services/forum.service";
 import ContentEditor from "@/components/ui/content-editor";
 import CommentItem from "../../MaterialDetail/Comment/CommentItem";
 import type { IComment } from "@/types/Classroom";
+import { useRouter } from "next/navigation";
 
 interface PropTypes {
   postId: string;
@@ -22,6 +22,7 @@ export default function ForumCommentSection({
   currentId,
   currentRole,
 }: PropTypes) {
+  const router = useRouter();
   const [comments, setComments] = useState<IComment[]>(initialComments ?? []);
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -30,24 +31,28 @@ export default function ForumCommentSection({
   const handleSubmit = async () => {
     if (!content.trim() || content === "<p></p>") return;
     setSubmitting(true);
-    const res = await createForumComment(postId, { content });
-    setContent("");
-    setSubmitting(false);
-    if (res.success) {
-      toast.success(res.success);
-    } else if (res.error) {
-      toast.error(res.error);
+    try {
+      await forumServices.createComment(postId, { content });
+      setContent("");
+      toast.success("Komentar berhasil dibuat");
+      router.refresh();
+    } catch {
+      toast.error("Gagal membuat komentar");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleDelete = async (commentId: string) => {
     setDeletingId(commentId);
-    const res = await deleteForumComment(postId, commentId);
-    setDeletingId(null);
-    if (res.success) {
-      toast.success(res.success);
-    } else if (res.error) {
-      toast.error(res.error);
+    try {
+      await forumServices.deleteComment(postId, commentId);
+      toast.success("Komentar berhasil dihapus");
+      router.refresh();
+    } catch {
+      toast.error("Gagal menghapus komentar");
+    } finally {
+      setDeletingId(null);
     }
   };
 
