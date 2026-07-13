@@ -28,6 +28,8 @@ type ClassroomServiceInterface interface {
 	RemoveMember(classroomId, memberId string) error
 	Update(classroomUpdateRequest data.UpdateClassroomRequest) error
 	Delete(classroomId string, userID string) error
+	Archive(classroomId string, userID string) error
+	Unarchive(classroomId string, userID string) error
 	GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error)
 	GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error)
 }
@@ -85,6 +87,7 @@ func (c *ClassroomService) FindAllByDosenId(dosenId string, filter data.Classroo
 			ClassEnd:    v.ClassEnd,
 			Prodi:       v.Prodi,
 			TahunAjaran: v.TahunAjaran,
+			IsArchived:  v.IsArchived,
 			Dosen:       v.Dosen,
 		}
 		classrooms = append(classrooms, classroomResponse)
@@ -139,6 +142,7 @@ func (c *ClassroomService) FindById(classroomId string) (classroom data.Classroo
 		ClassEnd:    classroomData.ClassEnd,
 		Prodi:       classroomData.Prodi,
 		TahunAjaran: classroomData.TahunAjaran,
+		IsArchived:  classroomData.IsArchived,
 		Dosen:       classroomData.Dosen,
 	}
 	return classroom, nil
@@ -185,6 +189,10 @@ func (c *ClassroomService) EnrollMahasiswa(joinClassroomRequest data.JoinClassro
 		log.Printf("EnrollMahasiswa: %s", err.Error())
 		return data.NewAppError(500, "terjadi kesalahan", err)
 	}
+	if classroom.IsArchived {
+		return data.ErrClassroomArchived(nil)
+	}
+
 	classroomMahasiswa := model.ClassroomMahasiswa{
 		ClassroomId: classroom.ID,
 		UserId:      mahasiswaId,
@@ -273,6 +281,14 @@ func (c *ClassroomService) Update(classroomUpdateRequest data.UpdateClassroomReq
 func (c *ClassroomService) Delete(classroomId string, userID string) error {
 	return c.classroomRepository.Delete(classroomId, userID)
 
+}
+
+func (c *ClassroomService) Archive(classroomId string, userID string) error {
+	return c.classroomRepository.Archive(classroomId, userID)
+}
+
+func (c *ClassroomService) Unarchive(classroomId string, userID string) error {
+	return c.classroomRepository.Unarchive(classroomId, userID)
 }
 
 func (c *ClassroomService) GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error) {

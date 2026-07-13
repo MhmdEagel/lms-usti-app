@@ -20,7 +20,7 @@ import FileItem from "@/components/common/FileItem/FileItem";
 import LinkItem from "@/components/common/LinkItem/LinkItem";
 import useCreateMaterialDialog from "./useCreateMaterialDialog";
 import { Spinner } from "@/components/ui/spinner";
-import { deleteFileMaterial } from "@/actions/delete-file-material";
+import { mediaServices } from "@/services/media.service";
 import type { IAttachment } from "@/types/Classroom";
 import dynamic from "next/dynamic";
 
@@ -56,7 +56,7 @@ export default function CreateMaterialDialog({
       setIsPending(true);
       setIsPendingUploadFile(true);
       try {
-        await deleteFileMaterial(item.unique_name);
+        await mediaServices.deleteMaterial(item.unique_name);
         setAttachments((prev) =>
           prev.filter((a) => a.unique_name !== item.unique_name),
         );

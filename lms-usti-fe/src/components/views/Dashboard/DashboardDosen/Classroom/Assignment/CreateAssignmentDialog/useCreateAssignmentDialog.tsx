@@ -4,16 +4,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { createAssignmentSchema } from "@/schemas/assignment";
-import { newAssignment } from "@/actions/new-assignment";
 import { z } from "zod";
-import { uploadAssignment } from "@/actions/upload-assignment";
 import { IAttachment } from "@/types/Classroom";
 import { AxiosError } from "axios";
 import { ErrorResponse } from "@/types/Response";
-import { deleteMaterialBatch } from "@/actions/delete-material-batch";
+import { assignmentServices } from "@/services/assignment.service";
+import { mediaServices } from "@/services/media.service";
 
 const useCreateAssignmentDialog = () => {
+  const router = useRouter();
   const [open, setOpen] = useState("closed");
   const [attachments, setAttachments] = useState<IAttachment[]>([]);
 
@@ -36,7 +37,7 @@ const useCreateAssignmentDialog = () => {
     formData.append("file", blob, file.name);
     try {
       setIsPendingUploadFile(true);
-      const res = await uploadAssignment(formData);
+      const res = await mediaServices.uploadAssignment(formData);
       const newFile: IAttachment = {
         name: res.data?.file_name,
         url: res.data?.file_url,
@@ -65,18 +66,19 @@ const useCreateAssignmentDialog = () => {
       attachments,
     };
 
-    const res = await newAssignment(payload, classroomId);
-    if (!res.success && res.error) {
-      toast.error(res.error);
+    try {
+      await assignmentServices.create(payload, classroomId);
+      toast.success("Berhasil menambahkan tugas");
+      setAttachments([]);
+      setHasDeadline(false);
+      assignmentForm.reset();
+      setOpen("closed");
+      router.refresh();
+    } catch (e) {
+      toast.error("Terjadi Kesalahan");
+    } finally {
       setIsPending(false);
-      return;
     }
-    setIsPending(false);
-    toast.success(res.success);
-    setAttachments([]);
-    setHasDeadline(false);
-    assignmentForm.reset();
-    setOpen("closed");
   };
 
   const handleClose = async () => {
@@ -86,7 +88,7 @@ const useCreateAssignmentDialog = () => {
         (a) => a.type === "FILE",
       );
       if (filesToDelete.length > 0) {
-        await deleteMaterialBatch(filesToDelete);
+        await mediaServices.deleteAssignmentBatch({ files: filesToDelete.map(f => f.url) });
       }
     } catch (e) {
       const err = e as AxiosError<ErrorResponse>;

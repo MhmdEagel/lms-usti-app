@@ -13,7 +13,8 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import type { IClassroomForumPost as IForumPost } from "@/types/Classroom";
 import ForumAction from "./ClassroomForumPostAction";
-import { updateForumPost } from "@/actions/update-forum-post";
+import { classroomServices } from "@/services/classroom.service";
+import { useRouter } from "next/navigation";
 
 interface PropTypes {
   announcement: IForumPost;
@@ -26,6 +27,7 @@ export default function ForumItem({
   classroomId,
   userRole,
 }: PropTypes) {
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(announcement.title);
   const [editContent, setEditContent] = useState(announcement.content);
@@ -46,12 +48,13 @@ export default function ForumItem({
     }
     startTransition(async () => {
       try {
-        await updateForumPost(classroomId, announcement.id, {
+        await classroomServices.updateForumPost(classroomId, announcement.id, {
           title: editTitle,
           content: editContent,
         });
         toast.success("Pengumuman berhasil diperbarui");
         setIsEditing(false);
+        router.refresh();
       } catch {
         toast.error("Gagal memperbarui pengumuman");
       }

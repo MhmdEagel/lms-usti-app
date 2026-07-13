@@ -4,7 +4,8 @@ import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { ISubmission } from "@/types/Classroom";
 import { Button } from "@/components/ui/button";
-import { gradeSubmission } from "@/actions/grade-submission";
+import { useRouter } from "next/navigation";
+import { assignmentServices } from "@/services/assignment.service";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -23,6 +24,7 @@ export default function GradingCard({
   assignmentId,
   selectedSubmission,
 }: PropTypes) {
+  const router = useRouter();
   const [feedback, setFeedback] = useState("");
   const [score, setScore] = useState("");
   const [saving, setSaving] = useState(false);
@@ -42,19 +44,21 @@ export default function GradingCard({
     }
 
     setSaving(true);
-    const { error } = await gradeSubmission(
-      classroomId,
-      assignmentId,
-      selectedSubmission.id,
-      { score: parsed.data.score, feedback: feedback || null },
-    );
-    setSaving(false);
-    if (error) {
-      toast.error("Gagal menyimpan nilai");
-    } else {
+    try {
+      await assignmentServices.gradeSubmission(
+        classroomId,
+        assignmentId,
+        selectedSubmission.id,
+        { score: parsed.data.score, feedback: feedback || null },
+      );
       toast.success("Nilai berhasil disimpan");
+      router.refresh();
+    } catch {
+      toast.error("Gagal menyimpan nilai");
+    } finally {
+      setSaving(false);
     }
-  }, [selectedSubmission, feedback, score, classroomId, assignmentId]);
+  }, [selectedSubmission, feedback, score, classroomId, assignmentId, router]);
 
   return (
     <Card>

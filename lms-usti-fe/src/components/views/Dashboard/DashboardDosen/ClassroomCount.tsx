@@ -1,9 +1,9 @@
 import { GraduationCap, Users, FileText } from "lucide-react"
-import { getDashboardStats } from "@/actions/get-dashboard-stats"
+import { classroomServices } from "@/services/classroom.service"
 import { Card as UICard, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default async function DashboardStatsCards() {
-  const stats = await getDashboardStats()
+  const res = await classroomServices.getDashboardStats(); const stats = res.data?.data ?? null;
 
   const cards = [
     {

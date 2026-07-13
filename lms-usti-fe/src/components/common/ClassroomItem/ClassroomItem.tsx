@@ -8,17 +8,19 @@ import React from "react";
 interface PropTypes {
   classroom: IClassroom;
   type: "dosen" | "mahasiswa";
+  isArchived?: boolean;
 }
 
 export default function ClassroomItem(props: PropTypes) {
-  const { classroom, type } = props;
+  const { classroom, type, isArchived } = props;
+  const prefix = isArchived ? "arsip" : "kelas";
   return (
     <Link
-      href={`${type === "dosen" ? "/dosen/kelas/" : "/mahasiswa/kelas/"}${classroom.id}`}
+      href={`/${type}/${prefix}/${classroom.id}`}
     >
       <Card className="pt-3 space-y-8">
         <CardHeader className="px-3">
-          <div className="bg-blue-200 h-[150px] rounded-lg">
+          <div className={`bg-blue-200 h-[150px] rounded-lg ${isArchived ? "opacity-60" : ""}`}>
             <Image
               className="mx-auto block"
               src={`/images/ilustration/classroom/${classroom.class_cover}.svg`}

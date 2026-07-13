@@ -1,5 +1,4 @@
-import { activateUser } from "@/actions/activateUser";
-import { APIResponse } from "@/types/Response";
+import authServices from "@/services/auth.service";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -17,9 +16,9 @@ const useActivation = () => {
       return;
     }
 
-    activateUser({ token })
-      .then((res: APIResponse) => {
-        setSuccess(res.meta.message);
+    authServices.activate({ token })
+      .then((res) => {
+        setSuccess(res.data.meta.message);
       })
       .catch(() => {
         setError("Gagal aktivasi user");

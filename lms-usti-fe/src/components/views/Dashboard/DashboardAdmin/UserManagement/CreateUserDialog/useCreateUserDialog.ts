@@ -2,10 +2,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createUserSchema } from "@/schemas/admin";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { createUser } from "@/actions/admin";
+import adminServices from "@/services/admin.service";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 
 const useCreateUserDialog = () => {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -20,9 +22,10 @@ const useCreateUserDialog = () => {
   const handleCreateUser = async (data: z.infer<typeof createUserSchema>) => {
     try {
       setIsPending(true);
-      const res = await createUser(data);
-      if (res.meta?.status === 200) {
+      const res = await adminServices.createUser(data);
+      if (res.data.meta?.status === 200) {
         handleCloseForm();
+        router.refresh();
       }
     } catch (e) {
       createUserForm.setError("root", {

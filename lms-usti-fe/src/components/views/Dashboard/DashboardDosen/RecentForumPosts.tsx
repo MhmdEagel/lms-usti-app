@@ -3,7 +3,7 @@ import { MessageSquare, Pin, ChevronRight } from "lucide-react"
 import dayjs from "dayjs"
 import relativeTime from "dayjs/plugin/relativeTime"
 import "dayjs/locale/id"
-import { getRecentForumPosts } from "@/actions/get-recent-forum-posts"
+import { forumServices } from "@/services/forum.service"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { environtment } from "@/config/environtment"
@@ -12,7 +12,10 @@ dayjs.extend(relativeTime)
 dayjs.locale("id")
 
 export default async function RecentForumPosts() {
-  const posts = await getRecentForumPosts()
+  const res = await forumServices.getPosts();
+  const allPosts = res.data?.data as IForumPost[] | undefined;
+  const twentyFourHoursAgo = dayjs().subtract(24, "hour");
+  const posts = allPosts ? allPosts.filter((post) => dayjs(post.created_at).isAfter(twentyFourHoursAgo)) : []
 
   return (
     <Card>

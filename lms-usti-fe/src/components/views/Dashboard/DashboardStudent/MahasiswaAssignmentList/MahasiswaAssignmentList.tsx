@@ -1,9 +1,10 @@
 import Link from "next/link"
 import { ClipboardList } from "lucide-react"
-import { getMahasiswaDashboardStats } from "@/actions/get-mahasiswa-dashboard-stats"
+import { classroomServices } from "@/services/classroom.service"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import dayjs from "dayjs"
 import "dayjs/locale/id"
+import type { IMahasiswaDashboardStats } from "@/types/Classroom"
 
 dayjs.locale("id")
 
@@ -13,7 +14,7 @@ function formatDeadline(deadline: string | null): string {
 }
 
 export default async function MahasiswaAssignmentList() {
-  const stats = await getMahasiswaDashboardStats()
+  const res = await classroomServices.getMahasiswaDashboardStats(); const stats: IMahasiswaDashboardStats | null = res.data?.data ?? null
 
   if (!stats) return null
 

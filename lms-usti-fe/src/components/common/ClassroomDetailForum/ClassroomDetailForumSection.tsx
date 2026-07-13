@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { createForumPostComment } from "@/actions/create-forum-post-comment";
-import { deleteForumPostComment } from "@/actions/delete-forum-post-comment";
+import { commentServices } from "@/services/comment.service";
 import ContentEditor from "@/components/ui/content-editor";
 import CommentItem from "@/components/common/MaterialDetail/Comment/CommentItem";
 import type { IComment, IClassroomForumPost } from "@/types/Classroom";
@@ -12,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ArrowLeft, Pin } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -37,6 +37,7 @@ export default function ClassroomForumPostDetailSection({
   currentRole,
   forumPermission = "comment_only",
 }: PropTypes) {
+  const router = useRouter();
   const [comments, setComments] = useState<IComment[]>(initialComments ?? []);
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -45,30 +46,28 @@ export default function ClassroomForumPostDetailSection({
   const handleSubmit = async () => {
     if (!content.trim() || content === "<p></p>") return;
     setSubmitting(true);
-    const res = await createForumPostComment(classroomId, announcement.id, {
-      content,
-    });
-    setContent("");
-    setSubmitting(false);
-    if (res.success) {
-      toast.success(res.success);
-    } else if (res.error) {
-      toast.error(res.error);
+    try {
+      await commentServices.createForumPostComment(classroomId, announcement.id, { content });
+      setContent("");
+      toast.success("Komentar berhasil dibuat");
+      router.refresh();
+    } catch {
+      toast.error("Gagal membuat komentar");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleDelete = async (commentId: string) => {
     setDeletingId(commentId);
-    const res = await deleteForumPostComment(
-      classroomId,
-      announcement.id,
-      commentId,
-    );
-    setDeletingId(null);
-    if (res.success) {
-      toast.success(res.success);
-    } else if (res.error) {
-      toast.error(res.error);
+    try {
+      await commentServices.deleteForumPostComment(classroomId, announcement.id, commentId);
+      toast.success("Komentar berhasil dihapus");
+      router.refresh();
+    } catch {
+      toast.error("Gagal menghapus komentar");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -83,7 +82,7 @@ export default function ClassroomForumPostDetailSection({
     .slice(0, 2);
 
   return (
-    <div className="space-y-4">
+    <div className="p-4 space-y-4">
       <Link href={`/${rolePath}/kelas/${classroomId}`}>
         <Button className="rounded-full" variant="ghost">
           <ArrowLeft /> Kembali

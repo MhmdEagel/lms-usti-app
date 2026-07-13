@@ -2,13 +2,14 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { INewPassword } from "@/types/Auth";
 import { newPasswordSchema } from "@/schemas/schemas";
-import { useSearchParams } from "next/navigation";
-import { newPassword } from "@/actions/new-password";
+import { useSearchParams, useRouter } from "next/navigation";
+import authServices from "@/services/auth.service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
 import { ErrorResponse } from "@/types/Response";
 
 const useNewPasswordForm = () => {
+  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [visibility, setVisibility] = useState({
     password: false,
@@ -44,7 +45,8 @@ const useNewPasswordForm = () => {
     data.token = token;
     try {
       setIsPending(true);
-      await newPassword(data);
+      await authServices.newPassword(data);
+      router.push("/auth/new-password/success");
     } catch (error) {
       const err = error as AxiosError<ErrorResponse>;
       form.setError("root", {

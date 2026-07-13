@@ -17,6 +17,7 @@ func ErrCommentNotFound(err error) *AppError      { return NewAppError(404, "kom
 func ErrForumPostNotFound(err error) *AppError    { return NewAppError(404, "postingan forum tidak ditemukan", err) }
 func ErrUnauthorized(err error) *AppError         { return NewAppError(401, "tidak memiliki akses", err) }
 func ErrForumPermissionDenied(err error) *AppError { return NewAppError(403, "tidak memiliki izin membuat postingan forum", err) }
+func ErrClassroomArchived(err error) *AppError { return NewAppError(400, "kelas sudah diarsipkan", err) }
 
 type AppError struct {
 	Code    int

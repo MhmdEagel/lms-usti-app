@@ -1,6 +1,7 @@
 "use client";
 
-import { deleteUser } from "@/actions/admin";
+import adminServices from "@/services/admin.service";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,14 +23,16 @@ type DeleteUserDialogProps = {
 };
 
 export default function DeleteUserDialog({ id, isOpen, setIsOpen }: DeleteUserDialogProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = () =>
     startTransition(async () => {
       try {
-        await deleteUser(id);
+        await adminServices.deleteUser(id);
         toast.success("User berhasil dihapus");
         setIsOpen(false);
+        router.refresh();
       } catch {
         toast.error("Gagal menghapus user");
       }

@@ -1,7 +1,21 @@
 "use client";
 
 import WeeklyCalendar from "@/components/common/WeeklyCalendar/WeeklyCalendar";
-import type { ScheduleEvent } from "@/actions/get-schedule";
+interface ScheduleEvent {
+  title: string;
+  daysOfWeek: number[];
+  startTime: string;
+  endTime: string;
+  extendedProps: {
+    classroomId: string;
+    roomNumber: number;
+    className: string;
+    term: number;
+    prodi: string;
+    startTime: string;
+    endTime: string;
+  };
+}
 
 interface PropTypes {
   events: ScheduleEvent[];

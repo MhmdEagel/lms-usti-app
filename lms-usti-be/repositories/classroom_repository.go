@@ -21,6 +21,8 @@ type ClassroomRepositoryInterface interface {
 	FindAllByMahasiswaId(mahasiswaId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error)
 	Update(classroom model.Classroom) error
 	Delete(classroomId string, dosenId string) error
+	Archive(classroomId string, dosenId string) error
+	Unarchive(classroomId string, dosenId string) error
 	Enroll(classroomMahasiswa model.ClassroomMahasiswa) error
 	IsAlreadyEnroll(classroomMahasiswa model.ClassroomMahasiswa) bool
 	FindAllClassroomMahasiswa(classroomId string) (mahasiswa []model.ClassroomMahasiswa, err error)
@@ -59,6 +61,11 @@ func (u *ClassroomRepository) FindByClassCode(classCode string) (classroom model
 func (u *ClassroomRepository) FindAllByDosenId(dosenId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error) {
 	var classrooms []model.Classroom
 	query := u.Db.Scopes(lib.Paginate(classrooms, &pagination, u.Db)).Preload("Dosen").Where("dosen_id = ?", dosenId).Order("created_at DESC")
+	if filter.IsArchived != nil {
+		query = query.Where("is_archived = ?", *filter.IsArchived)
+	} else {
+		query = query.Where("is_archived = ?", false)
+	}
 	if filter.Search != "" {
 		query = query.Where("class_name LIKE ?", "%"+filter.Search+"%")
 	}
@@ -128,6 +135,12 @@ func (u *ClassroomRepository) FindAllByMahasiswaId(mahasiswaId string, filter da
 			query = query.Where("classrooms.room_number = ?", roomNumber)
 		}
 	}
+	addJoin()
+	if filter.IsArchived != nil {
+		query = query.Where("classrooms.is_archived = ?", *filter.IsArchived)
+	} else {
+		query = query.Where("classrooms.is_archived = ?", false)
+	}
 	result := query.Find(&classroomMahasiswa)
 	if result.Error != nil {
 		return paginationResult, result.Error
@@ -188,6 +201,32 @@ func (c *ClassroomRepository) RemoveMember(classroomId, memberId string) error {
 	})
 }
 
+func (c *ClassroomRepository) Archive(classroomId string, dosenId string) error {
+	result := c.Db.Model(&model.Classroom{}).
+		Where("id = ? AND dosen_id = ?", classroomId, dosenId).
+		Update("is_archived", true)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func (c *ClassroomRepository) Unarchive(classroomId string, dosenId string) error {
+	result := c.Db.Model(&model.Classroom{}).
+		Where("id = ? AND dosen_id = ?", classroomId, dosenId).
+		Update("is_archived", false)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
 func (c *ClassroomRepository) Delete(classroomId string, dosenId string) error {
 	classroom, err := c.FindById(classroomId)
 	if err != nil {
@@ -224,6 +263,7 @@ func (c *ClassroomRepository) GetMahasiswaDashboardStats(mahasiswaId string) (da
 		JOIN classroom_mahasiswas cm ON cm.classroom_id = a.classroom_id
 		LEFT JOIN submissions s ON s.assignment_id = a.id AND s.student_id = cm.user_id
 		WHERE cm.user_id = ?
+		  AND c.is_archived = false
 		  AND (s.id IS NULL OR s.status = 'not_submitted')
 	`, mahasiswaId).Rows()
 	if err != nil {
@@ -250,13 +290,13 @@ func (c *ClassroomRepository) GetMahasiswaDashboardStats(mahasiswaId string) (da
 func (c *ClassroomRepository) GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error) {
 	var stats data.DashboardStatsResponse
 
-	if err := c.Db.Model(&model.Classroom{}).Where("dosen_id = ?", dosenId).Count(&stats.TotalClassrooms).Error; err != nil {
+	if err := c.Db.Model(&model.Classroom{}).Where("dosen_id = ? AND is_archived = ?", dosenId, false).Count(&stats.TotalClassrooms).Error; err != nil {
 		return stats, err
 	}
 
 	if err := c.Db.Model(&model.ClassroomMahasiswa{}).
 		Joins("JOIN classrooms ON classrooms.id = classroom_mahasiswas.classroom_id").
-		Where("classrooms.dosen_id = ?", dosenId).
+		Where("classrooms.dosen_id = ? AND classrooms.is_archived = ?", dosenId, false).
 		Distinct("classroom_mahasiswas.user_id").
 		Count(&stats.TotalStudents).Error; err != nil {
 		return stats, err
@@ -264,7 +304,7 @@ func (c *ClassroomRepository) GetDashboardStats(dosenId string) (data.DashboardS
 
 	if err := c.Db.Model(&model.Assignment{}).
 		Joins("JOIN classrooms ON classrooms.id = assignments.classroom_id").
-		Where("classrooms.dosen_id = ?", dosenId).
+		Where("classrooms.dosen_id = ? AND classrooms.is_archived = ?", dosenId, false).
 		Count(&stats.TotalAssignments).Error; err != nil {
 		return stats, err
 	}

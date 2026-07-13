@@ -15,8 +15,8 @@ type ClassroomForumPost struct {
 	CreatedAt   time.Time
 	ClassroomId string
 	DosenId     string
-	Dosen       User      `json:"dosen" gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE"`
-	Classroom   Classroom `gorm:"foreignKey:ClassroomId"`
+	Dosen     User      `json:"dosen" gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE"`
+	Classroom Classroom `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE"`
 }
 
 func (classroomForumPost *ClassroomForumPost) BeforeCreate(tx *gorm.DB) error {

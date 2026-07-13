@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { classPolicySchema, type ClassPolicyFormData } from "@/schemas/classroom";
-import { updateClassroomPolicies } from "@/actions/update-classroom-policies";
+import { classroomServices } from "@/services/classroom.service";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { IClassroomPolicies } from "@/types/Classroom";
 
 export function useAssignmentForum(classroomId: string, policies: IClassroomPolicies | null) {
+  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
 
   const form = useForm<ClassPolicyFormData>({
@@ -32,12 +34,13 @@ export function useAssignmentForum(classroomId: string, policies: IClassroomPoli
   const onSubmit = async (data: ClassPolicyFormData) => {
     setIsPending(true);
     try {
-      await updateClassroomPolicies(classroomId, {
+      await classroomServices.updatePolicies(classroomId, {
         late_submission: data.lateSubmission,
         forum_permission: data.forumPermission,
         comment_permission: data.commentPermission,
       });
       toast.success("Kebijakan kelas berhasil diperbarui");
+      router.refresh();
     } catch (error) {
       toast.error((error as Error).message);
     } finally {

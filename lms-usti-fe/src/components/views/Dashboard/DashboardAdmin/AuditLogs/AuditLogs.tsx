@@ -1,4 +1,4 @@
-import { getAuditLogs } from "@/actions/admin";
+import adminServices from "@/services/admin.service";
 import AuditLogsTable from "./AuditLogsTable";
 
 export default async function AuditLogs({
@@ -18,7 +18,8 @@ export default async function AuditLogs({
   let error: string | null = null;
 
   try {
-    const result = await getAuditLogs({ page, limit });
+    const res = await adminServices.getAuditLogs({ page, limit });
+    const result = res.data;
     logs = result.data || [];
     pagination = result.pagination || {
       limit,

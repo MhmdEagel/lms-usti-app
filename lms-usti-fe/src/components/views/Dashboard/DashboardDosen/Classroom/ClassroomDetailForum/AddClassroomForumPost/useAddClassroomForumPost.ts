@@ -1,12 +1,14 @@
-import { createNewForumPost } from "@/actions/create-forum-post";
+import { classroomServices } from "@/services/classroom.service";
 import { newForumPostSchema } from "@/schemas/schemas";
 import { ICreateClassroomForumPost } from "@/types/Classroom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const useAddForumPost = () => {
+  const router = useRouter();
   const form = useForm({
     resolver: zodResolver(newForumPostSchema),
   });
@@ -29,8 +31,9 @@ const useAddForumPost = () => {
   ) => {
     setIsPending(true);
     try {
-      await createNewForumPost(data, classroomId);
+      await classroomServices.createForumPost(data, classroomId);
       toast.success("Berhasil menambahkan pengumuman");
+      router.refresh();
       form.reset();
       handleOpen(false);
     } catch {

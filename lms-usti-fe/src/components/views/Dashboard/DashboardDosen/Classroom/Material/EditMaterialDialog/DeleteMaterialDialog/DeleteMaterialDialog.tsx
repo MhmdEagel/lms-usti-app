@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteMaterial } from "@/actions/delete-material";
+import { materialServices } from "@/services/material.service";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,9 +41,13 @@ export default function DeleteMaterialDialog(props: PropTypes) {
           <AlertDialogAction
             onClick={() =>
               startTransition(async () => {
-                await deleteMaterial(classroomId, materialId);
-                router.push(`/dosen/kelas/${classroomId}/materi`);
-                toast.success("Materi berhasil dihapus");
+                try {
+                  await materialServices.delete(classroomId, materialId);
+                  router.refresh();
+                  toast.success("Materi berhasil dihapus");
+                } catch {
+                  toast.error("Gagal menghapus materi");
+                }
               })
             }
             disabled={isPending}

@@ -2,8 +2,7 @@ import { useRef, useState, useCallback, useEffect, type Dispatch, type SetStateA
 import { toast } from "sonner";
 import type { IAttachment } from "@/types/Classroom";
 import type { IMySubmission } from "@/types/Classroom";
-import { uploadSubmission } from "@/actions/upload-submission";
-import { deleteFileSubmission } from "@/actions/delete-file-submission";
+import { mediaServices } from "@/services/media.service";
 
 type TrackStatus = "original" | "new" | "deleted";
 
@@ -43,7 +42,7 @@ export default function useSubmitAssignmentDialog(mySubmission?: IMySubmission |
       if (item.status === "new") {
         setIsPendingUploadFile(true);
         try {
-          await deleteFileSubmission(item.unique_name);
+          await mediaServices.deleteSubmission(item.unique_name);
           setTrackedAttachments((prev) =>
             prev.filter((a) => a.unique_name !== item.unique_name),
           );
@@ -72,7 +71,7 @@ export default function useSubmitAssignmentDialog(mySubmission?: IMySubmission |
     formData.append("file", blob, file.name);
     try {
       setIsPendingUploadFile(true);
-      const res = await uploadSubmission(formData);
+      const res = await mediaServices.uploadSubmission(formData);
       const newFile: TrackedAttachment = {
         name: res.data?.file_name,
         url: res.data?.file_url,
@@ -109,7 +108,7 @@ export default function useSubmitAssignmentDialog(mySubmission?: IMySubmission |
       );
       if (filesToDelete.length > 0) {
         await Promise.all(
-          filesToDelete.map((f) => deleteFileSubmission(f.unique_name)),
+          filesToDelete.map((f) => mediaServices.deleteSubmission(f.unique_name)),
         );
       }
     } catch {

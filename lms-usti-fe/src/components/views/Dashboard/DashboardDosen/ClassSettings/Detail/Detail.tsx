@@ -49,15 +49,11 @@ export default function Detail({
       <form
         onSubmit={editForm.handleSubmit((data) => handleEdit(classroomId, data))}
       >
-        <div
-          className={cn("flex flex-col gap-4", {
-            "gap-2": Object.keys(editForm.formState.errors).length > 0,
-          })}
-        >
-          <Card className="bg-blue-200 min-h-30">
-            <CardContent>
+        <div className="flex flex-col gap-4 sm:gap-6">
+          <Card className="bg-accent min-h-30">
+            <CardContent className="px-4 sm:px-6">
               <Image
-                className="mx-auto block min-w-55 max-w-55"
+                className="mx-auto block w-full max-w-[220px]"
                 width={500}
                 height={500}
                 src={`/images/ilustration/classroom/${coverPreview}.svg`}
@@ -135,84 +131,88 @@ export default function Detail({
               </FormItem>
             )}
           />
-          <FormField
-            control={editForm.control}
-            name="class_start"
-            defaultValue={getTimeString(classDetail.class_start)}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Waktu Mulai</FormLabel>
-                <FormControl>
-                  <Input type="time" placeholder="Waktu Mulai" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={editForm.control}
-            name="class_end"
-            defaultValue={getTimeString(classDetail.class_end)}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Waktu Selesai</FormLabel>
-                <FormControl>
-                  <Input type="time" placeholder="Waktu Selesai" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={editForm.control}
-            name="term"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Semester</FormLabel>
-                <FormControl>
-                  <Input
-                    min={1}
-                    autoComplete="off"
-                    type="number"
-                    placeholder="Semester"
-                    inputMode="numeric"
-                    pattern="[1-9]{1}"
-                    defaultValue={classDetail.term.toString()}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={editForm.control}
-            name="day"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hari Kelas</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={classDetail.day.toString()}
-                >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <FormField
+              control={editForm.control}
+              name="class_start"
+              defaultValue={getTimeString(classDetail.class_start)}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Waktu Mulai</FormLabel>
                   <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Pilih Hari" />
-                    </SelectTrigger>
+                    <Input type="time" placeholder="Waktu Mulai" {...field} />
                   </FormControl>
-                  <SelectContent>
-                    {CLASS_DAYS.map((item) => (
-                      <SelectItem key={item.id} value={item.value}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button disabled={isPending} className="ml-auto" type="submit">
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={editForm.control}
+              name="class_end"
+              defaultValue={getTimeString(classDetail.class_end)}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Waktu Selesai</FormLabel>
+                  <FormControl>
+                    <Input type="time" placeholder="Waktu Selesai" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <FormField
+              control={editForm.control}
+              name="term"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Semester</FormLabel>
+                  <FormControl>
+                    <Input
+                      min={1}
+                      autoComplete="off"
+                      type="number"
+                      placeholder="Semester"
+                      inputMode="numeric"
+                      pattern="[1-9]{1}"
+                      defaultValue={classDetail.term.toString()}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={editForm.control}
+              name="day"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Hari Kelas</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={classDetail.day.toString()}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Pilih Hari" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {CLASS_DAYS.map((item) => (
+                        <SelectItem key={item.id} value={item.value}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <Button disabled={isPending} className="ml-auto w-full sm:w-auto" type="submit">
             {isPending ? "Menyimpan..." : "Simpan"}
           </Button>
         </div>

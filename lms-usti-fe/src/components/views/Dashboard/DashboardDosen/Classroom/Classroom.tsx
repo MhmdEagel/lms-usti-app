@@ -5,7 +5,7 @@ import { Filter } from "lucide-react";
 import CreateClassroom from "./CreateClassroom";
 import { SearchBar } from "@/components/ui/searchfield";
 import { Skeleton } from "@/components/ui/skeleton";
-import ClassroomSkeleton from "./ClassroomSkeleton";
+import ClassroomSkeleton from "@/components/common/ClassroomSkeleton";
 import FilterSheet from "@/components/common/FilterSheet";
 import ActiveFilterCapsules from "@/components/common/ActiveFilterCapsules";
 

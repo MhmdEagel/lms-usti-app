@@ -68,12 +68,23 @@ func (c *ClassroomController) FindAllByDosenId(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
 
+	isArchivedStr := ctx.Query("is_archived")
+	var isArchived *bool
+	if isArchivedStr == "true" {
+		t := true
+		isArchived = &t
+	} else if isArchivedStr == "false" {
+		f := false
+		isArchived = &f
+	}
+
 	filter := data.ClassroomFilter{
 		Search:      search,
 		Prodi:       ctx.Query("prodi"),
 		Term:        ctx.Query("term"),
 		TahunAjaran: ctx.Query("tahun_ajaran"),
 		RoomNumber:  ctx.Query("room_number"),
+		IsArchived:  isArchived,
 	}
 
 	pagination := data.Pagination{Limit: limit, Current: page}
@@ -125,12 +136,23 @@ func (c *ClassroomController) FindAllByMahasiswaId(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
 
+	isArchivedStr := ctx.Query("is_archived")
+	var isArchived *bool
+	if isArchivedStr == "true" {
+		t := true
+		isArchived = &t
+	} else if isArchivedStr == "false" {
+		f := false
+		isArchived = &f
+	}
+
 	filter := data.ClassroomFilter{
 		Search:      search,
 		Prodi:       ctx.Query("prodi"),
 		Term:        ctx.Query("term"),
 		TahunAjaran: ctx.Query("tahun_ajaran"),
 		RoomNumber:  ctx.Query("room_number"),
+		IsArchived:  isArchived,
 	}
 	pagination := data.Pagination{Limit: limit, Current: page}
 	paginationResult, err := c.classroomService.FindAllByMahasiswaId(user.ID, filter, pagination)
@@ -299,6 +321,68 @@ func (c *ClassroomController) GetMahasiswaDashboardStats(ctx *gin.Context) {
 		return
 	}
 	res := data.NewResponse(http.StatusOK, "berhasil mengambil dashboard stats mahasiswa", stats)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *ClassroomController) Archive(ctx *gin.Context) {
+	classroomId := ctx.Param("id")
+	val, exist := ctx.Get("user")
+	if !exist {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	err := c.classroomService.Archive(classroomId, user.ID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			res := data.NewResponse(http.StatusNotFound, "classroom not found", nil)
+			ctx.JSON(http.StatusNotFound, res)
+			return
+		}
+		log.Printf("Archive: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+
+	res := data.NewResponse(http.StatusOK, "classroom successfully archived", nil)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *ClassroomController) Unarchive(ctx *gin.Context) {
+	classroomId := ctx.Param("id")
+	val, exist := ctx.Get("user")
+	if !exist {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	err := c.classroomService.Unarchive(classroomId, user.ID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			res := data.NewResponse(http.StatusNotFound, "classroom not found", nil)
+			ctx.JSON(http.StatusNotFound, res)
+			return
+		}
+		log.Printf("Unarchive: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+
+	res := data.NewResponse(http.StatusOK, "classroom successfully unarchived", nil)
 	ctx.JSON(http.StatusOK, res)
 }
 

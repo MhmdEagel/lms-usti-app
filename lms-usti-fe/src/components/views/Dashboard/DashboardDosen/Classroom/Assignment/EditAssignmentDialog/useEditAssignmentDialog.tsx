@@ -2,15 +2,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import type { IAttachment } from "@/types/Classroom";
 import { createAssignmentSchema } from "@/schemas/assignment";
-import { uploadAssignment } from "@/actions/upload-assignment";
 import { z } from "zod";
 import { AxiosError } from "axios";
 import { ErrorResponse } from "@/types/Response";
-import { deleteAssignmentBatch } from "@/actions/delete-assignment-batch";
-import { editAssignment } from "@/actions/edit-assignment";
-import { deleteFileAssignment } from "@/actions/delete-file-assignment";
+import { assignmentServices } from "@/services/assignment.service";
+import { mediaServices } from "@/services/media.service";
 
 type TrackStatus = "original" | "new" | "deleted";
 
@@ -19,6 +18,7 @@ export interface TrackedAttachment extends IAttachment {
 }
 
 const useEditAssignmentDialog = () => {
+  const router = useRouter();
   const [trackedAttachments, setTrackedAttachments] = useState<TrackedAttachment[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
@@ -68,16 +68,16 @@ const useEditAssignmentDialog = () => {
         instruction: data.instruction || undefined,
         attachments: trackedAttachments.filter((f) => f.status !== "deleted"),
       };
-      await editAssignment(payload, classroomId, assignmentId);
+      await assignmentServices.update(payload, classroomId, assignmentId);
       const deletedFiles = trackedAttachments.filter(
         (f) => f.status === "deleted" && f.unique_name,
       );
       if (deletedFiles.length > 0) {
-        await deleteAssignmentBatch(deletedFiles);
+        await mediaServices.deleteAssignmentBatch({ files: deletedFiles.map(f => f.url) });
       }
       for (const uniqueName of orphanedNewFilesRef.current) {
         try {
-          await deleteFileAssignment(uniqueName);
+          await mediaServices.deleteAssignment(uniqueName);
         } catch {
           console.error("Failed to delete orphaned file:", uniqueName);
         }
@@ -85,6 +85,7 @@ const useEditAssignmentDialog = () => {
       orphanedNewFilesRef.current.clear();
       toast.success("Berhasil mengubah tugas");
       resetState(setOpen);
+      router.refresh();
     } catch (e) {
       toast.error("Gagal mengubah tugas");
     } finally {
@@ -105,7 +106,7 @@ const useEditAssignmentDialog = () => {
     if (allOrphans.length > 0) {
       try {
         for (const file of allOrphans) {
-          await deleteFileAssignment(file.unique_name);
+          await mediaServices.deleteAssignment(file.unique_name);
         }
       } catch {
         console.error("Failed to delete new files");
@@ -121,7 +122,7 @@ const useEditAssignmentDialog = () => {
     formData.append("file", blob, file.name);
     try {
       setIsPendingUploadFile(true);
-      const res = await uploadAssignment(formData);
+      const res = await mediaServices.uploadAssignment(formData);
       const newFile: TrackedAttachment = {
         name: res.data?.file_name || file.name,
         url: res.data?.file_url || "",

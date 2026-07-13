@@ -31,13 +31,11 @@ go test ./...     # Run all tests (uses SQLite in-memory DB)
 
 ```
 Client Component (React Hook Form)
-  -> Server Action ("use server" in src/actions/)
     -> Service (src/services/) with Axios
       -> Go Backend API at localhost:3001/lms-usti-api
 ```
 
 - Axios instance (`src/lib/axios.ts`) auto-attaches Bearer token from cookies
-- Server Actions transform AxiosError into user-friendly Error messages
 - After mutations, `revalidatePath()` refreshes server-side data
 
 ### Role-Based Routing
