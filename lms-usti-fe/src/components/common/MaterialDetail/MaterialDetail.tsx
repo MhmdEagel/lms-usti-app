@@ -13,6 +13,7 @@ import { ArrowLeft, Book, Eye } from "lucide-react";
 import { materialServices } from "@/services/material.service";
 import { IMaterial } from "@/types/Classroom";
 import MaterialAction from "./MaterialAction";
+import ViewersDialog from "@/components/common/ViewersDialog/ViewersDialog";
 import MaterialBreadcrumb from "./MaterialBreadcrumb";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -31,6 +32,8 @@ export default async function MaterialDetail(props: PropTypes) {
   dayjs.extend(localizedFormat);
   dayjs.locale("id");
   const role: string = user.role;
+
+  console.log(data)
 
   if (!data) {
     return (
@@ -59,7 +62,7 @@ export default async function MaterialDetail(props: PropTypes) {
       />
       <Link
         className="mb-2"
-        href={`/${role.toLowerCase()}/kelas/${classroomId}/materi`}
+        href={`/${role.toLowerCase()}/kelas/${classroomId}/pertemuan/materi`}
       >
         <Button className="rounded-full" variant={"ghost"}>
           <ArrowLeft /> Kembali
@@ -82,10 +85,28 @@ export default async function MaterialDetail(props: PropTypes) {
                     <div className="text-gray-500 text-sm md:text-base">
                       {dayjs(data.created_at).format("lll")}
                     </div>
-                    <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
-                      <Eye className="h-3 w-3" />
-                      {data.view_count} dilihat
-                    </div>
+                    {role === "DOSEN" || role === "PRODI" ? (
+                      <ViewersDialog
+                        viewableType="material"
+                        classroomId={classroomId}
+                        contentId={materiId}
+                        viewCount={data.view_count}
+                        trigger={
+                          <button
+                            type="button"
+                            className="flex items-center gap-1 text-sm text-gray-500 mt-1 hover:text-gray-700 transition-colors"
+                          >
+                            <Eye className="h-3 w-3" />
+                            {data.view_count} dilihat
+                          </button>
+                        }
+                      />
+                    ) : (
+                      <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                        <Eye className="h-3 w-3" />
+                        {data.view_count} dilihat
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardHeader>

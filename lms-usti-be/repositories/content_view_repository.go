@@ -3,9 +3,8 @@ package repositories
 import (
 	"strings"
 
-	"gorm.io/gorm"
-
 	"github.com/MhmdEagel/lms-usti-be/model"
+	"gorm.io/gorm"
 )
 
 type ContentViewRepository struct {
@@ -15,6 +14,9 @@ type ContentViewRepository struct {
 type ContentViewRepositoryInterface interface {
 	HasViewed(userID, viewableType, viewableID string) (bool, error)
 	RecordView(userID, viewableType, viewableID string) error
+	TryRecordView(userID, viewableType, viewableID string) (bool, error)
+	GetViewersByContent(viewableType, viewableID string) ([]model.User, error)
+	CountViews(viewableType, viewableID string) (int64, error)
 }
 
 func NewContentViewRepository(Db *gorm.DB) ContentViewRepositoryInterface {
@@ -38,14 +40,42 @@ func (r *ContentViewRepository) RecordView(userID, viewableType, viewableID stri
 		ViewableType: viewableType,
 		ViewableID:   viewableID,
 	}
+	return r.Db.Create(&view).Error
+}
+
+func (r *ContentViewRepository) TryRecordView(userID, viewableType, viewableID string) (bool, error) {
+	view := model.ContentView{
+		UserID:       userID,
+		ViewableType: viewableType,
+		ViewableID:   viewableID,
+	}
 	err := r.Db.Create(&view).Error
 	if err != nil {
 		if isDuplicateEntry(err) {
-			return nil
+			return false, nil
 		}
-		return err
+		return false, err
 	}
-	return nil
+	return true, nil
+}
+
+func (r *ContentViewRepository) GetViewersByContent(viewableType, viewableID string) ([]model.User, error) {
+	var users []model.User
+	err := r.Db.Model(&model.ContentView{}).
+		Select("users.id, users.fullname, users.image, users.role").
+		Joins("JOIN users ON users.id = content_views.user_id").
+		Where("content_views.viewable_type = ? AND content_views.viewable_id = ?", viewableType, viewableID).
+		Order("content_views.viewed_at DESC").
+		Find(&users).Error
+	return users, err
+}
+
+func (r *ContentViewRepository) CountViews(viewableType, viewableID string) (int64, error) {
+	var count int64
+	err := r.Db.Model(&model.ContentView{}).
+		Where("viewable_type = ? AND viewable_id = ?", viewableType, viewableID).
+		Count(&count).Error
+	return count, err
 }
 
 func isDuplicateEntry(err error) bool {

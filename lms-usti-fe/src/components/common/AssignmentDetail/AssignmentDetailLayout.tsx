@@ -49,7 +49,7 @@ export default async function AssignmentDetailLayout({
       />
       <Link
         className="mb-2"
-        href={`/${role}/kelas/${classroomId}/tugas`}
+        href={`/${role}/kelas/${classroomId}/pertemuan/tugas`}
       >
         <Button className="rounded-full" variant="ghost">
           <ArrowLeft /> Kembali

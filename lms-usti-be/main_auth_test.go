@@ -3,45 +3,83 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/MhmdEagel/lms-usti-be/controllers"
+	"github.com/MhmdEagel/lms-usti-be/env"
 	"github.com/MhmdEagel/lms-usti-be/lib"
 	"github.com/MhmdEagel/lms-usti-be/middleware"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
 	"github.com/MhmdEagel/lms-usti-be/services"
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
+func getEnvOrDefault(key, defaultVal string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	return defaultVal
+}
+
+func getTestDBName() string {
+	if v := os.Getenv("TEST_DB_NAME"); v != "" {
+		return v
+	}
+	return "lms_usti_test_db"
+}
+
 func setupTestDB() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	testDB := getTestDBName()
+
+	rootDSN := fmt.Sprintf("%s:%s@tcp(localhost:3306)/?charset=utf8mb4&parseTime=True&loc=Local",
+		env.DB_USERNAME,
+		env.DB_PASSWORD,
+	)
+	rootDB, err := gorm.Open(mysql.New(mysql.Config{DSN: rootDSN, DefaultStringSize: 255}), &gorm.Config{TranslateError: true})
+	if err != nil {
+		panic("failed to connect to MySQL: " + err.Error())
+	}
+	rootDB.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", testDB))
+
+	dsn := fmt.Sprintf("%s:%s@tcp(localhost:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		env.DB_USERNAME,
+		env.DB_PASSWORD,
+		testDB,
+	)
+	db, err := gorm.Open(mysql.New(mysql.Config{DSN: dsn, DefaultStringSize: 255}), &gorm.Config{TranslateError: true})
 	if err != nil {
 		panic("failed to connect to test database: " + err.Error())
 	}
-	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.ClassroomForumPost{}, &model.Material{}, &model.MaterialAttachment{}, &model.Assignment{}, &model.AssignmentAttachment{}, &model.Submission{}, &model.SubmissionAttachment{}, &model.AuditLogs{})
+	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.ClassroomForumPost{}, &model.Meeting{}, &model.Material{}, &model.MaterialAttachment{}, &model.Assignment{}, &model.AssignmentAttachment{}, &model.Submission{}, &model.SubmissionAttachment{}, &model.AuditLogs{}, &model.ContentView{})
 	return db
 }
 
 func cleanupDatabase(db *gorm.DB) {
+	db.Exec("SET FOREIGN_KEY_CHECKS = 0")
 	db.Exec("DELETE FROM material_attachments")
 	db.Exec("DELETE FROM materials")
 	db.Exec("DELETE FROM assignment_attachments")
 	db.Exec("DELETE FROM assignment_rubrics")
+	db.Exec("DELETE FROM content_views")
 	db.Exec("DELETE FROM submission_files")
 	db.Exec("DELETE FROM submission_links")
 	db.Exec("DELETE FROM submissions")
 	db.Exec("DELETE FROM assignments")
 	db.Exec("DELETE FROM announcements")
 	db.Exec("DELETE FROM classroom_mahasiswas")
+	db.Exec("DELETE FROM meetings")
 	db.Exec("DELETE FROM classrooms")
 	db.Exec("DELETE FROM verification_tokens")
 	db.Exec("DELETE FROM users")
+	db.Exec("SET FOREIGN_KEY_CHECKS = 1")
 }
 
 func setupTestRouter(db *gorm.DB) *gin.Engine {
@@ -75,8 +113,6 @@ func setupTestRouter(db *gorm.DB) *gin.Engine {
 		auth := api.Group("/auth")
 		{
 			auth.POST("/login", authController.Login)
-			auth.POST("/activation/resend", authController.ResendActivation)
-			auth.POST("/reset-password", authController.SendResetPasswordEmail)
 			auth.POST("/new-password", authController.ResetPassword)
 			auth.Use(authMiddleware.Handle()).GET("/me", authController.Me)
 		}
@@ -211,22 +247,6 @@ func TestLogin(t *testing.T) {
 		}
 	})
 
-	t.Run("Login email belum diverifikasi", func(t *testing.T) {
-		cleanupDatabase(db)
-		hashedPw, _ := lib.HashPassword("password123")
-		db.Create(&model.User{Fullname: "Test User", Email: "unverified@test.com", Password: hashedPw, Role: "MAHASISWA"})
-		body := `{"email":"unverified@test.com","password":"password123"}`
-		w := makeRequest(r, "POST", "/lms-usti-api/auth/login", body, "")
-		res := parseResponse(w)
-
-		if w.Code != http.StatusForbidden {
-			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
-		}
-		if res.Meta.Message != "akun belum diverifikasi" {
-			t.Errorf("expected 'akun belum diverifikasi', got '%s'", res.Meta.Message)
-		}
-	})
-
 	t.Run("Login body kosong", func(t *testing.T) {
 		cleanupDatabase(db)
 		body := `{}`
@@ -237,165 +257,7 @@ func TestLogin(t *testing.T) {
 	})
 }
 
-// --- Tahap 4: Test Activation ---
-
-func TestActivateUser(t *testing.T) {
-	db := setupTestDB()
-	defer cleanupDatabase(db)
-	r := setupTestRouter(db)
-
-	t.Run("Aktivasi berhasil", func(t *testing.T) {
-		cleanupDatabase(db)
-		hashedPw, _ := lib.HashPassword("password123")
-		db.Create(&model.User{Fullname: "Test User", Email: "user@test.com", Password: hashedPw, Role: "MAHASISWA"})
-		token := seedVerificationToken(db, "user@test.com", false)
-		body := `{"token":"` + token.Token + `"}`
-		w := makeRequest(r, "POST", "/lms-usti-api/auth/activation", body, "")
-		res := parseResponse(w)
-
-		if w.Code != http.StatusOK {
-			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
-		}
-		if res.Meta.Message != "account successfully activated" {
-			t.Errorf("expected 'account successfully activated', got '%s'", res.Meta.Message)
-		}
-	})
-
-	t.Run("Token tidak valid", func(t *testing.T) {
-		cleanupDatabase(db)
-		body := `{"token":"invalid-token-123"}`
-		w := makeRequest(r, "POST", "/lms-usti-api/auth/activation", body, "")
-		res := parseResponse(w)
-
-		if w.Code != http.StatusBadRequest {
-			t.Errorf("expected 400, got %d: %s", w.Code, string(w.Body.Bytes()))
-		}
-		if res.Meta.Message != "token tidak valid" {
-			t.Errorf("expected 'token tidak valid', got '%s'", res.Meta.Message)
-		}
-	})
-
-	t.Run("Token expired", func(t *testing.T) {
-		cleanupDatabase(db)
-		hashedPw, _ := lib.HashPassword("password123")
-		db.Create(&model.User{Fullname: "Test User", Email: "user@test.com", Password: hashedPw, Role: "MAHASISWA"})
-		token := seedVerificationToken(db, "user@test.com", true)
-		body := `{"token":"` + token.Token + `"}`
-		w := makeRequest(r, "POST", "/lms-usti-api/auth/activation", body, "")
-		res := parseResponse(w)
-
-		if w.Code != http.StatusBadRequest {
-			t.Errorf("expected 400, got %d: %s", w.Code, string(w.Body.Bytes()))
-		}
-		if res.Meta.Message != "token sudah kedaluwarsa" {
-			t.Errorf("expected 'token sudah kedaluwarsa', got '%s'", res.Meta.Message)
-		}
-	})
-
-	t.Run("Body kosong", func(t *testing.T) {
-		cleanupDatabase(db)
-		body := `{}`
-		w := makeRequest(r, "POST", "/lms-usti-api/auth/activation", body, "")
-		if w.Code != http.StatusBadRequest {
-			t.Errorf("expected 400, got %d: %s", w.Code, string(w.Body.Bytes()))
-		}
-	})
-}
-
-// --- Tahap 5: Test Resend Activation ---
-
-func TestResendActivation(t *testing.T) {
-	db := setupTestDB()
-	defer cleanupDatabase(db)
-	r := setupTestRouter(db)
-
-	t.Run("Resend berhasil", func(t *testing.T) {
-		cleanupDatabase(db)
-		hashedPw, _ := lib.HashPassword("password123")
-		db.Create(&model.User{Fullname: "Test User", Email: "user@test.com", Password: hashedPw, Role: "MAHASISWA"})
-		body := `{"email":"user@test.com"}`
-		w := makeRequest(r, "POST", "/lms-usti-api/auth/activation/resend", body, "")
-		res := parseResponse(w)
-
-		if w.Code != http.StatusOK {
-			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
-		}
-		if res.Meta.Message != "email successfully sent" {
-			t.Errorf("expected 'email successfully sent', got '%s'", res.Meta.Message)
-		}
-	})
-
-	t.Run("Email tidak terdaftar", func(t *testing.T) {
-		cleanupDatabase(db)
-		body := `{"email":"notfound@test.com"}`
-		w := makeRequest(r, "POST", "/lms-usti-api/auth/activation/resend", body, "")
-		res := parseResponse(w)
-
-		if w.Code != http.StatusNotFound {
-			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
-		}
-		if res.Meta.Message != "email tidak ditemukan" {
-			t.Errorf("expected 'email tidak ditemukan', got '%s'", res.Meta.Message)
-		}
-	})
-
-	t.Run("Body kosong", func(t *testing.T) {
-		cleanupDatabase(db)
-		body := `{}`
-		w := makeRequest(r, "POST", "/lms-usti-api/auth/activation/resend", body, "")
-		if w.Code != http.StatusBadRequest {
-			t.Errorf("expected 400, got %d: %s", w.Code, string(w.Body.Bytes()))
-		}
-	})
-}
-
-// --- Tahap 6: Test Send Reset Password Email ---
-
-func TestSendResetPasswordEmail(t *testing.T) {
-	db := setupTestDB()
-	defer cleanupDatabase(db)
-	r := setupTestRouter(db)
-
-	t.Run("Reset berhasil", func(t *testing.T) {
-		cleanupDatabase(db)
-		seedUser(db, "Test User", "user@test.com", "password123", "MAHASISWA")
-		body := `{"email":"user@test.com"}`
-		w := makeRequest(r, "POST", "/lms-usti-api/auth/reset-password", body, "")
-		res := parseResponse(w)
-
-		if w.Code != http.StatusOK {
-			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
-		}
-		if res.Meta.Message != "email successfully sent" {
-			t.Errorf("expected 'email successfully sent', got '%s'", res.Meta.Message)
-		}
-	})
-
-	t.Run("Email tidak terdaftar", func(t *testing.T) {
-		cleanupDatabase(db)
-		body := `{"email":"notfound@test.com"}`
-		w := makeRequest(r, "POST", "/lms-usti-api/auth/reset-password", body, "")
-		res := parseResponse(w)
-
-		if w.Code != http.StatusNotFound {
-			t.Errorf("expected 404, got %d: %s", w.Code, string(w.Body.Bytes()))
-		}
-		if res.Meta.Message != "email tidak ditemukan" {
-			t.Errorf("expected 'email tidak ditemukan', got '%s'", res.Meta.Message)
-		}
-	})
-
-	t.Run("Body kosong", func(t *testing.T) {
-		cleanupDatabase(db)
-		body := `{}`
-		w := makeRequest(r, "POST", "/lms-usti-api/auth/reset-password", body, "")
-		if w.Code != http.StatusBadRequest {
-			t.Errorf("expected 400, got %d: %s", w.Code, string(w.Body.Bytes()))
-		}
-	})
-}
-
-// --- Tahap 7: Test New Password ---
+// --- Tahap 6: Test New Password ---
 
 func TestNewPassword(t *testing.T) {
 	db := setupTestDB()

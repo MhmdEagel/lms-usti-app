@@ -30,6 +30,8 @@ type ClassroomServiceInterface interface {
 	Delete(classroomId string, userID string) error
 	Archive(classroomId string, userID string) error
 	Unarchive(classroomId string, userID string) error
+	GetClassroomGrades(classroomId string) (data.ClassroomGradesResponse, error)
+	GetMyGrades(classroomId string, studentId string) (data.StudentGradesResponse, error)
 	GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error)
 	GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error)
 }
@@ -289,6 +291,128 @@ func (c *ClassroomService) Archive(classroomId string, userID string) error {
 
 func (c *ClassroomService) Unarchive(classroomId string, userID string) error {
 	return c.classroomRepository.Unarchive(classroomId, userID)
+}
+
+func (c *ClassroomService) GetClassroomGrades(classroomId string) (data.ClassroomGradesResponse, error) {
+	submissions, assignments, err := c.submissionService.GetClassroomGrades(classroomId)
+	if err != nil {
+		return data.ClassroomGradesResponse{}, err
+	}
+
+	gradeAssignments := make([]data.ClassroomGradeAssignment, len(assignments))
+	for i, a := range assignments {
+		gradeAssignments[i] = data.ClassroomGradeAssignment{ID: a.ID, Title: a.Title}
+	}
+
+	studentMap := make(map[string]*data.ClassroomGradeStudent)
+	var studentOrder []string
+
+	for _, sub := range submissions {
+		studentID := sub.StudentId
+		student, ok := studentMap[studentID]
+		if !ok {
+			fullname := sub.User.Fullname
+			student = &data.ClassroomGradeStudent{
+				ID:       studentID,
+				Fullname: fullname,
+				Grades:   make(map[string]*float64),
+			}
+			studentMap[studentID] = student
+			studentOrder = append(studentOrder, studentID)
+		}
+		student.Grades[sub.AssignmentId] = sub.Score
+	}
+
+	students := make([]data.ClassroomGradeStudent, len(studentOrder))
+	for i, id := range studentOrder {
+		students[i] = *studentMap[id]
+	}
+
+	averages := make(map[string]float64)
+	var totalSum float64
+	var totalCount int
+
+	for _, a := range assignments {
+		var sum float64
+		var count int
+		for _, s := range students {
+			if score, ok := s.Grades[a.ID]; ok && score != nil {
+				sum += *score
+				count++
+			}
+		}
+		if count > 0 {
+			avg := sum / float64(count)
+			averages[a.ID] = avg
+			totalSum += avg
+			totalCount++
+		}
+	}
+
+	var overallAverage float64
+	if totalCount > 0 {
+		overallAverage = totalSum / float64(totalCount)
+	}
+
+	return data.ClassroomGradesResponse{
+		Assignments:    gradeAssignments,
+		Students:       students,
+		Averages:       averages,
+		OverallAverage: overallAverage,
+	}, nil
+}
+
+func (c *ClassroomService) GetMyGrades(classroomId string, studentId string) (data.StudentGradesResponse, error) {
+	assignments, submissions, err := c.submissionService.GetStudentGrades(classroomId, studentId)
+	if err != nil {
+		return data.StudentGradesResponse{}, err
+	}
+
+	subMap := make(map[string]model.Submission)
+	for _, sub := range submissions {
+		subMap[sub.AssignmentId] = sub
+	}
+
+	var totalScore float64
+	var gradedCount int
+	gradeAssignments := make([]data.StudentGradeAssignment, len(assignments))
+
+	for i, a := range assignments {
+		item := data.StudentGradeAssignment{
+			ID:    a.ID,
+			Title: a.Title,
+		}
+		if a.Deadline.Valid {
+			t := a.Deadline.Time.Format("2006-01-02T15:04:05Z")
+			item.Deadline = &t
+		}
+
+		if sub, ok := subMap[a.ID]; ok {
+			if sub.Score != nil {
+				item.Score = sub.Score
+				item.Status = "graded"
+				totalScore += *sub.Score
+				gradedCount++
+			} else {
+				item.Status = "submitted"
+			}
+		} else {
+			item.Status = "not_submitted"
+		}
+
+		gradeAssignments[i] = item
+	}
+
+	var average *float64
+	if gradedCount > 0 {
+		avg := totalScore / float64(gradedCount)
+		average = &avg
+	}
+
+	return data.StudentGradesResponse{
+		Assignments: gradeAssignments,
+		Average:     average,
+	}, nil
 }
 
 func (c *ClassroomService) GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error) {

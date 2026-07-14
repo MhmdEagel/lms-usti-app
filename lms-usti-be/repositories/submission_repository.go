@@ -25,6 +25,8 @@ type SubmissionRepositoryInterface interface {
 	GetSubmissionStats(assignmentId string) (totalStudents, totalSubmitted, totalGraded int64, err error)
 	GetSubmissionStatsBatch(assignmentIds []string) (map[string]data.SubmissionStatsResponse, error)
 	IsAlreadyCreated(studentId string, classroomId string) bool
+	GetClassroomGrades(classroomId string) ([]model.Submission, []model.Assignment, error)
+	GetStudentGrades(classroomId string, studentId string) ([]model.Assignment, []model.Submission, error)
 }
 
 func NewSubmissionRepository(Db *gorm.DB) SubmissionRepositoryInterface {
@@ -161,6 +163,46 @@ func (s *SubmissionRepository) GetSubmissionStatsBatch(assignmentIds []string) (
 		}
 	}
 	return result, nil
+}
+
+func (s *SubmissionRepository) GetClassroomGrades(classroomId string) ([]model.Submission, []model.Assignment, error) {
+	var assignments []model.Assignment
+	if err := s.Db.Where("classroom_id = ?", classroomId).Order("created_at ASC").Find(&assignments).Error; err != nil {
+		return nil, nil, err
+	}
+	if len(assignments) == 0 {
+		return nil, []model.Assignment{}, nil
+	}
+	assignmentIds := make([]string, len(assignments))
+	for i, a := range assignments {
+		assignmentIds[i] = a.ID
+	}
+	var submissions []model.Submission
+	if err := s.Db.Preload("User").
+		Where("assignment_id IN ?", assignmentIds).
+		Find(&submissions).Error; err != nil {
+		return nil, nil, err
+	}
+	return submissions, assignments, nil
+}
+
+func (s *SubmissionRepository) GetStudentGrades(classroomId string, studentId string) ([]model.Assignment, []model.Submission, error) {
+	var assignments []model.Assignment
+	if err := s.Db.Where("classroom_id = ?", classroomId).Order("created_at ASC").Find(&assignments).Error; err != nil {
+		return nil, nil, err
+	}
+	if len(assignments) == 0 {
+		return []model.Assignment{}, nil, nil
+	}
+	assignmentIds := make([]string, len(assignments))
+	for i, a := range assignments {
+		assignmentIds[i] = a.ID
+	}
+	var submissions []model.Submission
+	if err := s.Db.Where("assignment_id IN ? AND student_id = ?", assignmentIds, studentId).Find(&submissions).Error; err != nil {
+		return nil, nil, err
+	}
+	return assignments, submissions, nil
 }
 
 func (s *SubmissionRepository) IsAlreadyCreated(studentId string, classroomId string) bool {

@@ -386,6 +386,78 @@ func (c *ClassroomController) Unarchive(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+func (c *ClassroomController) GetGrades(ctx *gin.Context) {
+	classroomId := ctx.Param("id")
+	val, exist := ctx.Get("user")
+	if !exist {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+
+	classroom, err := c.classroomService.FindById(classroomId)
+	if err != nil {
+		res := data.NewResponse(http.StatusNotFound, "classroom not found", nil)
+		ctx.JSON(http.StatusNotFound, res)
+		return
+	}
+
+	if classroom.Dosen.ID != user.ID {
+		res := data.NewResponse(http.StatusForbidden, "akses ditolak", nil)
+		ctx.JSON(http.StatusForbidden, res)
+		return
+	}
+
+	grades, err := c.classroomService.GetClassroomGrades(classroomId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			res := data.NewResponse(http.StatusNotFound, "classroom not found", nil)
+			ctx.JSON(http.StatusNotFound, res)
+			return
+		}
+		log.Printf("GetGrades: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+
+	res := data.NewResponse(http.StatusOK, "successfully get classroom grades", grades)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *ClassroomController) GetMyGrades(ctx *gin.Context) {
+	classroomId := ctx.Param("id")
+	val, exist := ctx.Get("user")
+	if !exist {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	user, ok := val.(data.MeResponse)
+	if !ok {
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+
+	grades, err := c.classroomService.GetMyGrades(classroomId, user.ID)
+	if err != nil {
+		log.Printf("GetMyGrades: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+
+	res := data.NewResponse(http.StatusOK, "successfully get student grades", grades)
+	ctx.JSON(http.StatusOK, res)
+}
+
 func (c *ClassroomController) FindAllClassroomMember(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
 	classroomMembers, err := c.classroomService.FindAllClassroomMember(classroomId)

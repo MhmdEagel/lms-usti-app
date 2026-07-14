@@ -48,11 +48,12 @@ func (m *MaterialController) Create(c *gin.Context) {
 func (m *MaterialController) FindAll(c *gin.Context) {
 	id := c.Param("id")
 	search := c.Query("search")
+	meetingId := c.Query("meeting_id")
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	page, _ := strconv.Atoi(c.Query("page"))
 
 	pagination := data.Pagination{Limit: limit, Current: page}
-	paginatedResult, err := m.materialService.FindAll(id, search, pagination)
+	paginatedResult, err := m.materialService.FindAll(id, search, pagination, meetingId)
 	if err != nil {
 		if appErr, ok := err.(*data.AppError); ok {
 			res := data.NewResponseFromError(appErr)
@@ -117,4 +118,16 @@ func (m *MaterialController) Delete(ctx *gin.Context) {
 	}
 	res := data.NewResponse(http.StatusOK, "material berhasil dihapus", nil)
 	ctx.JSON(http.StatusOK, res)
+}
+
+func (m *MaterialController) GetViewers(c *gin.Context) {
+	classroomId := c.Param("id")
+	materialId := c.Param("materialId")
+	viewers, err := m.materialService.GetViewers(materialId, classroomId)
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "berhasil mengambil viewers", viewers)
+	c.JSON(http.StatusOK, res)
 }

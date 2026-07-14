@@ -57,12 +57,16 @@ export default function AssignmentItem({ assignmentId, title, deadline, type = "
         </div>
         <div className="space-y-1 flex-1">
           <div className="font-bold text-base md:text-lg">{title}</div>
-          {hasDeadline && (
+          {hasDeadline ? (
             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-sm font-medium ${
               isOverdue ? "bg-red-50 text-red-600" : "bg-gray-100 text-gray-600"
             }`}>
               <Clock className="h-3 w-3" />
               {dayjs(deadline).format("DD MMMM YYYY, HH:mm")}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-sm font-medium bg-gray-100 text-gray-500">
+              Tidak ada deadline
             </span>
           )}
           {type === "dosen" && stats && (

@@ -16,4 +16,6 @@ export const materialServices = {
     ),
   delete: (classroomId: string, materialId: string) =>
     instance.delete(`${endpoint.CLASSROOM}/${classroomId}/materials/${materialId}`),
+  getViewers: (classroomId: string, materialId: string) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}/materials/${materialId}/viewers`),
 };

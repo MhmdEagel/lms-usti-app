@@ -8,6 +8,8 @@ import DOMPurify from "isomorphic-dompurify";
 import { ArrowLeft, Eye, FileText } from "lucide-react";
 import { assignmentServices } from "@/services/assignment.service";
 import type { IAssignment, IMySubmission } from "@/types/Classroom";
+import { getCurrentUser } from "@/lib/auth";
+import ViewersDialog from "@/components/common/ViewersDialog/ViewersDialog";
 import AssignmentAttachmentSection from "./AssignmentAttachmentSection";
 import AssignmentAction from "./AssignmentAction";
 import SubmitAssignmentDialog from "./SubmitAssignmentDialog/SubmitAssignmentDialog";
@@ -26,17 +28,19 @@ interface PropTypes {
 }
 export default async function AssignmentDetail(props: PropTypes) {
   const { classroomId, assignmentId, type } = props;
-  const [assignmentRes, mySubmissionRes] = await Promise.all([
+  const [assignmentRes, mySubmissionRes, currentUser] = await Promise.all([
     assignmentServices.findAssignmentById(classroomId, assignmentId),
     type === "mahasiswa"
       ? assignmentServices
           .findMySubmission(classroomId, assignmentId)
           .catch(() => null)
       : Promise.resolve(null),
+    getCurrentUser().catch(() => null),
   ]);
   const data: IAssignment = assignmentRes.data?.data;
   const mySubmission: IMySubmission | null =
     mySubmissionRes?.data?.data || null;
+  const role: string = currentUser?.role || "";
   dayjs.locale("id");
   if (!data) {
     return (
@@ -91,7 +95,7 @@ export default async function AssignmentDetail(props: PropTypes) {
         assignmentTitle={data.title}
         role={type}
       />
-      <Link className="mb-2" href={`/${type}/kelas/${classroomId}/tugas`}>
+      <Link className="mb-2" href={`/${type}/kelas/${classroomId}/pertemuan/tugas`}>
         <Button className="rounded-full" variant="ghost">
           <ArrowLeft /> Kembali
         </Button>
@@ -123,10 +127,28 @@ export default async function AssignmentDetail(props: PropTypes) {
                           {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
                         </div>
                       )}
-                      <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
-                        <Eye className="h-3 w-3" />
-                        {data.view_count} dilihat
-                      </div>
+                      {role === "DOSEN" || role === "PRODI" ? (
+                        <ViewersDialog
+                          viewableType="assignment"
+                          classroomId={classroomId}
+                          contentId={assignmentId}
+                          viewCount={data.view_count}
+                          trigger={
+                            <button
+                              type="button"
+                              className="flex items-center gap-1 text-sm text-gray-500 mt-1 hover:text-gray-700 transition-colors"
+                            >
+                              <Eye className="h-3 w-3" />
+                              {data.view_count} dilihat
+                            </button>
+                          }
+                        />
+                      ) : (
+                        <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                          <Eye className="h-3 w-3" />
+                          {data.view_count} dilihat
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
@@ -211,10 +233,28 @@ export default async function AssignmentDetail(props: PropTypes) {
                           {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
                         </div>
                       )}
-                      <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
-                        <Eye className="h-3 w-3" />
-                        {data.view_count} dilihat
-                      </div>
+                      {role === "DOSEN" || role === "PRODI" ? (
+                        <ViewersDialog
+                          viewableType="assignment"
+                          classroomId={classroomId}
+                          contentId={assignmentId}
+                          viewCount={data.view_count}
+                          trigger={
+                            <button
+                              type="button"
+                              className="flex items-center gap-1 text-sm text-gray-500 mt-1 hover:text-gray-700 transition-colors"
+                            >
+                              <Eye className="h-3 w-3" />
+                              {data.view_count} dilihat
+                            </button>
+                          }
+                        />
+                      ) : (
+                        <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                          <Eye className="h-3 w-3" />
+                          {data.view_count} dilihat
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardHeader>

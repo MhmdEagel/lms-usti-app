@@ -13,11 +13,13 @@ export default async function Material({
   page = 1,
   limit = 10,
   search = "",
+  showHeader = true,
 }: {
   classroomId: string;
   page?: number;
   limit?: number;
   search?: string;
+  showHeader?: boolean;
 }) {
   const user = await getCurrentUser();
   const res = await materialServices.findAllMaterials(classroomId, { page, limit, search });
@@ -26,7 +28,7 @@ export default async function Material({
 
   return (
     <>
-      <MaterialHeader />
+      {showHeader && <MaterialHeader />}
       <div className="mt-4 flex flex-wrap gap-2 items-center">
         <div className="w-full sm:w-auto sm:flex-1">
           <SearchBar placeholder="Cari materi..." />
