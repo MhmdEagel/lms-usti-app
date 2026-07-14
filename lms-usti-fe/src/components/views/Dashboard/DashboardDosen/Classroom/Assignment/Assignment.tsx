@@ -14,12 +14,14 @@ export default async function Assignment({
   page = 1,
   limit = 10,
   search = "",
+  showHeader = true,
 }: {
   classroomId: string;
   type?: "dosen" | "mahasiswa";
   page?: number;
   limit?: number;
   search?: string;
+  showHeader?: boolean;
 }) {
   const user = await getCurrentUser();
   const res = await assignmentServices.findAllAssignments(classroomId, { page, limit, search });
@@ -28,7 +30,7 @@ export default async function Assignment({
 
   return (
     <>
-      <AssignmentHeader />
+      {showHeader && <AssignmentHeader />}
       <div className="mt-4 flex flex-wrap gap-2 items-center">
         <div className="w-full sm:w-auto sm:flex-1">
           <SearchBar placeholder="Cari tugas..." />

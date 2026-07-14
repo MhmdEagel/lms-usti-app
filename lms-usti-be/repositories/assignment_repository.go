@@ -15,14 +15,12 @@ type AssignmentRepositoryInterface interface {
 	Create(assignment *model.Assignment) error
 	CreateAttachments(attachments []model.AssignmentAttachment) error
 	CreateSubmissions(submissions []model.Submission) error
-	FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error)
+	FindAll(classroomId string, search string, meetingId string, pagination data.Pagination) (result *data.PaginationWithData, err error)
 	FindAllClassroomMahasiswa(classroomId string) ([]model.ClassroomMahasiswa, error)
 	FindById(assignmentId, classroomId string) (assignment model.Assignment, err error)
 	Update(assignment model.Assignment) error
 	Delete(assignmentId string, classroomId string) error
 	DeleteAttachments(assignmentId string) error
-	IncrementViewCount(assignmentID string) error
-	GetViewCountBatch(assignmentIDs []string) (map[string]int64, error)
 	Transaction(fn func(repo AssignmentRepositoryInterface) error) error
 	FindWaitingGrade(dosenId string) ([]data.AssignmentWaitingGradeResponse, error)
 }
@@ -39,12 +37,15 @@ func (a *AssignmentRepository) Create(assignment *model.Assignment) error {
 	return nil
 }
 
-func (a *AssignmentRepository) FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
+func (a *AssignmentRepository) FindAll(classroomId string, search string, meetingId string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
 	var assignments []model.Assignment
 	result = &data.PaginationWithData{Pagination: pagination}
 	query := a.Db.Where("classroom_id = ?", classroomId).Order("created_at DESC")
 	if search != "" {
 		query = query.Where("title LIKE ?", "%"+search+"%")
+	}
+	if meetingId != "" {
+		query = query.Where("meeting_id = ?", meetingId)
 	}
 	if err := query.Scopes(lib.Paginate(assignments, &pagination, query)).Find(&assignments).Error; err != nil {
 		return nil, err
@@ -63,7 +64,7 @@ func (a *AssignmentRepository) FindById(assignmentId, classroomId string) (assig
 }
 
 func (a *AssignmentRepository) Update(assignment model.Assignment) error {
-	res := a.Db.Where("id = ? AND classroom_id = ?", assignment.ID, assignment.ClassroomId).Model(&model.Assignment{}).Select("Title", "Deadline", "Instruction").Updates(assignment)
+	res := a.Db.Where("id = ? AND classroom_id = ?", assignment.ID, assignment.ClassroomId).Model(&model.Assignment{}).Select("Title", "Deadline", "Instruction", "MeetingId").Updates(assignment)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -120,32 +121,6 @@ func (a *AssignmentRepository) FindWaitingGrade(dosenId string) ([]data.Assignme
 		return nil, err
 	}
 	return result, nil
-}
-
-func (a *AssignmentRepository) IncrementViewCount(assignmentID string) error {
-	return a.Db.Model(&model.Assignment{}).
-		Where("id = ?", assignmentID).
-		UpdateColumn("view_count", gorm.Expr("view_count + 1")).Error
-}
-
-func (a *AssignmentRepository) GetViewCountBatch(assignmentIDs []string) (map[string]int64, error) {
-	type viewResult struct {
-		ID    string
-		Count int64
-	}
-	var rows []viewResult
-	result := a.Db.Model(&model.Assignment{}).
-		Select("id, view_count as count").
-		Where("id IN ?", assignmentIDs).
-		Scan(&rows)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	counts := make(map[string]int64, len(assignmentIDs))
-	for _, r := range rows {
-		counts[r.ID] = r.Count
-	}
-	return counts, nil
 }
 
 func (a *AssignmentRepository) withTx(tx *gorm.DB) AssignmentRepositoryInterface {

@@ -18,11 +18,12 @@ type AssignmentService struct {
 
 type AssignmentServiceInterface interface {
 	Create(assignmentRequest data.AssignmentRequest) error
-	FindAll(classroomId string, search string, pagination data.Pagination, userID ...string) (paginatedResult *data.PaginationWithData, err error)
+	FindAll(classroomId string, search string, pagination data.Pagination, extras ...string) (paginatedResult *data.PaginationWithData, err error)
 	FindById(assignmentId, classroomId, userID string) (assignment data.AssignmentDetailResponse, err error)
 	Update(assignmentRequest data.AssignmentUpdateRequest) error
 	Delete(assignmentId, classroomId string) error
 	FindWaitingGrade(dosenId string) ([]data.AssignmentWaitingGradeResponse, error)
+	GetViewers(assignmentId, classroomId string) ([]data.ViewerResponse, error)
 }
 
 func NewAssignmentService(assignmentRepository repositories.AssignmentRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, submissionService SubmissionServiceInterface, contentViewRepository repositories.ContentViewRepositoryInterface) AssignmentServiceInterface {
@@ -39,6 +40,7 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 				Title:       assignmentRequest.Title,
 				Deadline:    lib.ToNullTime(assignmentRequest.Deadline),
 				Instruction: assignmentRequest.Instruction,
+				MeetingId:   assignmentRequest.MeetingId,
 				ClassroomId: classroom.ID,
 				DosenId:     assignmentRequest.DosenId,
 			}
@@ -98,12 +100,20 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 		})
 }
 
-func (a *AssignmentService) FindAll(classroomId string, search string, pagination data.Pagination, userID ...string) (paginatedResult *data.PaginationWithData, err error) {
+func (a *AssignmentService) FindAll(classroomId string, search string, pagination data.Pagination, extras ...string) (paginatedResult *data.PaginationWithData, err error) {
 	classroom, err := a.classroomRepository.FindById(classroomId)
 	if err != nil {
 		return nil, data.ErrClassroomNotFound(err)
 	}
-	paginatedResult, err = a.assignmentRepository.FindAll(classroom.ID, search, pagination)
+	meetingId := ""
+	userID := ""
+	if len(extras) > 0 {
+		meetingId = extras[0]
+	}
+	if len(extras) > 1 {
+		userID = extras[1]
+	}
+	paginatedResult, err = a.assignmentRepository.FindAll(classroom.ID, search, meetingId, pagination)
 	if err != nil {
 		return nil, err
 	}
@@ -126,8 +136,8 @@ func (a *AssignmentService) FindAll(classroomId string, search string, paginatio
 				MyScore:            nil,
 				MySubmissionDate:   nil,
 			}
-			if len(userID) > 0 && userID[0] != "" {
-				submission, subErr := a.submissionService.FindByAssignmentAndStudent(v.ID, userID[0])
+			if userID != "" {
+				submission, subErr := a.submissionService.FindByAssignmentAndStudent(v.ID, userID)
 				if subErr == nil {
 					assignment.MySubmissionStatus = submission.Status
 					assignment.MyScore = submission.Score
@@ -149,25 +159,20 @@ func (a *AssignmentService) FindById(assignmentId, classroomId, userID string) (
 	if err != nil {
 		return assignment, data.ErrAssignmentNotFound(err)
 	}
-	hasViewed, err := a.contentViewRepository.HasViewed(userID, model.ViewableTypeAssignment, assignmentId)
+	_, err = a.contentViewRepository.TryRecordView(userID, model.ViewableTypeAssignment, assignmentId)
 	if err != nil {
 		return assignment, data.ErrInternalServer(err)
 	}
-	viewCount := res.ViewCount
-	if !hasViewed {
-		if err := a.contentViewRepository.RecordView(userID, model.ViewableTypeAssignment, assignmentId); err != nil {
-			return assignment, data.ErrInternalServer(err)
-		}
-		if err := a.assignmentRepository.IncrementViewCount(assignmentId); err != nil {
-			return assignment, data.ErrInternalServer(err)
-		}
-		viewCount++
+	viewCount, err := a.contentViewRepository.CountViews(model.ViewableTypeAssignment, assignmentId)
+	if err != nil {
+		return assignment, data.ErrInternalServer(err)
 	}
 	result := data.AssignmentDetailResponse{
 		ID:            res.ID,
 		Title:         res.Title,
 		Deadline:      lib.FromNullTime(res.Deadline),
 		Instruction:   res.Instruction,
+		MeetingId:     res.MeetingId,
 		ClassroomName: classroom.ClassName,
 		ViewCount:     int(viewCount),
 	}
@@ -205,6 +210,7 @@ func (a *AssignmentService) Update(assignmentRequest data.AssignmentUpdateReques
 				res.Instruction = *assignmentRequest.Instruction
 			}
 			res.Deadline = lib.ToNullTime(assignmentRequest.Deadline)
+			res.MeetingId = assignmentRequest.MeetingId
 			if err := repo.Update(res); err != nil {
 				return err
 			}
@@ -257,4 +263,27 @@ func (a *AssignmentService) Delete(assignmentId, classroomId string) error {
 
 func (a *AssignmentService) FindWaitingGrade(dosenId string) ([]data.AssignmentWaitingGradeResponse, error) {
 	return a.assignmentRepository.FindWaitingGrade(dosenId)
+}
+
+func (a *AssignmentService) GetViewers(assignmentId, classroomId string) ([]data.ViewerResponse, error) {
+	if _, err := a.classroomRepository.FindById(classroomId); err != nil {
+		return nil, data.ErrClassroomNotFound(err)
+	}
+	if _, err := a.assignmentRepository.FindById(assignmentId, classroomId); err != nil {
+		return nil, data.ErrAssignmentNotFound(err)
+	}
+	users, err := a.contentViewRepository.GetViewersByContent(model.ViewableTypeAssignment, assignmentId)
+	if err != nil {
+		return nil, data.ErrInternalServer(err)
+	}
+	viewers := make([]data.ViewerResponse, len(users))
+	for i, u := range users {
+		viewers[i] = data.ViewerResponse{
+			ID:       u.ID,
+			Fullname: u.Fullname,
+			Profile:  u.Image,
+			Role:     u.Role,
+		}
+	}
+	return viewers, nil
 }

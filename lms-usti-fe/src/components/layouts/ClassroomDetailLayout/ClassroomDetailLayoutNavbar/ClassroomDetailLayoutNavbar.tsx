@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import ClassroomDetailLayoutNavbarItem from "./ClassroomDetailLayoutNavbarItem";
-import { Book, ListTodo, MessageSquare, Settings, Users } from "lucide-react";
+import { BookOpen, MessageSquare, Settings, Users, ClipboardList } from "lucide-react";
 
 export default function ClassroomDetailLayoutNavbar({
   classroomId,
@@ -29,18 +29,11 @@ export default function ClassroomDetailLayoutNavbar({
             <span>Forum Kelas</span>
           </ClassroomDetailLayoutNavbarItem>
           <ClassroomDetailLayoutNavbarItem
-            isActive={url === `/${type}/${segment}/${classroomId}/materi`}
-            href={`/${type}/${segment}/${classroomId}/materi`}
+            isActive={url === `/${type}/${segment}/${classroomId}/pertemuan`}
+            href={`/${type}/${segment}/${classroomId}/pertemuan`}
           >
-            <Book size={16} />
-            <span>Materi</span>
-          </ClassroomDetailLayoutNavbarItem>
-          <ClassroomDetailLayoutNavbarItem
-            isActive={url === `/${type}/${segment}/${classroomId}/tugas`}
-            href={`/${type}/${segment}/${classroomId}/tugas`}
-          >
-            <ListTodo size={16} />
-            <span>Tugas</span>
+            <BookOpen size={16} />
+            <span>Pertemuan</span>
           </ClassroomDetailLayoutNavbarItem>
           <ClassroomDetailLayoutNavbarItem
             isActive={url === `/${type}/${segment}/${classroomId}/anggota`}
@@ -48,6 +41,13 @@ export default function ClassroomDetailLayoutNavbar({
           >
             <Users size={16} />
             <span>Anggota</span>
+          </ClassroomDetailLayoutNavbarItem>
+          <ClassroomDetailLayoutNavbarItem
+            isActive={url === `/${type}/${segment}/${classroomId}/penilaian`}
+            href={`/${type}/${segment}/${classroomId}/penilaian`}
+          >
+            <ClipboardList size={16} />
+            <span>Nilai</span>
           </ClassroomDetailLayoutNavbarItem>
           {type === "dosen" && (
           <ClassroomDetailLayoutNavbarItem

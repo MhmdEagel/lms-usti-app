@@ -18,7 +18,7 @@ export default function ClassroomBreadcrumb(props: PropTypes) {
   const { classroomName, type, classroomId } = props;
   const pathname = usePathname();
   const segment = pathname.split("/")[2] || "kelas";
-  const validPages = ["materi", "tugas", "mahasiswa", "pengaturan", "anggota"];
+  const validPages = ["materi", "tugas", "mahasiswa", "pengaturan", "anggota", "pertemuan"];
   const segments = pathname.split("/").filter(Boolean);
   const lastSegment = segments[segments.length - 1];
   const page = validPages.includes(lastSegment) ? lastSegment : null;

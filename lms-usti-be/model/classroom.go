@@ -31,6 +31,7 @@ type Classroom struct {
 	ClassroomForumPosts []ClassroomForumPost `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE;"`
 	Materials             []Material     `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE;"`
 	Assignments           []Assignment   `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE;"`
+	Meetings              []Meeting      `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE;"`
 }
 type ClassroomMahasiswa struct {
 	UserId      string    `gorm:"primaryKey"`

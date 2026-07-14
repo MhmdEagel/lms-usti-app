@@ -37,6 +37,7 @@ func InitRouter() *gin.Engine {
 		classroomForumPostRepository := repositories.NewClassroomForumPostRepository(Db)
 		materialRepository := repositories.NewMaterialRepository(Db)
 		assignmentRepository := repositories.NewAssignmentRepository(Db)
+		meetingRepository := repositories.NewMeetingRepository(Db)
 		submissionRepository := repositories.NewSubmissionRepository(Db)
 		contentViewRepository := repositories.NewContentViewRepository(Db)
 
@@ -61,6 +62,7 @@ func InitRouter() *gin.Engine {
 
 		classroomForumPostService := services.NewClassroomForumPostService(classroomForumPostRepository, classroomRepository, commentRepository, classroomPolicyRepository)
 
+		meetingService := services.NewMeetingService(meetingRepository, classroomRepository)
 		materialService := services.NewMaterialService(materialRepository, classroomRepository, contentViewRepository)
 		commentService := services.NewCommentService(commentRepository, classroomRepository, materialRepository, assignmentRepository, classroomForumPostRepository, forumRepository, classroomPolicyRepository)
 		classroomPolicyService := services.NewClassroomPolicyService(classroomPolicyRepository)
@@ -104,6 +106,7 @@ func InitRouter() *gin.Engine {
 
 			classroomController := controllers.NewClassroomController(classroomService)
 			classroomForumPostController := controllers.NewClassroomForumPostController(classroomForumPostService)
+			meetingController := controllers.NewMeetingController(meetingService)
 			materialController := controllers.NewMaterialController(materialService)
 			assignmentController := controllers.NewAssignmentController(assignmentService)
 			submissionController := controllers.NewSubmissionController(submissionService)
@@ -123,6 +126,8 @@ func InitRouter() *gin.Engine {
 			classroom.PATCH("/:id/archive", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Archive)
 			classroom.PATCH("/:id/unarchive", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Unarchive)
 			classroom.PUT("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Update)
+			classroom.GET("/:id/grades", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.GetGrades)
+			classroom.GET("/:id/my-grades", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.GetMyGrades)
 
 			classroom.GET("/:id/announcements", classroomForumPostController.FindAll)
 			classroom.GET("/:id/announcements/:announcementId", classroomForumPostController.FindById)
@@ -135,12 +140,14 @@ func InitRouter() *gin.Engine {
 			classroom.POST("/:id/materials", aclMiddleware.Handle([]string{"DOSEN"}), materialController.Create)
 			classroom.PUT("/:id/materials/:materialId", aclMiddleware.Handle([]string{"DOSEN"}), materialController.Update)
 			classroom.DELETE("/:id/materials/:materialId", aclMiddleware.Handle([]string{"DOSEN"}), materialController.Delete)
+			classroom.GET("/:id/materials/:materialId/viewers", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), materialController.GetViewers)
 
 			classroom.GET("/:id/assignments", assignmentController.FindAll)
 			classroom.GET("/:id/assignments/:assignmentId", assignmentController.FindById)
 			classroom.POST("/:id/assignments", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Create)
 			classroom.PUT("/:id/assignments/:assignmentId", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Update)
 			classroom.DELETE("/:id/assignments/:assignmentId", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Delete)
+			classroom.GET("/:id/assignments/:assignmentId/viewers", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), assignmentController.GetViewers)
 
 			classroom.GET("/:id/assignments/:assignmentId/submissions", aclMiddleware.Handle([]string{"DOSEN"}), submissionController.FindAll)
 			classroom.GET("/:id/assignments/:assignmentId/submissions/:submissionId", aclMiddleware.Handle([]string{"DOSEN"}), submissionController.FindById)
@@ -159,6 +166,13 @@ func InitRouter() *gin.Engine {
 			classroom.GET("/:id/announcements/:announcementId/comments", commentController.FindAll)
 			classroom.POST("/:id/announcements/:announcementId/comments", commentController.Create)
 			classroom.DELETE("/:id/announcements/:announcementId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA", "PRODI"}), commentController.Delete)
+			classroom.GET("/:id/meetings", meetingController.FindAll)
+			classroom.POST("/:id/meetings", aclMiddleware.Handle([]string{"DOSEN"}), meetingController.Create)
+			classroom.PUT("/:id/meetings/reorder", aclMiddleware.Handle([]string{"DOSEN"}), meetingController.Reorder)
+			classroom.GET("/:id/meetings/:meetingId", meetingController.FindById)
+			classroom.PUT("/:id/meetings/:meetingId", aclMiddleware.Handle([]string{"DOSEN"}), meetingController.Update)
+			classroom.DELETE("/:id/meetings/:meetingId", aclMiddleware.Handle([]string{"DOSEN"}), meetingController.Delete)
+
 			classroom.GET("/:id/policies", classroomPolicyController.FindByClassroomId)
 			classroom.PUT("/:id/policies", aclMiddleware.Handle([]string{"DOSEN"}), classroomPolicyController.Update)
 		}

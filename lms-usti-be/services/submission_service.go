@@ -25,6 +25,8 @@ type SubmissionServiceInterface interface {
 	GetSubmissionStats(assignmentId string) (data.SubmissionStatsResponse, error)
 	GetSubmissionStatsBatch(assignmentIds []string) (map[string]data.SubmissionStatsResponse, error)
 	IsAlreadyCreated(studentId string, classroomId string) bool
+	GetClassroomGrades(classroomId string) ([]model.Submission, []model.Assignment, error)
+	GetStudentGrades(classroomId string, studentId string) ([]model.Assignment, []model.Submission, error)
 }
 
 func NewSubmissionService(submissionRepository repositories.SubmissionRepositoryInterface, assignmentRepository repositories.AssignmentRepositoryInterface) SubmissionServiceInterface {
@@ -204,4 +206,12 @@ func (s *SubmissionService) GetSubmissionStatsBatch(assignmentIds []string) (map
 
 func (s *SubmissionService) IsAlreadyCreated(studentId string, classroomId string) bool {
 	return s.submissionRepository.IsAlreadyCreated(studentId, classroomId)
+}
+
+func (s *SubmissionService) GetClassroomGrades(classroomId string) ([]model.Submission, []model.Assignment, error) {
+	return s.submissionRepository.GetClassroomGrades(classroomId)
+}
+
+func (s *SubmissionService) GetStudentGrades(classroomId string, studentId string) ([]model.Assignment, []model.Submission, error) {
+	return s.submissionRepository.GetStudentGrades(classroomId, studentId)
 }

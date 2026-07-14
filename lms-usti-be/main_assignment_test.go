@@ -127,7 +127,7 @@ func TestAssignmentCreate(t *testing.T) {
 	t.Run("Create berhasil (tanpa attachment + rubric)", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken := createTestToken("DOSEN")
+		dosenToken := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := createAssignmentJSON("Tugas 1", deadline, "Kerjakan soal", nil, nil)
@@ -145,7 +145,7 @@ func TestAssignmentCreate(t *testing.T) {
 	t.Run("Create berhasil (dengan rubric)", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken := createTestToken("DOSEN")
+		dosenToken := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		rubrics := []data.AssignmentRubricRequest{
@@ -167,7 +167,7 @@ func TestAssignmentCreate(t *testing.T) {
 	t.Run("Create berhasil (dengan attachment FILE)", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken := createTestToken("DOSEN")
+		dosenToken := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		uploadResult, err := uploadFileAndGetResult(r, "/lms-usti-api/media/assignments", filepath.Join(dummyDir, "test_video.mp4"), dosenToken)
@@ -194,7 +194,7 @@ func TestAssignmentCreate(t *testing.T) {
 	t.Run("Create berhasil (dengan attachment LINK)", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken := createTestToken("DOSEN")
+		dosenToken := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		attachments := []data.AttachmentRequest{
@@ -215,7 +215,7 @@ func TestAssignmentCreate(t *testing.T) {
 	t.Run("Create berhasil (lengkap)", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken := createTestToken("DOSEN")
+		dosenToken := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		mhs := seedUser(db, "Mhs Test", "mhs@test.com", "password123", "MAHASISWA")
@@ -250,7 +250,7 @@ func TestAssignmentCreate(t *testing.T) {
 	t.Run("Title kosong", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken := createTestToken("DOSEN")
+		dosenToken := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := createAssignmentJSON("", deadline, "Kerjakan", nil, nil)
@@ -263,7 +263,7 @@ func TestAssignmentCreate(t *testing.T) {
 	t.Run("Deadline kosong", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken := createTestToken("DOSEN")
+		dosenToken := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := `{"title":"Tugas","instruction":"Kerjakan"}`
@@ -276,7 +276,7 @@ func TestAssignmentCreate(t *testing.T) {
 	t.Run("Attachment type invalid", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken := createTestToken("DOSEN")
+		dosenToken := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		attachments := []data.AttachmentRequest{
@@ -300,17 +300,19 @@ func TestAssignmentCreate(t *testing.T) {
 
 	t.Run("Token MAHASISWA", func(t *testing.T) {
 		cleanupDatabase(db)
-		mahasiswaToken := createTestToken("MAHASISWA")
+		mhs := seedUser(db, "Mhs Test", "mhs@test.com", "password123", "MAHASISWA")
+		mahasiswaToken := generateToken(mhs)
 		body := createAssignmentJSON("Tugas", deadline, "Kerjakan", nil, nil)
 		w := makeRequest(r, "POST", "/lms-usti-api/classroom/some-id/assignments", body, mahasiswaToken)
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 
 	t.Run("Classroom tidak ada", func(t *testing.T) {
 		cleanupDatabase(db)
-		dosenToken := createTestToken("DOSEN")
+		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
+		dosenToken := generateToken(dosen)
 
 		body := createAssignmentJSON("Tugas", deadline, "Kerjakan", nil, nil)
 		w := makeRequest(r, "POST", "/lms-usti-api/classroom/nonexistent-id/assignments", body, dosenToken)
@@ -332,7 +334,7 @@ func TestAssignmentFindAll(t *testing.T) {
 	t.Run("Ada assignments", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		token := createTestToken("DOSEN")
+		token := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := createAssignmentJSON("Tugas 1", deadline, "Kerjakan", nil, nil)
@@ -355,7 +357,7 @@ func TestAssignmentFindAll(t *testing.T) {
 	t.Run("Kosong", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		token := createTestToken("DOSEN")
+		token := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		w := makeRequest(r, "GET", "/lms-usti-api/classroom/"+classroom.ID+"/assignments", "", token)
@@ -390,7 +392,7 @@ func TestAssignmentFindById(t *testing.T) {
 	t.Run("Ada", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		token := createTestToken("DOSEN")
+		token := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := createAssignmentJSON("Tugas 1", deadline, "Kerjakan", nil, nil)
@@ -428,7 +430,7 @@ func TestAssignmentFindById(t *testing.T) {
 	t.Run("Tidak ada", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		token := createTestToken("DOSEN")
+		token := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		w := makeRequest(r, "GET", "/lms-usti-api/classroom/"+classroom.ID+"/assignments/nonexistent-id", "", token)
@@ -448,7 +450,7 @@ func TestAssignmentDelete(t *testing.T) {
 	t.Run("Hapus berhasil", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken := createTestToken("DOSEN")
+		dosenToken := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := createAssignmentJSON("Tugas 1", deadline, "Kerjakan", nil, nil)
@@ -486,7 +488,7 @@ func TestAssignmentDelete(t *testing.T) {
 	t.Run("Assignment tidak ada", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken := createTestToken("DOSEN")
+		dosenToken := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/"+classroom.ID+"/assignments/nonexistent-id", "", dosenToken)
@@ -505,10 +507,11 @@ func TestAssignmentDelete(t *testing.T) {
 
 	t.Run("Token MAHASISWA", func(t *testing.T) {
 		cleanupDatabase(db)
-		mahasiswaToken := createTestToken("MAHASISWA")
+		mhs := seedUser(db, "Mhs Test", "mhs@test.com", "password123", "MAHASISWA")
+		mahasiswaToken := generateToken(mhs)
 		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/some-id/assignments/some-id", "", mahasiswaToken)
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 }
@@ -526,7 +529,7 @@ func TestAssignmentUpdate(t *testing.T) {
 	t.Run("Update berhasil", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken := createTestToken("DOSEN")
+		dosenToken := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		rubrics := []data.AssignmentRubricRequest{
@@ -582,7 +585,7 @@ func TestAssignmentUpdate(t *testing.T) {
 	t.Run("Assignment tidak ada", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken := createTestToken("DOSEN")
+		dosenToken := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		updateBody := createAssignmentUpdateJSON("Tugas", deadline, "Kerjakan", nil, nil)
@@ -594,11 +597,12 @@ func TestAssignmentUpdate(t *testing.T) {
 
 	t.Run("Token MAHASISWA", func(t *testing.T) {
 		cleanupDatabase(db)
-		mahasiswaToken := createTestToken("MAHASISWA")
+		mhs := seedUser(db, "Mhs Test", "mhs@test.com", "password123", "MAHASISWA")
+		mahasiswaToken := generateToken(mhs)
 		body := createAssignmentUpdateJSON("Tugas", deadline, "Kerjakan", nil, nil)
 		w := makeRequest(r, "PUT", "/lms-usti-api/classroom/some-id/assignments/some-id", body, mahasiswaToken)
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 }

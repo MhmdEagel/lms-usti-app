@@ -28,4 +28,6 @@ export const assignmentServices = {
     instance.put(`${endpoint.CLASSROOM}/${classroomId}/assignments/${assignmentId}/submissions/${submissionId}/grade`, payload),
   findWaitingGrade: () =>
     instance.get(`${endpoint.CLASSROOM}/dosen/waiting-grade`),
+  getViewers: (classroomId: string, assignmentId: string) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}/assignments/${assignmentId}/viewers`),
 };

@@ -16,10 +16,11 @@ type MaterialService struct {
 }
 type MaterialServiceInterface interface {
 	Create(materialRequest data.MaterialRequest) error
-	FindAll(classroomId string, search string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error)
+	FindAll(classroomId string, search string, pagination data.Pagination, meetingId ...string) (paginatedResult *data.PaginationWithData, err error)
 	FindById(materialId, classroomId, userID string) (material data.MaterialDetailResponse, err error)
 	Update(materialUpdateRequest data.MaterialUpdateRequest) error
 	Delete(materialId, classroomId string) error
+	GetViewers(materialId, classroomId string) ([]data.ViewerResponse, error)
 }
 
 func NewMaterialService(materialRepository repositories.MaterialRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, contentViewRepository repositories.ContentViewRepositoryInterface) MaterialServiceInterface {
@@ -33,6 +34,7 @@ func (m *MaterialService) Create(materialRequest data.MaterialRequest) error {
 	material := &model.Material{
 		Title:       materialRequest.Title,
 		Description: materialRequest.Description,
+		MeetingId:   materialRequest.MeetingId,
 		ClassroomId: classroom.ID,
 		DosenId:     materialRequest.DosenId,
 	}
@@ -71,12 +73,16 @@ func (m *MaterialService) Create(materialRequest data.MaterialRequest) error {
 	}
 	return nil
 }
-func (m *MaterialService) FindAll(classroomId string, search string, pagination data.Pagination) (paginatedResult *data.PaginationWithData, err error) {
+func (m *MaterialService) FindAll(classroomId string, search string, pagination data.Pagination, meetingId ...string) (paginatedResult *data.PaginationWithData, err error) {
 	classroom, err := m.classroomRepository.FindById(classroomId)
 	if err != nil {
 		return nil, data.ErrClassroomNotFound(err)
 	}
-	paginatedResult, err = m.materialRepository.FindAll(classroom.ID, search, pagination)
+	meetingIdStr := ""
+	if len(meetingId) > 0 {
+		meetingIdStr = meetingId[0]
+	}
+	paginatedResult, err = m.materialRepository.FindAll(classroom.ID, search, meetingIdStr, pagination)
 	if err != nil {
 		return nil, err
 	}
@@ -103,24 +109,19 @@ func (m *MaterialService) FindById(materialId, classroomId, userID string) (mate
 	if err != nil {
 		return material, data.ErrMaterialNotFound(err)
 	}
-	hasViewed, err := m.contentViewRepository.HasViewed(userID, model.ViewableTypeMaterial, materialId)
+	_, err = m.contentViewRepository.TryRecordView(userID, model.ViewableTypeMaterial, materialId)
 	if err != nil {
 		return material, data.ErrInternalServer(err)
 	}
-	viewCount := res.ViewCount
-	if !hasViewed {
-		if err := m.contentViewRepository.RecordView(userID, model.ViewableTypeMaterial, materialId); err != nil {
-			return material, data.ErrInternalServer(err)
-		}
-		if err := m.materialRepository.IncrementViewCount(materialId); err != nil {
-			return material, data.ErrInternalServer(err)
-		}
-		viewCount++
+	viewCount, err := m.contentViewRepository.CountViews(model.ViewableTypeMaterial, materialId)
+	if err != nil {
+		return material, data.ErrInternalServer(err)
 	}
 	material = data.MaterialDetailResponse{
 		Id:          res.ID,
 		Title:       res.Title,
 		Description: res.Description,
+		MeetingId:   res.MeetingId,
 		ViewCount:   int(viewCount),
 		Classroom: data.ClassroomMeta{
 			ClassroomId: classroom.ID,
@@ -150,6 +151,7 @@ func (m *MaterialService) Update(materialUpdateRequest data.MaterialUpdateReques
 		}
 		material.Title = materialUpdateRequest.Title
 		material.Description = materialUpdateRequest.Description
+		material.MeetingId = materialUpdateRequest.MeetingId
 
 		if err := repo.Update(material); err != nil {
 			return err
@@ -200,4 +202,27 @@ func (m *MaterialService) Delete(materialId, classroomId string) error {
 		return data.ErrMaterialNotFound(err)
 	}
 	return nil
+}
+
+func (m *MaterialService) GetViewers(materialId, classroomId string) ([]data.ViewerResponse, error) {
+	if _, err := m.classroomRepository.FindById(classroomId); err != nil {
+		return nil, data.ErrClassroomNotFound(err)
+	}
+	if _, err := m.materialRepository.FindById(materialId); err != nil {
+		return nil, data.ErrMaterialNotFound(err)
+	}
+	users, err := m.contentViewRepository.GetViewersByContent(model.ViewableTypeMaterial, materialId)
+	if err != nil {
+		return nil, data.ErrInternalServer(err)
+	}
+	viewers := make([]data.ViewerResponse, len(users))
+	for i, u := range users {
+		viewers[i] = data.ViewerResponse{
+			ID:       u.ID,
+			Fullname: u.Fullname,
+			Profile:  u.Image,
+			Role:     u.Role,
+		}
+	}
+	return viewers, nil
 }

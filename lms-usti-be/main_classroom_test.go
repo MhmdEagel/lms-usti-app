@@ -101,8 +101,8 @@ func TestCreateClassroom(t *testing.T) {
 
 		body := `{"class_name":"Matematika Dasar","class_cover":"https://example.com/cover.jpg","term":1,"room_number":101,"day":2,"class_start":"2026-01-01T08:00:00Z","class_end":"2026-01-01T10:00:00Z"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/classroom/create", body, token)
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 }
@@ -145,8 +145,8 @@ func TestFindAllByDosenId(t *testing.T) {
 		token := generateToken(user)
 
 		w := makeRequest(r, "GET", "/lms-usti-api/classroom/dosen/classrooms", "", token)
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 
@@ -264,8 +264,8 @@ func TestFindAllByMahasiswaId(t *testing.T) {
 		token := generateToken(user)
 
 		w := makeRequest(r, "GET", "/lms-usti-api/classroom/mahasiswa/classrooms", "", token)
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 
@@ -502,8 +502,8 @@ func TestUpdateClassroom(t *testing.T) {
 
 		body := `{"class_name":"Fisika Lanjutan"}`
 		w := makeRequest(r, "PUT", "/lms-usti-api/classroom/some-id", body, token)
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 }
@@ -585,8 +585,8 @@ func TestDeleteClassroom(t *testing.T) {
 		token := generateToken(user)
 
 		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/some-id", "", token)
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 }
@@ -673,8 +673,8 @@ func TestEnrollClassroom(t *testing.T) {
 
 		body := `{"class_code":"KLS-XXXXX"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/classroom/join", body, token)
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 }

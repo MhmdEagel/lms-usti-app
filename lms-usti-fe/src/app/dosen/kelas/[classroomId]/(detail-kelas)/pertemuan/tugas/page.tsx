@@ -1,0 +1,35 @@
+import { Suspense } from "react";
+import CreateMeetingDialog from "@/components/views/Dashboard/DashboardDosen/Classroom/Meeting/CreateMeetingDialog/CreateMeetingDialog";
+import PertemuanTabNavigation from "@/components/views/Dashboard/DashboardDosen/Classroom/Meeting/PertemuanTabNavigation";
+import Assignment from "@/components/views/Dashboard/DashboardDosen/Classroom/Assignment";
+import AssignmentSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/Assignment/AssignmentSkeleton/AssignmentSkeleton";
+
+export default async function PertemuanTugasPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ classroomId: string }>;
+  searchParams: Promise<{ page?: string; limit?: string; search?: string }>;
+}) {
+  const { classroomId } = await params;
+  const sp = await searchParams;
+  const page = sp.page ? parseInt(sp.page) : 1;
+  const limit = sp.limit ? parseInt(sp.limit) : 10;
+  const search = sp.search || "";
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-lg font-semibold">Pertemuan</h2>
+          <div className="border-b mt-1" />
+        </div>
+        <CreateMeetingDialog classroomId={classroomId} />
+      </div>
+      <PertemuanTabNavigation classroomId={classroomId} type="dosen" />
+      <Suspense fallback={<AssignmentSkeleton />}>
+        <Assignment classroomId={classroomId} page={page} limit={limit} search={search} showHeader={false} />
+      </Suspense>
+    </div>
+  );
+}

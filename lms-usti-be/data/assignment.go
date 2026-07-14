@@ -6,6 +6,7 @@ type AssignmentRequest struct {
 	Title       string              `json:"title" binding:"required"`
 	Deadline    *time.Time          `json:"deadline"`
 	Instruction string              `json:"instruction"`
+	MeetingId   *string             `json:"meeting_id"`
 	Attachments []AttachmentRequest `json:"attachments"`
 	ClassroomId string
 	DosenId     string
@@ -15,6 +16,7 @@ type AssignmentUpdateRequest struct {
 	Title       *string             `json:"title"`
 	Deadline    *time.Time          `json:"deadline"`
 	Instruction *string             `json:"instruction"`
+	MeetingId   *string             `json:"meeting_id"`
 	Attachments []AttachmentRequest `json:"attachments"`
 	ClassroomId string
 }
@@ -24,6 +26,7 @@ type AssignmentDetailResponse struct {
 	ClassroomName string    `json:"classroom_name"`
 	Deadline      *time.Time `json:"deadline"`
 	Instruction   string    `json:"instruction"`
+	MeetingId     *string   `json:"meeting_id"`
 	ViewCount     int       `json:"view_count"`
 	Stats         *SubmissionStatsResponse `json:"stats"`
 	Attachments   []AttachmentResponse       `json:"attachments"`

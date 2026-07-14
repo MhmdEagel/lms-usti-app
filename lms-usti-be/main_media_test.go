@@ -267,8 +267,11 @@ func TestFindProfilePicture(t *testing.T) {
 // --- Tahap 3: Test Upload (POST) ---
 
 func TestUploadMaterial(t *testing.T) {
+	db := setupTestDB()
+	defer cleanupDatabase(db)
 	r := setupMediaTestRouter()
-	dosenToken := createTestToken("DOSEN")
+	dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
+	dosenToken := generateToken(dosen)
 
 	t.Run("Upload PDF berhasil", func(t *testing.T) {
 		w, uniqueFileName, err := uploadTestFile(r, "/lms-usti-api/media/materials", filepath.Join(dummyDir, "test_material.pdf"), dosenToken)
@@ -340,8 +343,11 @@ func TestUploadMaterial(t *testing.T) {
 }
 
 func TestUploadAssignment(t *testing.T) {
+	db := setupTestDB()
+	defer cleanupDatabase(db)
 	r := setupMediaTestRouter()
-	dosenToken := createTestToken("DOSEN")
+	dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
+	dosenToken := generateToken(dosen)
 
 	t.Run("Upload video berhasil", func(t *testing.T) {
 		w, uniqueFileName, err := uploadTestFile(r, "/lms-usti-api/media/assignments", filepath.Join(dummyDir, "test_video.mp4"), dosenToken)
@@ -425,8 +431,11 @@ func TestUploadProfilePicture(t *testing.T) {
 // --- Tahap 4: Test Delete (DELETE) ---
 
 func TestRemoveMaterial(t *testing.T) {
+	db := setupTestDB()
+	defer cleanupDatabase(db)
 	r := setupMediaTestRouter()
-	dosenToken := createTestToken("DOSEN")
+	dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
+	dosenToken := generateToken(dosen)
 
 	t.Run("Hapus file exists", func(t *testing.T) {
 		_, uniqueFileName, err := uploadTestFile(r, "/lms-usti-api/media/materials", filepath.Join(dummyDir, "test_material.pdf"), dosenToken)
@@ -462,8 +471,11 @@ func TestRemoveMaterial(t *testing.T) {
 }
 
 func TestRemoveAssignment(t *testing.T) {
+	db := setupTestDB()
+	defer cleanupDatabase(db)
 	r := setupMediaTestRouter()
-	dosenToken := createTestToken("DOSEN")
+	dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
+	dosenToken := generateToken(dosen)
 
 	t.Run("Hapus file exists", func(t *testing.T) {
 		_, uniqueFileName, err := uploadTestFile(r, "/lms-usti-api/media/assignments", filepath.Join(dummyDir, "test_video.mp4"), dosenToken)
@@ -498,8 +510,11 @@ func TestRemoveAssignment(t *testing.T) {
 }
 
 func TestRemoveProfilePicture(t *testing.T) {
+	db := setupTestDB()
+	defer cleanupDatabase(db)
 	r := setupMediaTestRouter()
-	token := createTestToken("DOSEN")
+	dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
+	token := generateToken(dosen)
 
 	t.Run("Hapus file exists", func(t *testing.T) {
 		_, uniqueFileName, err := uploadTestFile(r, "/lms-usti-api/media/profiles", filepath.Join(dummyDir, "profile.jpeg"), "")
@@ -529,8 +544,11 @@ func TestRemoveProfilePicture(t *testing.T) {
 // --- Tahap 5: Test Delete Batch (POST delete-batch) ---
 
 func TestRemoveMaterialBatch(t *testing.T) {
+	db := setupTestDB()
+	defer cleanupDatabase(db)
 	r := setupMediaTestRouter()
-	dosenToken := createTestToken("DOSEN")
+	dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
+	dosenToken := generateToken(dosen)
 
 	t.Run("Hapus batch beberapa file berhasil", func(t *testing.T) {
 		_, name1, err := uploadTestFile(r, "/lms-usti-api/media/materials", filepath.Join(dummyDir, "test_material.pdf"), dosenToken)
@@ -587,8 +605,11 @@ func TestRemoveMaterialBatch(t *testing.T) {
 }
 
 func TestRemoveAssignmentBatch(t *testing.T) {
+	db := setupTestDB()
+	defer cleanupDatabase(db)
 	r := setupMediaTestRouter()
-	dosenToken := createTestToken("DOSEN")
+	dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
+	dosenToken := generateToken(dosen)
 
 	t.Run("Hapus batch berhasil", func(t *testing.T) {
 		_, name1, err := uploadTestFile(r, "/lms-usti-api/media/assignments", filepath.Join(dummyDir, "test_video.mp4"), dosenToken)
@@ -617,9 +638,13 @@ func TestRemoveAssignmentBatch(t *testing.T) {
 // --- Tahap 6: Test Auth & ACL ---
 
 func TestMediaAuth(t *testing.T) {
+	db := setupTestDB()
+	defer cleanupDatabase(db)
 	r := setupMediaTestRouter()
-	dosenToken := createTestToken("DOSEN")
-	mahasiswaToken := createTestToken("MAHASISWA")
+	dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
+	dosenToken := generateToken(dosen)
+	mhs := seedUser(db, "Mhs Test", "mhs@test.com", "password123", "MAHASISWA")
+	mahasiswaToken := generateToken(mhs)
 
 	t.Run("Upload material tanpa token", func(t *testing.T) {
 		body := `{}`
@@ -632,8 +657,8 @@ func TestMediaAuth(t *testing.T) {
 	t.Run("Upload material dengan token MAHASISWA", func(t *testing.T) {
 		body := `{}`
 		w := makeRequest(r, "POST", "/lms-usti-api/media/materials", body, mahasiswaToken)
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 

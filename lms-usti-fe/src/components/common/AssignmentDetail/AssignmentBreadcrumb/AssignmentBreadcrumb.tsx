@@ -32,7 +32,7 @@ export default function AssignmentBreadcrumb(props: PropTypes) {
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbLink href={`/${type}/kelas/${classroomId}/tugas`} className="capitalize">
+          <BreadcrumbLink href={`/${type}/kelas/${classroomId}/pertemuan/tugas`} className="capitalize">
             Tugas
           </BreadcrumbLink>
         </BreadcrumbItem>

@@ -197,10 +197,76 @@ interface IAssignmentWaitingGrade {
   submission_date: string;
 }
 
+interface StudentGradeAssignment {
+  id: string;
+  title: string;
+  deadline: string | null;
+  score: number | null;
+  status: "not_submitted" | "submitted" | "graded";
+}
+
+interface StudentGradesResponse {
+  assignments: StudentGradeAssignment[];
+  average: number | null;
+}
+
+interface ClassroomGradeAssignment {
+  id: string;
+  title: string;
+}
+
+interface ClassroomGradeStudent {
+  id: string;
+  fullname: string;
+  grades: Record<string, number | null>;
+}
+
+interface ClassroomGradesResponse {
+  assignments: ClassroomGradeAssignment[];
+  students: ClassroomGradeStudent[];
+  averages: Record<string, number>;
+  overall_average: number;
+}
+
+interface Viewer {
+  id: string;
+  fullname: string;
+  profile: string;
+  role: string;
+}
+
 interface IClassroomPolicies {
   late_submission: string;
   forum_permission: string;
   comment_permission: string;
+}
+
+interface IMeetingItem {
+  id: string;
+  title: string;
+}
+
+interface IMeeting {
+  id: string;
+  position: number;
+  topic: string;
+  description: string;
+  material_count: number;
+  assignment_count: number;
+  created_at: string;
+  updated_at: string;
+  materials: IMeetingItem[];
+  assignments: IMeetingItem[];
+}
+
+interface INewMeeting {
+  topic: string;
+  description?: string;
+}
+
+interface IUpdateMeeting {
+  topic?: string;
+  description?: string;
 }
 
 interface IComment {
@@ -239,4 +305,14 @@ export type {
   IMahasiswaAssignmentItem,
   IMahasiswaDashboardStats,
   IClassroomPolicies,
+  IMeeting,
+  IMeetingItem,
+  INewMeeting,
+  IUpdateMeeting,
+  Viewer,
+  ClassroomGradeAssignment,
+  ClassroomGradeStudent,
+  ClassroomGradesResponse,
+  StudentGradeAssignment,
+  StudentGradesResponse,
 };

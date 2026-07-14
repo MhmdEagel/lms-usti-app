@@ -24,8 +24,8 @@ func (a *AclMiddleware) Handle(roles []string) gin.HandlerFunc {
 		}
 		user := val.(data.MeResponse)
 		if !slices.Contains(roles, user.Role) {
-			res := data.NewResponse(http.StatusUnauthorized, "unauthorized", nil)
-			c.AbortWithStatusJSON(http.StatusUnauthorized, res)
+			res := data.NewResponse(http.StatusForbidden, "forbidden", nil)
+			c.AbortWithStatusJSON(http.StatusForbidden, res)
 			return
 		}
 		c.Next()

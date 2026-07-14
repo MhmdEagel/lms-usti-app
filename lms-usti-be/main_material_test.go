@@ -203,13 +203,12 @@ func TestMaterialCreate(t *testing.T) {
 	r := setupMaterialTestRouter(db)
 
 	dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-	dosenToken := createTestToken("DOSEN")
-	mahasiswaToken := createTestToken("MAHASISWA")
+	dosenToken := generateToken(dosen)
 
 	t.Run("Create berhasil (tanpa attachment)", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := createMaterialRequestJSON("Materi 1", "Deskripsi materi", nil)
@@ -227,7 +226,7 @@ func TestMaterialCreate(t *testing.T) {
 	t.Run("Create berhasil (dengan attachment FILE)", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		uploadResult, err := uploadFileAndGetResult(r, "/lms-usti-api/media/materials", filepath.Join(dummyDir, "test_material.pdf"), dosenToken)
@@ -254,7 +253,7 @@ func TestMaterialCreate(t *testing.T) {
 	t.Run("Create berhasil (dengan attachment LINK)", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		attachments := []data.AttachmentRequest{
@@ -275,7 +274,7 @@ func TestMaterialCreate(t *testing.T) {
 	t.Run("Create berhasil (campur FILE + LINK)", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		uploadResult, err := uploadFileAndGetResult(r, "/lms-usti-api/media/materials", filepath.Join(dummyDir, "test_material.pdf"), dosenToken)
@@ -303,7 +302,7 @@ func TestMaterialCreate(t *testing.T) {
 	t.Run("Title kosong", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := createMaterialRequestJSON("", "Deskripsi", nil)
@@ -324,17 +323,19 @@ func TestMaterialCreate(t *testing.T) {
 
 	t.Run("Token MAHASISWA", func(t *testing.T) {
 		cleanupDatabase(db)
+		mhs := seedUser(db, "Mhs Test", "mhs@test.com", "password123", "MAHASISWA")
+		mahasiswaToken := generateToken(mhs)
 		body := createMaterialRequestJSON("Materi", "Deskripsi", nil)
 		w := makeRequest(r, "POST", "/lms-usti-api/classroom/some-id/materials", body, mahasiswaToken)
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 
 	t.Run("Classroom tidak ada", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 
 		body := createMaterialRequestJSON("Materi", "Deskripsi", nil)
 		w := makeRequest(r, "POST", "/lms-usti-api/classroom/nonexistent-id/materials", body, dosenToken)
@@ -346,7 +347,7 @@ func TestMaterialCreate(t *testing.T) {
 	t.Run("Attachment type invalid", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		attachments := []data.AttachmentRequest{
@@ -362,7 +363,7 @@ func TestMaterialCreate(t *testing.T) {
 	t.Run("URL link tidak valid", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		attachments := []data.AttachmentRequest{
@@ -378,7 +379,7 @@ func TestMaterialCreate(t *testing.T) {
 	t.Run("Attachment FILE tanpa unique_name", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		attachments := []data.AttachmentRequest{
@@ -402,7 +403,7 @@ func TestMaterialFindAll(t *testing.T) {
 	t.Run("Ada materials", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		token := createTestToken("DOSEN")
+		token := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := createMaterialRequestJSON("Materi 1", "Deskripsi", nil)
@@ -428,7 +429,7 @@ func TestMaterialFindAll(t *testing.T) {
 	t.Run("Kosong", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		token := createTestToken("DOSEN")
+		token := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		w := makeRequest(r, "GET", "/lms-usti-api/classroom/"+classroom.ID+"/materials", "", token)
@@ -461,7 +462,7 @@ func TestMaterialFindById(t *testing.T) {
 	t.Run("Ada", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		token := createTestToken("DOSEN")
+		token := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := createMaterialRequestJSON("Materi 1", "Deskripsi", nil)
@@ -503,7 +504,7 @@ func TestMaterialFindById(t *testing.T) {
 	t.Run("Tidak ada", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		token := createTestToken("DOSEN")
+		token := generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		w := makeRequest(r, "GET", "/lms-usti-api/classroom/"+classroom.ID+"/materials/nonexistent-id", "", token)
@@ -519,13 +520,12 @@ func TestMaterialDelete(t *testing.T) {
 	r := setupMaterialTestRouter(db)
 
 	dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-	dosenToken := createTestToken("DOSEN")
-	mahasiswaToken := createTestToken("MAHASISWA")
+	dosenToken := generateToken(dosen)
 
 	t.Run("Hapus berhasil", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := createMaterialRequestJSON("Materi 1", "Deskripsi", nil)
@@ -559,7 +559,7 @@ func TestMaterialDelete(t *testing.T) {
 	t.Run("Material tidak ada", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/"+classroom.ID+"/materials/nonexistent-id", "", dosenToken)
@@ -578,9 +578,11 @@ func TestMaterialDelete(t *testing.T) {
 
 	t.Run("Token MAHASISWA", func(t *testing.T) {
 		cleanupDatabase(db)
+		mhs := seedUser(db, "Mhs Test", "mhs@test.com", "password123", "MAHASISWA")
+		mahasiswaToken := generateToken(mhs)
 		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/some-id/materials/some-id", "", mahasiswaToken)
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 }
@@ -593,13 +595,12 @@ func TestMaterialUpdate(t *testing.T) {
 	r := setupMaterialTestRouter(db)
 
 	dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-	dosenToken := createTestToken("DOSEN")
-	mahasiswaToken := createTestToken("MAHASISWA")
+	dosenToken := generateToken(dosen)
 
 	t.Run("Update berhasil", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		body := createMaterialRequestJSON("Materi 1", "Deskripsi", nil)
@@ -634,7 +635,7 @@ func TestMaterialUpdate(t *testing.T) {
 	t.Run("Ganti attachment", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		uploadResult, err := uploadFileAndGetResult(r, "/lms-usti-api/media/materials", filepath.Join(dummyDir, "test_material.pdf"), dosenToken)
@@ -681,7 +682,7 @@ func TestMaterialUpdate(t *testing.T) {
 	t.Run("Material tidak ada", func(t *testing.T) {
 		cleanupDatabase(db)
 		dosen = seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
-		dosenToken = createTestToken("DOSEN")
+		dosenToken = generateToken(dosen)
 		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
 
 		updateBody := createMaterialUpdateRequestJSON("Materi", "Deskripsi", nil)
@@ -693,10 +694,12 @@ func TestMaterialUpdate(t *testing.T) {
 
 	t.Run("Token MAHASISWA", func(t *testing.T) {
 		cleanupDatabase(db)
+		mhs := seedUser(db, "Mhs Test", "mhs@test.com", "password123", "MAHASISWA")
+		mahasiswaToken := generateToken(mhs)
 		updateBody := createMaterialUpdateRequestJSON("Materi", "Deskripsi", nil)
 		w := makeRequest(r, "PUT", "/lms-usti-api/classroom/some-id/materials/some-id", updateBody, mahasiswaToken)
-		if w.Code != http.StatusUnauthorized {
-			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
+		if w.Code != http.StatusForbidden {
+			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
 		}
 	})
 }
@@ -708,7 +711,8 @@ func TestSecurityUpload(t *testing.T) {
 	defer cleanupDatabase(db)
 	r := setupMaterialTestRouter(db)
 
-	dosenToken := createTestToken("DOSEN")
+	dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
+	dosenToken := generateToken(dosen)
 
 	t.Run("Upload .php ditolak", func(t *testing.T) {
 		cleanupDatabase(db)

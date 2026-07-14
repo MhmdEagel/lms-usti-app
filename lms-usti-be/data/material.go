@@ -3,6 +3,7 @@ package data
 type MaterialRequest struct {
 	Title       string              `json:"title" binding:"required"`
 	Description string              `json:"description"`
+	MeetingId   *string             `json:"meeting_id"`
 	Attachments []AttachmentRequest `json:"attachments"`
 	ClassroomId string
 	DosenId     string
@@ -20,6 +21,7 @@ type MaterialDetailResponse struct {
 	Id          string               `json:"id"`
 	Title       string               `json:"title"`
 	Description string               `json:"description"`
+	MeetingId   *string              `json:"meeting_id"`
 	ViewCount   int                  `json:"view_count"`
 	Attachments []AttachmentResponse `json:"attachments"`
 	Classroom   ClassroomMeta        `json:"classroom_detail"`
@@ -29,6 +31,7 @@ type MaterialUpdateRequest struct {
 	Id          string
 	Title       string              `json:"title"`
 	Description string              `json:"description"`
+	MeetingId   *string             `json:"meeting_id"`
 	Attachments []AttachmentRequest `json:"attachments"`
 	ClassroomId string
 }

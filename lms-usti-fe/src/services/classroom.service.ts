@@ -63,4 +63,8 @@ export const classroomServices = {
     instance.patch(`${endpoint.CLASSROOM}/${classroomId}/archive`),
   unarchive: (classroomId: string) =>
     instance.patch(`${endpoint.CLASSROOM}/${classroomId}/unarchive`),
+  getGrades: (classroomId: string) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}/grades`),
+  getMyGrades: (classroomId: string) =>
+    instance.get(`${endpoint.CLASSROOM}/${classroomId}/my-grades`),
 };

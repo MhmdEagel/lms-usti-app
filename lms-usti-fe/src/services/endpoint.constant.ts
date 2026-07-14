@@ -7,6 +7,7 @@ const endpoint = {
     OTP: "/auth/me",
     FORUM: "/forum",
     POLICIES: "/policies",
-    CHAT: "/chat"
+    CHAT: "/chat",
+    MEETING: "/classroom"
 }
 export default endpoint

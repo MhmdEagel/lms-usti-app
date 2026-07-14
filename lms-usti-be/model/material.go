@@ -24,7 +24,8 @@ type Material struct {
 	Dosen       User      `gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE"`
 	ClassroomId string
 	Classroom   Classroom `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE"`
-	ViewCount   int64 `json:"view_count" gorm:"default:0"`
+	MeetingId   *string
+	Meeting     *Meeting  `gorm:"foreignKey:MeetingId;constraint:OnDelete:CASCADE;"`
 	Attachments []MaterialAttachment `gorm:"foreignKey:MaterialId;constraint:OnDelete:CASCADE;"`
 }
 

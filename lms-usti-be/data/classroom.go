@@ -126,3 +126,41 @@ type MahasiswaAssignmentItem struct {
 type MahasiswaDashboardStatsResponse struct {
 	UpcomingAssignments []MahasiswaAssignmentItem `json:"upcoming_assignments"`
 }
+
+type ClassroomGradeAssignment struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
+}
+
+type ClassroomGradeStudent struct {
+	ID       string                     `json:"id"`
+	Fullname string                     `json:"fullname"`
+	Grades   map[string]*float64        `json:"grades"`
+}
+
+type StudentGradeAssignment struct {
+	ID       string  `json:"id"`
+	Title    string  `json:"title"`
+	Deadline *string `json:"deadline"`
+	Score    *float64 `json:"score"`
+	Status   string  `json:"status"`
+}
+
+type StudentGradesResponse struct {
+	Assignments []StudentGradeAssignment `json:"assignments"`
+	Average     *float64                 `json:"average"`
+}
+
+type ViewerResponse struct {
+	ID       string `json:"id"`
+	Fullname string `json:"fullname"`
+	Profile  string `json:"profile"`
+	Role     string `json:"role"`
+}
+
+type ClassroomGradesResponse struct {
+	Assignments    []ClassroomGradeAssignment `json:"assignments"`
+	Students       []ClassroomGradeStudent    `json:"students"`
+	Averages       map[string]float64         `json:"averages"`
+	OverallAverage float64                    `json:"overall_average"`
+}

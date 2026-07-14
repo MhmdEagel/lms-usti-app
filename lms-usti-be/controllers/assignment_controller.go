@@ -47,6 +47,7 @@ func (a *AssignmentController) Create(ctx *gin.Context) {
 func (a *AssignmentController) FindAll(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
 	search := ctx.Query("search")
+	meetingId := ctx.Query("meeting_id")
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
 
@@ -55,7 +56,7 @@ func (a *AssignmentController) FindAll(ctx *gin.Context) {
 	userId := user.ID
 
 	pagination := data.Pagination{Limit: limit, Current: page}
-	paginatedResult, err := a.assignmentService.FindAll(classroomId, search, pagination, userId)
+	paginatedResult, err := a.assignmentService.FindAll(classroomId, search, pagination, meetingId, userId)
 	if err != nil {
 		if appErr, ok := err.(*data.AppError); ok {
 			res := data.NewResponseFromError(appErr)
@@ -143,4 +144,16 @@ func (a *AssignmentController) Delete(ctx *gin.Context) {
 	}
 	res := data.NewResponse(http.StatusOK, "assignment berhasil dihapus", nil)
 	ctx.JSON(http.StatusOK, res)
+}
+
+func (a *AssignmentController) GetViewers(c *gin.Context) {
+	classroomId := c.Param("id")
+	assignmentId := c.Param("assignmentId")
+	viewers, err := a.assignmentService.GetViewers(assignmentId, classroomId)
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "berhasil mengambil viewers", viewers)
+	c.JSON(http.StatusOK, res)
 }

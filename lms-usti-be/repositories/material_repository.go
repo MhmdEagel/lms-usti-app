@@ -14,13 +14,11 @@ type MaterialRepository struct {
 type MaterialRepositoryInterface interface {
 	Create(material *model.Material) error
 	CreateAttachments(attachments []model.MaterialAttachment) error
-	FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error)
+	FindAll(classroomId string, search string, meetingId string, pagination data.Pagination) (result *data.PaginationWithData, err error)
 	FindById(materialId string) (material model.Material, err error)
 	Update(material model.Material) error
 	Delete(materialId, classroomId string) error
 	DeleteAttachments(materialId string) error
-	IncrementViewCount(materialID string) error
-	GetViewCountBatch(materialIDs []string) (map[string]int64, error)
 	Transaction(fn func(repo MaterialRepositoryInterface) error) error
 }
 
@@ -48,12 +46,15 @@ func (m *MaterialRepository) Update(material model.Material) error {
 	}
 	return nil
 }
-func (m *MaterialRepository) FindAll(classroomId string, search string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
+func (m *MaterialRepository) FindAll(classroomId string, search string, meetingId string, pagination data.Pagination) (result *data.PaginationWithData, err error) {
 	var materials []model.Material
 	result = &data.PaginationWithData{Pagination: pagination}
 	query := m.Db.Where("classroom_id = ?", classroomId).Order("created_at DESC")
 	if search != "" {
 		query = query.Where("title LIKE ?", "%"+search+"%")
+	}
+	if meetingId != "" {
+		query = query.Where("meeting_id = ?", meetingId)
 	}
 	if err := query.Scopes(lib.Paginate(materials, &pagination, query)).Find(&materials).Error; err != nil {
 		return nil, err
@@ -86,32 +87,6 @@ func (m *MaterialRepository) DeleteAttachments(materialId string) error {
 	}
 	return nil
 }
-func (m *MaterialRepository) IncrementViewCount(materialID string) error {
-	return m.Db.Model(&model.Material{}).
-		Where("id = ?", materialID).
-		UpdateColumn("view_count", gorm.Expr("view_count + 1")).Error
-}
-
-func (m *MaterialRepository) GetViewCountBatch(materialIDs []string) (map[string]int64, error) {
-	type viewResult struct {
-		ID    string
-		Count int64
-	}
-	var rows []viewResult
-	result := m.Db.Model(&model.Material{}).
-		Select("id, view_count as count").
-		Where("id IN ?", materialIDs).
-		Scan(&rows)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	counts := make(map[string]int64, len(materialIDs))
-	for _, r := range rows {
-		counts[r.ID] = r.Count
-	}
-	return counts, nil
-}
-
 func (m *MaterialRepository) withTx(tx *gorm.DB) MaterialRepositoryInterface {
 	return &MaterialRepository{Db: tx}
 }

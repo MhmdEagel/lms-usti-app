@@ -18,6 +18,8 @@ func ErrForumPostNotFound(err error) *AppError    { return NewAppError(404, "pos
 func ErrUnauthorized(err error) *AppError         { return NewAppError(401, "tidak memiliki akses", err) }
 func ErrForumPermissionDenied(err error) *AppError { return NewAppError(403, "tidak memiliki izin membuat postingan forum", err) }
 func ErrClassroomArchived(err error) *AppError { return NewAppError(400, "kelas sudah diarsipkan", err) }
+func ErrMeetingNotFound(err error) *AppError { return NewAppError(404, "pertemuan tidak ditemukan", err) }
+func ErrMeetingMaxReached(err error) *AppError { return NewAppError(400, "maksimal 16 pertemuan per kelas", err) }
 
 type AppError struct {
 	Code    int
