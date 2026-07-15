@@ -23,6 +23,7 @@ import { Spinner } from "@/components/ui/spinner";
 import type { IAttachment, IMaterial } from "@/types/Classroom";
 import { Dispatch, SetStateAction, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
+import MeetingSelect from "../../Meeting/MeetingSelect";
 
 interface PropTypes {
   open: string;
@@ -47,6 +48,8 @@ export default function EditMaterialDialog(props: PropTypes) {
     handleDeleteFile,
     handleClose,
     initializeAttachments,
+    meetingId,
+    setMeetingId,
   } = useEditMaterialDialog();
   const { open, setOpen, material, classroomId } = props;
   const [previewFile, setPreviewFile] = useState<IAttachment | null>(null);
@@ -67,7 +70,9 @@ export default function EditMaterialDialog(props: PropTypes) {
 
   useEffect(() => {
     if (material.attachments && material.attachments.length > 0) {
-      initializeAttachments(material.attachments);
+      initializeAttachments(material.attachments, material.meeting_id);
+    } else {
+      initializeAttachments([], material.meeting_id);
     }
   }, [material]);
 
@@ -166,6 +171,11 @@ export default function EditMaterialDialog(props: PropTypes) {
                         <FormMessage />
                       </FormItem>
                     )}
+                  />
+                  <MeetingSelect
+                    classroomId={classroomId}
+                    value={meetingId}
+                    onChange={setMeetingId}
                   />
                   <FormField
                     control={materialForm.control}

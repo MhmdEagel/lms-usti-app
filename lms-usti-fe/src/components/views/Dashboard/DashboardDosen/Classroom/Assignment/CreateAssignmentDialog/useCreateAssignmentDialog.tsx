@@ -13,7 +13,7 @@ import { ErrorResponse } from "@/types/Response";
 import { assignmentServices } from "@/services/assignment.service";
 import { mediaServices } from "@/services/media.service";
 
-const useCreateAssignmentDialog = () => {
+const useCreateAssignmentDialog = (defaultMeetingId?: string) => {
   const router = useRouter();
   const [open, setOpen] = useState("closed");
   const [attachments, setAttachments] = useState<IAttachment[]>([]);
@@ -21,12 +21,14 @@ const useCreateAssignmentDialog = () => {
   const [hasDeadline, setHasDeadline] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
+  const [meetingId, setMeetingId] = useState<string | null>(defaultMeetingId || null);
 
   const assignmentForm = useForm({
     defaultValues: {
       title: "",
       instruction: "",
       deadline: "",
+      meeting_id: defaultMeetingId || null,
     },
     resolver: zodResolver(createAssignmentSchema),
   });
@@ -61,6 +63,7 @@ const useCreateAssignmentDialog = () => {
     setIsPending(true);
     const payload = {
       title: data.title,
+      meeting_id: meetingId || data.meeting_id || null,
       deadline: data.deadline || undefined,
       instruction: data.instruction || undefined,
       attachments,
@@ -71,6 +74,7 @@ const useCreateAssignmentDialog = () => {
       toast.success("Berhasil menambahkan tugas");
       setAttachments([]);
       setHasDeadline(false);
+      setMeetingId(defaultMeetingId || null);
       assignmentForm.reset();
       setOpen("closed");
       router.refresh();
@@ -96,6 +100,7 @@ const useCreateAssignmentDialog = () => {
     }
     setAttachments([]);
     setHasDeadline(false);
+    setMeetingId(defaultMeetingId || null);
     setIsPending(false);
     assignmentForm.reset();
     setOpen("closed");
@@ -122,6 +127,9 @@ const useCreateAssignmentDialog = () => {
     handleUploadFile,
     isPendingUploadFile,
     setIsPendingUploadFile,
+
+    meetingId,
+    setMeetingId,
   };
 };
 

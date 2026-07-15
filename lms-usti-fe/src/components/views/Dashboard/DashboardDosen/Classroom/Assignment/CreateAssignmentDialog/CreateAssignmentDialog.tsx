@@ -24,11 +24,14 @@ import { mediaServices } from "@/services/media.service";
 import { DatePickerTime } from "@/components/ui/calendar-time-picker";
 import { Spinner } from "@/components/ui/spinner";
 import type { IAttachment } from "@/types/Classroom";
+import MeetingSelect from "../../Meeting/MeetingSelect";
 
 export default function CreateAssignmentDialog({
   classroomId,
+  defaultMeetingId,
 }: {
   classroomId: string;
+  defaultMeetingId?: string;
 }) {
   const {
     open,
@@ -45,7 +48,9 @@ export default function CreateAssignmentDialog({
     handleUploadFile,
     isPendingUploadFile,
     setIsPendingUploadFile,
-  } = useCreateAssignmentDialog();
+    meetingId,
+    setMeetingId,
+  } = useCreateAssignmentDialog(defaultMeetingId);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -204,6 +209,11 @@ export default function CreateAssignmentDialog({
                     )}
                   />
                 )}
+                <MeetingSelect
+                  classroomId={classroomId}
+                  value={meetingId}
+                  onChange={setMeetingId}
+                />
               </CardContent>
             </Card>
 

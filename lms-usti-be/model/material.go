@@ -21,7 +21,7 @@ type Material struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DosenId     string
-	Dosen       User      `gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE"`
+	Dosen       *User     `gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE"`
 	ClassroomId string
 	Classroom   Classroom `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE"`
 	MeetingId   *string

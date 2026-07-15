@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import CreateMeetingDialog from "@/components/views/Dashboard/DashboardDosen/Classroom/Meeting/CreateMeetingDialog/CreateMeetingDialog";
-import PertemuanTabNavigation from "@/components/views/Dashboard/DashboardDosen/Classroom/Meeting/PertemuanTabNavigation";
+import MeetingTabNavigation from "@/components/views/Dashboard/DashboardDosen/Classroom/Meeting/MeetingTabNavigation";
 import Material from "@/components/views/Dashboard/DashboardDosen/Classroom/Material/Material";
 import MaterialSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/Material/MaterialSkeleton";
 
@@ -26,7 +26,7 @@ export default async function PertemuanMateriPage({
         </div>
         <CreateMeetingDialog classroomId={classroomId} />
       </div>
-      <PertemuanTabNavigation classroomId={classroomId} type="dosen" />
+      <MeetingTabNavigation classroomId={classroomId} type="dosen" />
       <Suspense fallback={<MaterialSkeleton />}>
         <Material classroomId={classroomId} page={page} limit={limit} search={search} showHeader={false} />
       </Suspense>

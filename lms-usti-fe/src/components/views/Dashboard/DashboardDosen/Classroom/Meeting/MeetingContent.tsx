@@ -1,6 +1,6 @@
 import { meetingServices } from "@/services/meeting.service";
 import { getCurrentUser } from "@/lib/auth";
-import PertemuanTabNavigation from "./PertemuanTabNavigation";
+import MeetingTabNavigation from "./MeetingTabNavigation";
 import MeetingCard from "./MeetingCard";
 import CreateMeetingDialog from "./CreateMeetingDialog/CreateMeetingDialog";
 import type { IMeeting } from "@/types/Classroom";
@@ -9,7 +9,7 @@ interface PropTypes {
   classroomId: string;
 }
 
-export default async function PertemuanContent({ classroomId }: PropTypes) {
+export default async function MeetingContent({ classroomId }: PropTypes) {
   const user = await getCurrentUser();
   const type = user.role.toLowerCase() as "dosen" | "mahasiswa";
   const res = await meetingServices.getMeetings(classroomId);
@@ -26,7 +26,7 @@ export default async function PertemuanContent({ classroomId }: PropTypes) {
         )}
       </div>
 
-      <PertemuanTabNavigation classroomId={classroomId} type={type} />
+      <MeetingTabNavigation classroomId={classroomId} type={type} />
 
       <div className="mt-4 space-y-3">
         {meetings.length > 0 ? (

@@ -113,16 +113,11 @@ func (m *MaterialService) FindById(materialId, classroomId, userID string) (mate
 	if err != nil {
 		return material, data.ErrInternalServer(err)
 	}
-	viewCount, err := m.contentViewRepository.CountViews(model.ViewableTypeMaterial, materialId)
-	if err != nil {
-		return material, data.ErrInternalServer(err)
-	}
 	material = data.MaterialDetailResponse{
 		Id:          res.ID,
 		Title:       res.Title,
 		Description: res.Description,
 		MeetingId:   res.MeetingId,
-		ViewCount:   int(viewCount),
 		Classroom: data.ClassroomMeta{
 			ClassroomId: classroom.ID,
 			ClassroomName: classroom.ClassName,

@@ -4,14 +4,12 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import "dayjs/locale/id";
 import { getCurrentUser } from "@/lib/auth";
-import { ArrowLeft } from "lucide-react";
 import { assignmentServices } from "@/services/assignment.service";
 import { classroomServices } from "@/services/classroom.service";
 import type { IAssignment, IClassroom } from "@/types/Classroom";
 import AssignmentBreadcrumb from "./AssignmentBreadcrumb";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import AssignmentDetailTabNavbar from "./AssignmentDetailTabNavbar/AssignmentDetailTabNavbar";
+import BackButton from "@/components/common/BackButton/BackButton";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -47,14 +45,9 @@ export default async function AssignmentDetailLayout({
         assignmentTitle={data?.title || "Tugas"}
         role={role}
       />
-      <Link
-        className="mb-2"
-        href={`/${role}/kelas/${classroomId}/pertemuan/tugas`}
-      >
-        <Button className="rounded-full" variant="ghost">
-          <ArrowLeft /> Kembali
-        </Button>
-      </Link>
+      <div className="mb-2">
+        <BackButton />
+      </div>
       <AssignmentDetailTabNavbar
         classroomId={classroomId}
         assignmentId={assignmentId}

@@ -26,6 +26,7 @@ import type { IAttachment, IAssignment } from "@/types/Classroom";
 import { Dispatch, SetStateAction, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { DatePickerTime } from "@/components/ui/calendar-time-picker";
+import MeetingSelect from "../../Meeting/MeetingSelect";
 
 interface PropTypes {
   open: string;
@@ -52,6 +53,8 @@ export default function EditAssignmentDialog(props: PropTypes) {
     initializeAttachments,
     hasDeadline,
     setHasDeadline,
+    meetingId,
+    setMeetingId,
 
   } = useEditAssignmentDialog();
   const { open, setOpen, assignment, classroomId } = props;
@@ -72,7 +75,9 @@ export default function EditAssignmentDialog(props: PropTypes) {
 
   useEffect(() => {
     if (assignment.attachments && assignment.attachments.length > 0) {
-      initializeAttachments(assignment.attachments);
+      initializeAttachments(assignment.attachments, assignment.meeting_id);
+    } else {
+      initializeAttachments([], assignment.meeting_id);
     }
     if (assignment.deadline && !assignment.deadline.startsWith("0001")) {
       setHasDeadline(true);
@@ -237,6 +242,11 @@ export default function EditAssignmentDialog(props: PropTypes) {
                     )}
                   />
                 )}
+                <MeetingSelect
+                  classroomId={classroomId}
+                  value={meetingId}
+                  onChange={setMeetingId}
+                />
               </CardContent>
             </Card>
 

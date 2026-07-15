@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import PertemuanContent from "@/components/views/Dashboard/DashboardDosen/Classroom/Meeting/PertemuanContent";
-import PertemuanSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/Meeting/PertemuanSkeleton";
+import MeetingContent from "@/components/views/Dashboard/DashboardDosen/Classroom/Meeting/MeetingContent";
+import MeetingSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/Meeting/MeetingSkeleton";
 
 export default async function MahasiswaPertemuanPage({
   params,
@@ -10,8 +10,8 @@ export default async function MahasiswaPertemuanPage({
   const { classroomId } = await params;
 
   return (
-    <Suspense fallback={<PertemuanSkeleton />}>
-      <PertemuanContent classroomId={classroomId} />
+    <Suspense fallback={<MeetingSkeleton />}>
+      <MeetingContent classroomId={classroomId} />
     </Suspense>
   );
 }

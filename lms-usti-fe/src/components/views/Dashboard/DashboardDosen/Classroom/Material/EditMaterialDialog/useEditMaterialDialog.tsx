@@ -21,21 +21,26 @@ const useEditMaterialDialog = () => {
   const [trackedAttachments, setTrackedAttachments] = useState<TrackedAttachment[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
+  const [meetingId, setMeetingId] = useState<string | null>(null);
   const materialForm = useForm({
     defaultValues: {
       attachments: [],
+      meeting_id: null,
     },
     resolver: zodResolver(createMaterialSchema),
   });
 
   const orphanedNewFilesRef = useRef<Set<string>>(new Set());
 
-  const initializeAttachments = (attachments: IAttachment[]) => {
+  const initializeAttachments = (attachments: IAttachment[], materialMeetingId?: string | null) => {
     const tracked: TrackedAttachment[] = attachments.map((att) => ({
       ...att,
       status: "original" as TrackStatus,
     }));
     setTrackedAttachments(tracked);
+    if (materialMeetingId) {
+      setMeetingId(materialMeetingId);
+    }
   };
 
   useEffect(() => {
@@ -48,6 +53,7 @@ const useEditMaterialDialog = () => {
   const resetState = (setOpen: Dispatch<SetStateAction<string>>) => {
     orphanedNewFilesRef.current.clear();
     setTrackedAttachments([]);
+    setMeetingId(null);
     setIsPending(false);
     setOpen("closed");
   };
@@ -62,6 +68,7 @@ const useEditMaterialDialog = () => {
       setIsPending(true);
       const payload = {
         ...data,
+        meeting_id: meetingId || null,
         attachments: trackedAttachments.filter((f) => f.status !== "deleted"),
       };
       await materialServices.update(payload, classroomId, materialId);
@@ -167,6 +174,8 @@ const useEditMaterialDialog = () => {
     isPendingUploadFile,
     handleClose,
     initializeAttachments,
+    meetingId,
+    setMeetingId,
     getCurrentFiles: () =>
       trackedAttachments.filter((f) => f.status !== "deleted"),
   };

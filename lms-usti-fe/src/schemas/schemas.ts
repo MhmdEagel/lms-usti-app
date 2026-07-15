@@ -118,6 +118,7 @@ const AttachmentSchema = z.object({
 
 const newMaterialSchema = z.object({
   title: z.string({ required_error: "Judul wajib diisi" }),
+  meeting_id: z.string().nullable().optional(),
   description: z
     .string()
     .transform((val) => {
