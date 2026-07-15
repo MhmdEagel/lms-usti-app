@@ -49,7 +49,7 @@ export default function CreateMeetingDialog({ classroomId, meeting, trigger = "b
         </Tooltip>
       ) : (
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm">
+          <Button size="sm">
             <Plus className="h-4 w-4 mr-1" />
             Buat Pertemuan
           </Button>

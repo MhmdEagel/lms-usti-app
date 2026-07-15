@@ -247,6 +247,8 @@ interface IClassroomPolicies {
 interface IMeetingItem {
   id: string;
   title: string;
+  created_at: string;
+  deadline?: string;
 }
 
 interface IMeeting {

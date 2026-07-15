@@ -18,13 +18,16 @@ type MeetingUpdateRequest struct {
 }
 
 type MeetingMaterialItem struct {
-	ID    string `json:"id"`
-	Title string `json:"title"`
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	CreatedAt string `json:"created_at"`
 }
 
 type MeetingAssignmentItem struct {
-	ID    string `json:"id"`
-	Title string `json:"title"`
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	Deadline  string `json:"deadline"`
+	CreatedAt string `json:"created_at"`
 }
 
 type MeetingResponse struct {
