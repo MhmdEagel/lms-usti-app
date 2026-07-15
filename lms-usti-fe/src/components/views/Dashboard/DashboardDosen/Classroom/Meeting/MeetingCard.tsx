@@ -1,9 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Book, FileText, Plus, Pencil } from "lucide-react";
+import { ChevronDown, ChevronRight, Book, FileText, Plus, Pencil, Trash2 } from "lucide-react";
+import MaterialItem from "../Material/MaterialItem/MaterialItem";
+import AssignmentItem from "../Assignment/AssignmentItem";
 import { Card, CardContent } from "@/components/ui/card";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { meetingServices } from "@/services/meeting.service";
 import CreateMeetingDialog from "./CreateMeetingDialog/CreateMeetingDialog";
 import CreateMaterialDialog from "../Material/CreateMaterialDialog/CreateMaterialDialog";
 import CreateAssignmentDialog from "../Assignment/CreateAssignmentDialog/CreateAssignmentDialog";
@@ -17,7 +34,22 @@ interface PropTypes {
 
 export default function MeetingCard({ meeting, type, classroomId }: PropTypes) {
   const [expanded, setExpanded] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const isDosen = type === "dosen";
+  const router = useRouter();
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await meetingServices.deleteMeeting(classroomId, meeting.id);
+      toast.success("Pertemuan berhasil dihapus");
+      router.refresh();
+    } catch {
+      toast.error("Gagal menghapus pertemuan");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <Card className="overflow-hidden">
@@ -46,12 +78,42 @@ export default function MeetingCard({ meeting, type, classroomId }: PropTypes) {
           </div>
         </button>
         {isDosen && (
-          <div className="pr-4 shrink-0">
+          <div className="pr-4 shrink-0 flex items-center gap-1">
             <CreateMeetingDialog
               classroomId={classroomId}
               meeting={meeting}
               trigger="icon"
             />
+            <AlertDialog>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Hapus Pertemuan</TooltipContent>
+              </Tooltip>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Hapus Pertemuan</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Apakah Anda yakin ingin menghapus pertemuan &quot;{meeting.topic}&quot;? Semua materi dan tugas di dalam pertemuan ini juga akan dihapus. Tindakan ini tidak dapat dibatalkan.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="bg-destructive hover:bg-destructive/90"
+                  >
+                    {deleting ? "Menghapus..." : "Hapus"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         )}
       </div>
@@ -73,18 +135,17 @@ export default function MeetingCard({ meeting, type, classroomId }: PropTypes) {
             </div>
             <div className="border-b mb-3" />
             {meeting.materials && meeting.materials.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 {meeting.materials.map((mat) => (
-                  <Link
+                  <MaterialItem
                     key={mat.id}
-                    href={`/${type}/kelas/${classroomId}/materi/${mat.id}`}
-                    className="p-3 border rounded-lg hover:bg-accent transition-colors flex items-center gap-2"
-                  >
-                    <Book size={20} />
-                    <div className="text-sm font-medium truncate">
-                      {mat.title}
-                    </div>
-                  </Link>
+                    materialId={mat.id}
+                    title={mat.title}
+                    createdAt={mat.created_at}
+                    type={type}
+                    classroomId={classroomId}
+                    compact
+                  />
                 ))}
               </div>
             ) : (
@@ -107,18 +168,17 @@ export default function MeetingCard({ meeting, type, classroomId }: PropTypes) {
             </div>
             <div className="border-b mb-3" />
             {meeting.assignments && meeting.assignments.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 {meeting.assignments.map((tgs) => (
-                  <Link
+                  <AssignmentItem
                     key={tgs.id}
-                    href={`/${type}/kelas/${classroomId}/tugas/${tgs.id}`}
-                    className="p-3 border rounded-lg hover:bg-accent transition-colors flex items-center gap-2"
-                  >
-                    <FileText size={20} />
-                    <div className="text-sm font-medium truncate">
-                      {tgs.title}
-                    </div>
-                  </Link>
+                    assignmentId={tgs.id}
+                    title={tgs.title}
+                    deadline={tgs.deadline}
+                    type={type}
+                    classroomId={classroomId}
+                    compact
+                  />
                 ))}
               </div>
             ) : (

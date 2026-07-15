@@ -19,6 +19,7 @@ import {
 import useAddClassroomForumPost from "./useAddClassroomForumPost";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Plus } from "lucide-react";
 import ContentEditor from "@/components/ui/content-editor";
 
@@ -38,11 +39,17 @@ export default function AddForumPost({ id, classroomId, canCreatePost }: PropTyp
         <div className="text-base md:text-xl font-semibold">Forum Kelas</div>
         {canCreatePost && (
           <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else handleOpen(v); }}>
-            <DialogTrigger asChild>
-              <Button size="icon" className="size-7 md:size-9 ml-auto">
-                <Plus />
-              </Button>
-            </DialogTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="ml-auto">
+                    <Plus className="h-4 w-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Buat Postingan</span>
+                  </Button>
+                </DialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="sm:hidden">Buat postingan baru</TooltipContent>
+            </Tooltip>
             <DialogContent className="sm:max-w-lg" resetForm={handleClose}>
               <DialogHeader>
                 <DialogTitle>Buat Postingan Forum</DialogTitle>

@@ -11,16 +11,37 @@ export default function MaterialItem({
   createdAt,
   type,
   classroomId,
+  compact,
 }: {
   materialId: string;
   title: string;
   createdAt: string;
   type: string;
   classroomId: string;
+  compact?: boolean;
 }) {
   dayjs.extend(localizedFormat);
   dayjs.locale("id");
 
+  if (compact) {
+    return (
+      <Link href={`/${type}/kelas/${classroomId}/materi/${materialId}`}>
+        <Card className="py-2 cursor-pointer">
+          <CardHeader className="flex gap-2 items-center py-2">
+            <div className="rounded-full bg-accent p-2">
+              <Book className="size-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-bold truncate">{title}</div>
+              <div className="text-xs text-muted-foreground">
+                {dayjs(createdAt).format("lll")}
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      </Link>
+    );
+  }
 
   return (
     <Link href={`/${type}/kelas/${classroomId}/materi/${materialId}`}>

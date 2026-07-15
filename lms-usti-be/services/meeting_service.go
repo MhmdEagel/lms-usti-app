@@ -66,15 +66,22 @@ func (s *MeetingService) FindAll(classroomId string) ([]data.MeetingResponse, er
 		var materials []data.MeetingMaterialItem
 		for _, mat := range m.Materials {
 			materials = append(materials, data.MeetingMaterialItem{
-				ID:    mat.ID,
-				Title: mat.Title,
+				ID:        mat.ID,
+				Title:     mat.Title,
+				CreatedAt: mat.CreatedAt.Format(time.RFC3339Nano),
 			})
 		}
 		var assignments []data.MeetingAssignmentItem
 		for _, a := range m.Assignments {
+			deadline := ""
+			if a.Deadline.Valid {
+				deadline = a.Deadline.Time.Format(time.RFC3339Nano)
+			}
 			assignments = append(assignments, data.MeetingAssignmentItem{
-				ID:    a.ID,
-				Title: a.Title,
+				ID:        a.ID,
+				Title:     a.Title,
+				Deadline:  deadline,
+				CreatedAt: a.CreatedAt.Format(time.RFC3339Nano),
 			})
 		}
 		result = append(result, data.MeetingResponse{

@@ -127,7 +127,7 @@ export default function MeetingSelect({ classroomId, value, onChange }: PropType
             </SelectItem>
           </SelectContent>
         </Select>
-      </div>``
+      </div>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-lg">

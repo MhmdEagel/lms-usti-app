@@ -35,7 +35,7 @@ func (m *MeetingRepository) FindAll(classroomId string) ([]model.Meeting, error)
 			return db.Select("id, title, created_at, classroom_id, dosen_id, meeting_id")
 		}).
 		Preload("Assignments", func(db *gorm.DB) *gorm.DB {
-			return db.Select("id, title, created_at, classroom_id, dosen_id, meeting_id")
+			return db.Select("id, title, deadline, created_at, classroom_id, dosen_id, meeting_id")
 		}).
 		Order("position ASC").
 		Find(&meetings).Error
