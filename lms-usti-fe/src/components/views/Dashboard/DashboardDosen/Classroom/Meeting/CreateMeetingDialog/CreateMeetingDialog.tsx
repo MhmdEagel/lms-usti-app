@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,27 +20,44 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCreateMeetingDialog } from "./useCreateMeetingDialog";
+import type { IMeeting } from "@/types/Classroom";
 
 interface PropTypes {
   classroomId: string;
+  meeting?: IMeeting;
+  trigger?: "button" | "icon";
 }
 
-export default function CreateMeetingDialog({ classroomId }: PropTypes) {
-  const { form, open, setOpen, isPending, handleSubmit, handleClose } =
-    useCreateMeetingDialog(classroomId);
+export default function CreateMeetingDialog({ classroomId, meeting, trigger = "button" }: PropTypes) {
+  const { form, open, setOpen, isPending, handleSubmit, handleClose, isEdit } =
+    useCreateMeetingDialog(classroomId, meeting);
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else setOpen(v); }}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Plus className="h-4 w-4 mr-1" />
-          Buat Pertemuan
-        </Button>
-      </DialogTrigger>
+      {trigger === "icon" ? (
+        <Tooltip>
+          <DialogTrigger asChild>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Pencil className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+          </DialogTrigger>
+          <TooltipContent>{isEdit ? "Edit Pertemuan" : "Buat Pertemuan"}</TooltipContent>
+        </Tooltip>
+      ) : (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Plus className="h-4 w-4 mr-1" />
+            Buat Pertemuan
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Buat Pertemuan</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit Pertemuan" : "Buat Pertemuan"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
@@ -75,7 +92,7 @@ export default function CreateMeetingDialog({ classroomId }: PropTypes) {
                 Batal
               </Button>
               <Button type="submit" disabled={isPending}>
-                {isPending ? "Menyimpan..." : "Buat"}
+                {isPending ? "Menyimpan..." : isEdit ? "Simpan" : "Buat"}
               </Button>
             </DialogFooter>
           </form>

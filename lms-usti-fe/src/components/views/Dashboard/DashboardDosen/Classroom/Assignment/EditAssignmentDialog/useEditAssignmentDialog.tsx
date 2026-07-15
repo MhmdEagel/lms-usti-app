@@ -23,20 +23,25 @@ const useEditAssignmentDialog = () => {
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
   const [hasDeadline, setHasDeadline] = useState(false);
+  const [meetingId, setMeetingId] = useState<string | null>(null);
 
   const assignmentForm = useForm({
     defaultValues: {
       attachments: [],
+      meeting_id: null,
     },
     resolver: zodResolver(createAssignmentSchema),
   });
 
-  const initializeAttachments = (attachments: IAttachment[]) => {
+  const initializeAttachments = (attachments: IAttachment[], assignmentMeetingId?: string | null) => {
     const tracked: TrackedAttachment[] = attachments.map((att) => ({
       ...att,
       status: "original" as TrackStatus,
     }));
     setTrackedAttachments(tracked);
+    if (assignmentMeetingId) {
+      setMeetingId(assignmentMeetingId);
+    }
   };
 
   useEffect(() => {
@@ -49,6 +54,7 @@ const useEditAssignmentDialog = () => {
   const resetState = (setOpen: Dispatch<SetStateAction<string>>) => {
     setTrackedAttachments([]);
     setHasDeadline(false);
+    setMeetingId(null);
     setIsPending(false);
     setOpen("closed");
   };
@@ -64,6 +70,7 @@ const useEditAssignmentDialog = () => {
       setIsPending(true);
       const payload = {
         title: data.title,
+        meeting_id: meetingId || null,
         deadline: hasDeadline ? data.deadline : null,
         instruction: data.instruction || undefined,
         attachments: trackedAttachments.filter((f) => f.status !== "deleted"),
@@ -174,6 +181,8 @@ const useEditAssignmentDialog = () => {
     initializeAttachments,
     hasDeadline,
     setHasDeadline,
+    meetingId,
+    setMeetingId,
   };
 };
 

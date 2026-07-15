@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import PertemuanTabNavigation from "@/components/views/Dashboard/DashboardDosen/Classroom/Meeting/PertemuanTabNavigation";
+import MeetingTabNavigation from "@/components/views/Dashboard/DashboardDosen/Classroom/Meeting/MeetingTabNavigation";
 import Assignment from "@/components/views/Dashboard/DashboardDosen/Classroom/Assignment";
 import AssignmentSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/Assignment/AssignmentSkeleton/AssignmentSkeleton";
 
@@ -22,7 +22,7 @@ export default async function MahasiswaPertemuanTugasPage({
         <h2 className="text-lg font-semibold">Pertemuan</h2>
         <div className="border-b mt-1" />
       </div>
-      <PertemuanTabNavigation classroomId={classroomId} type="mahasiswa" />
+      <MeetingTabNavigation classroomId={classroomId} type="mahasiswa" />
       <Suspense fallback={<AssignmentSkeleton />}>
         <Assignment classroomId={classroomId} type="mahasiswa" page={page} limit={limit} search={search} showHeader={false} />
       </Suspense>

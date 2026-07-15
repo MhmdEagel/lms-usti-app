@@ -10,7 +10,7 @@ interface PropTypes {
   type: "dosen" | "mahasiswa";
 }
 
-export default function PertemuanTabNavigation({ classroomId, type }: PropTypes) {
+export default function MeetingTabNavigation({ classroomId, type }: PropTypes) {
   const pathname = usePathname();
   const baseUrl = `/${type}/kelas/${classroomId}/pertemuan`;
 

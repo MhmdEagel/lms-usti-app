@@ -5,18 +5,16 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import "dayjs/locale/id";
 import DOMPurify from "isomorphic-dompurify";
-import { ArrowLeft, Eye, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import { assignmentServices } from "@/services/assignment.service";
 import type { IAssignment, IMySubmission } from "@/types/Classroom";
 import { getCurrentUser } from "@/lib/auth";
-import ViewersDialog from "@/components/common/ViewersDialog/ViewersDialog";
 import AssignmentAttachmentSection from "./AssignmentAttachmentSection";
 import AssignmentAction from "./AssignmentAction";
 import SubmitAssignmentDialog from "./SubmitAssignmentDialog/SubmitAssignmentDialog";
-import AssignmentBreadcrumb from "./AssignmentBreadcrumb";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import BackButton from "@/components/common/BackButton/BackButton";
 import AssignmentDetailTabNavbar from "./AssignmentDetailTabNavbar/AssignmentDetailTabNavbar";
+import AssignmentBreadcrumb from "./AssignmentBreadcrumb/AssignmentBreadcrumb";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -95,11 +93,9 @@ export default async function AssignmentDetail(props: PropTypes) {
         assignmentTitle={data.title}
         role={type}
       />
-      <Link className="mb-2" href={`/${type}/kelas/${classroomId}/pertemuan/tugas`}>
-        <Button className="rounded-full" variant="ghost">
-          <ArrowLeft /> Kembali
-        </Button>
-      </Link>
+      <div className="mb-2">
+        <BackButton />
+      </div>
       <AssignmentDetailTabNavbar
         classroomId={classroomId}
         assignmentId={assignmentId}
@@ -127,28 +123,7 @@ export default async function AssignmentDetail(props: PropTypes) {
                           {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
                         </div>
                       )}
-                      {role === "DOSEN" || role === "PRODI" ? (
-                        <ViewersDialog
-                          viewableType="assignment"
-                          classroomId={classroomId}
-                          contentId={assignmentId}
-                          viewCount={data.view_count}
-                          trigger={
-                            <button
-                              type="button"
-                              className="flex items-center gap-1 text-sm text-gray-500 mt-1 hover:text-gray-700 transition-colors"
-                            >
-                              <Eye className="h-3 w-3" />
-                              {data.view_count} dilihat
-                            </button>
-                          }
-                        />
-                      ) : (
-                        <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
-                          <Eye className="h-3 w-3" />
-                          {data.view_count} dilihat
-                        </div>
-                      )}
+
                     </div>
                   </div>
                 </CardHeader>
@@ -233,28 +208,7 @@ export default async function AssignmentDetail(props: PropTypes) {
                           {dayjs(data.deadline).format("DD MMMM YYYY, HH:mm")}
                         </div>
                       )}
-                      {role === "DOSEN" || role === "PRODI" ? (
-                        <ViewersDialog
-                          viewableType="assignment"
-                          classroomId={classroomId}
-                          contentId={assignmentId}
-                          viewCount={data.view_count}
-                          trigger={
-                            <button
-                              type="button"
-                              className="flex items-center gap-1 text-sm text-gray-500 mt-1 hover:text-gray-700 transition-colors"
-                            >
-                              <Eye className="h-3 w-3" />
-                              {data.view_count} dilihat
-                            </button>
-                          }
-                        />
-                      ) : (
-                        <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
-                          <Eye className="h-3 w-3" />
-                          {data.view_count} dilihat
-                        </div>
-                      )}
+
                     </div>
                   </div>
                 </CardHeader>

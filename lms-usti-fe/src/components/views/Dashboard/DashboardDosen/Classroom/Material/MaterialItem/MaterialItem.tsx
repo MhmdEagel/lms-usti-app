@@ -9,17 +9,21 @@ export default function MaterialItem({
   materialId,
   title,
   createdAt,
+  type,
+  classroomId,
 }: {
   materialId: string;
   title: string;
   createdAt: string;
+  type: string;
+  classroomId: string;
 }) {
   dayjs.extend(localizedFormat);
   dayjs.locale("id");
 
 
   return (
-    <Link href={`./materi/${materialId}`}>
+    <Link href={`/${type}/kelas/${classroomId}/materi/${materialId}`}>
       <Card className="py-4 cursor-pointer">
         <CardHeader className="flex gap-4 items-center">
           <div className="rounded-full bg-accent p-4">

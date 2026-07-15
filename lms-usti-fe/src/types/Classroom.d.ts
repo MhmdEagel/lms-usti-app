@@ -74,8 +74,8 @@ interface IMaterial {
   id: string
   title: string;
   description: string;
-  view_count: number;
   attachments: IAttachment[];
+  meeting_id?: string | null;
   created_at: string;
   updated_at: string
   classroom_detail: {
@@ -87,12 +87,14 @@ interface IMaterial {
 interface INewMaterial {
   title: string;
   description?: string | null | undefined;
+  meeting_id?: string | null;
   attachments?: IAttachment[] | undefined;
 }
 
 interface IUpdateMaterial {
   title?: string;
   description?: string | null | undefined;
+  meeting_id?: string | null;
   attachments?: IAttachment[] | undefined;
 }
 
@@ -102,7 +104,7 @@ interface IAssignment {
   classroom_name: string;
   deadline?: string?;
   instruction?: string?;
-  view_count: number;
+  meeting_id?: string | null;
   attachments?: IAttachment[];
   stats?: SubmissionStats | null;
   my_submission_status?: string;
@@ -120,6 +122,7 @@ interface IUpdateAssignment {
   title?: string;
   deadline?: string | null;
   instruction?: string;
+  meeting_id?: string | null;
   attachments?: IAttachment[];
 }
 interface IClassroomMemberDetail {

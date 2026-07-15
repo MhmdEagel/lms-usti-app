@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function PertemuanSkeleton() {
+export default function MeetingSkeleton() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">

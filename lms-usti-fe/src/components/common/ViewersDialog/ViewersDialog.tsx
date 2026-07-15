@@ -17,7 +17,6 @@ interface PropTypes {
   viewableType: "material" | "assignment";
   classroomId: string;
   contentId: string;
-  viewCount: number;
   trigger: React.ReactNode;
 }
 
@@ -25,7 +24,6 @@ export default function ViewersDialog({
   viewableType,
   classroomId,
   contentId,
-  viewCount,
   trigger,
 }: PropTypes) {
   const [open, setOpen] = useState(false);

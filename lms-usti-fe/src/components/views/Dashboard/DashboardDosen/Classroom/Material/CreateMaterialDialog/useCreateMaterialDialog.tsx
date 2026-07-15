@@ -12,16 +12,18 @@ import { materialServices } from "@/services/material.service";
 import { mediaServices } from "@/services/media.service";
 import { useRouter } from "next/navigation";
 
-const useCreateMaterialDialog = () => {
+const useCreateMaterialDialog = (defaultMeetingId?: string) => {
   const [open, setOpen] = useState("closed");
   const [isVisible, setIsVisible] = useState(false);
   const [attachments, setAttachments] = useState<IAttachment[]>([]);
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
+  const [meetingId, setMeetingId] = useState<string | null>(defaultMeetingId || null);
   const router = useRouter();
   const materialForm = useForm({
     defaultValues: {
       attachments: [],
+      meeting_id: defaultMeetingId || null,
     },
     resolver: zodResolver(createMaterialSchema),
   });
@@ -33,6 +35,7 @@ const useCreateMaterialDialog = () => {
     setIsPending(true);
     const payload = {
       ...data,
+      meeting_id: meetingId || data.meeting_id || null,
       attachments,
     };
     try {
@@ -40,6 +43,7 @@ const useCreateMaterialDialog = () => {
       toast.success("Berhasil menambahkan materi");
       router.refresh();
       setAttachments([]);
+      setMeetingId(defaultMeetingId || null);
       materialForm.reset();
       setOpen("closed");
     } catch (e) {
@@ -64,6 +68,7 @@ const useCreateMaterialDialog = () => {
       toast.error(err.response?.data.meta.message);
     }
     setAttachments([]);
+    setMeetingId(defaultMeetingId || null);
     setIsPending(false);
     materialForm.reset();
     setOpen("closed");
@@ -106,6 +111,8 @@ const useCreateMaterialDialog = () => {
     setIsPendingUploadFile,
     handleClose,
     isVisible,
+    meetingId,
+    setMeetingId,
   };
 };
 

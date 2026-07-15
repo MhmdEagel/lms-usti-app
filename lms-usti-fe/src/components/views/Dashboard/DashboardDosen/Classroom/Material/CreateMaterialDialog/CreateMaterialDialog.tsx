@@ -23,6 +23,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { mediaServices } from "@/services/media.service";
 import type { IAttachment } from "@/types/Classroom";
 import dynamic from "next/dynamic";
+import MeetingSelect from "../../Meeting/MeetingSelect";
 
 const ViewPdf = dynamic(() => import("@/components/common/ViewPdf/ViewPdf"), {
   ssr: false,
@@ -30,8 +31,10 @@ const ViewPdf = dynamic(() => import("@/components/common/ViewPdf/ViewPdf"), {
 
 export default function CreateMaterialDialog({
   classroomId,
+  defaultMeetingId,
 }: {
   classroomId: string;
+  defaultMeetingId?: string;
 }) {
   const {
     open,
@@ -46,7 +49,9 @@ export default function CreateMaterialDialog({
     setIsPending,
     setIsPendingUploadFile,
     handleClose,
-  } = useCreateMaterialDialog();
+    meetingId,
+    setMeetingId,
+  } = useCreateMaterialDialog(defaultMeetingId);
   const [previewFile, setPreviewFile] = useState<IAttachment | null>(null);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -180,12 +185,17 @@ export default function CreateMaterialDialog({
                             isInvalid={!!fieldState.error}
                           />
                         </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <MeetingSelect
+              classroomId={classroomId}
+              value={meetingId}
+              onChange={setMeetingId}
+            />
+          </CardContent>
             </Card>
             <Card className="relative">
               {isPendingUploadFile ? (

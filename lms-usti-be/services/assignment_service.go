@@ -163,10 +163,6 @@ func (a *AssignmentService) FindById(assignmentId, classroomId, userID string) (
 	if err != nil {
 		return assignment, data.ErrInternalServer(err)
 	}
-	viewCount, err := a.contentViewRepository.CountViews(model.ViewableTypeAssignment, assignmentId)
-	if err != nil {
-		return assignment, data.ErrInternalServer(err)
-	}
 	result := data.AssignmentDetailResponse{
 		ID:            res.ID,
 		Title:         res.Title,
@@ -174,7 +170,6 @@ func (a *AssignmentService) FindById(assignmentId, classroomId, userID string) (
 		Instruction:   res.Instruction,
 		MeetingId:     res.MeetingId,
 		ClassroomName: classroom.ClassName,
-		ViewCount:     int(viewCount),
 	}
 	stats, _ := a.submissionService.GetSubmissionStats(assignmentId)
 	result.Stats = &stats

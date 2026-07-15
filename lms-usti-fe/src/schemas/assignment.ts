@@ -9,6 +9,7 @@ const AttachmentSchema = z.object({
 
 export const createAssignmentSchema = z.object({
   title: z.string({ required_error: "Judul harus diisi" }),
+  meeting_id: z.string().nullable().optional(),
   deadline: z.string().nullable().optional(),
   instruction: z
     .string()

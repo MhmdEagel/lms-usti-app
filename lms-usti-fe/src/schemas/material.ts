@@ -9,6 +9,7 @@ const AttachmentSchema = z.object({
 
 export const createMaterialSchema = z.object({
   title: z.string({required_error: "Judul harus diisi"}),
+  meeting_id: z.string().nullable().optional(),
   description: z
     .string()
     .transform((val) => {

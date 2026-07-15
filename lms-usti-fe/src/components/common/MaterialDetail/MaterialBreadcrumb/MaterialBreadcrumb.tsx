@@ -34,7 +34,7 @@ export default function MaterialBreadcrumb(props: PropTypes) {
         <BreadcrumbSeparator />
         <BreadcrumbItem>
           <BreadcrumbLink
-            href={`/${type}/kelas/${classroomId}/pertemuan/materi`}
+            href={`/${type}/kelas/${classroomId}/materi`}
             className="capitalize"
           >
             Materi

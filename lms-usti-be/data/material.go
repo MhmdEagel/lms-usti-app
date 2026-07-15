@@ -22,7 +22,6 @@ type MaterialDetailResponse struct {
 	Title       string               `json:"title"`
 	Description string               `json:"description"`
 	MeetingId   *string              `json:"meeting_id"`
-	ViewCount   int                  `json:"view_count"`
 	Attachments []AttachmentResponse `json:"attachments"`
 	Classroom   ClassroomMeta        `json:"classroom_detail"`
 }

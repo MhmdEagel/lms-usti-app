@@ -43,6 +43,8 @@ export default async function Material({
               materialId={item.id}
               title={item.title}
               createdAt={item.created_at}
+              type={user.role.toLowerCase()}
+              classroomId={classroomId}
             />
           ))
         ) : (

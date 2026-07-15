@@ -27,7 +27,6 @@ type AssignmentDetailResponse struct {
 	Deadline      *time.Time `json:"deadline"`
 	Instruction   string    `json:"instruction"`
 	MeetingId     *string   `json:"meeting_id"`
-	ViewCount     int       `json:"view_count"`
 	Stats         *SubmissionStatsResponse `json:"stats"`
 	Attachments   []AttachmentResponse       `json:"attachments"`
 }

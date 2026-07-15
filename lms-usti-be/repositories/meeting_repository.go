@@ -32,10 +32,10 @@ func (m *MeetingRepository) FindAll(classroomId string) ([]model.Meeting, error)
 	var meetings []model.Meeting
 	err := m.Db.Where("classroom_id = ?", classroomId).
 		Preload("Materials", func(db *gorm.DB) *gorm.DB {
-			return db.Select("id, title, created_at")
+			return db.Select("id, title, created_at, classroom_id, dosen_id, meeting_id")
 		}).
 		Preload("Assignments", func(db *gorm.DB) *gorm.DB {
-			return db.Select("id, title, created_at")
+			return db.Select("id, title, created_at, classroom_id, dosen_id, meeting_id")
 		}).
 		Order("position ASC").
 		Find(&meetings).Error
