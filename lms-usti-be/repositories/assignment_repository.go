@@ -64,7 +64,7 @@ func (a *AssignmentRepository) FindById(assignmentId, classroomId string) (assig
 }
 
 func (a *AssignmentRepository) Update(assignment model.Assignment) error {
-	res := a.Db.Where("id = ? AND classroom_id = ?", assignment.ID, assignment.ClassroomId).Model(&model.Assignment{}).Select("Title", "Deadline", "Instruction", "MeetingId").Updates(assignment)
+	res := a.Db.Where("id = ? AND classroom_id = ?", assignment.ID, assignment.ClassroomId).Model(&model.Assignment{}).Select("Title", "Deadline", "Instruction", "MeetingId", "LateSubmission").Updates(assignment)
 	if res.Error != nil {
 		return res.Error
 	}

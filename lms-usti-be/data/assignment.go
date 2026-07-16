@@ -3,38 +3,42 @@ package data
 import "time"
 
 type AssignmentRequest struct {
-	Title       string              `json:"title" binding:"required"`
-	Deadline    *time.Time          `json:"deadline"`
-	Instruction string              `json:"instruction"`
-	MeetingId   *string             `json:"meeting_id"`
-	Attachments []AttachmentRequest `json:"attachments"`
-	ClassroomId string
-	DosenId     string
+	Title          string              `json:"title" binding:"required"`
+	Deadline       *time.Time          `json:"deadline"`
+	Instruction    string              `json:"instruction"`
+	LateSubmission *string             `json:"late_submission"`
+	MeetingId      *string             `json:"meeting_id"`
+	Attachments    []AttachmentRequest `json:"attachments"`
+	ClassroomId    string
+	DosenId        string
 }
 type AssignmentUpdateRequest struct {
-	ID          string
-	Title       *string             `json:"title"`
-	Deadline    *time.Time          `json:"deadline"`
-	Instruction *string             `json:"instruction"`
-	MeetingId   *string             `json:"meeting_id"`
-	Attachments []AttachmentRequest `json:"attachments"`
-	ClassroomId string
+	ID              string
+	Title           *string             `json:"title"`
+	Deadline        *time.Time          `json:"deadline"`
+	Instruction     *string             `json:"instruction"`
+	LateSubmission  *string             `json:"late_submission"`
+	MeetingId       *string             `json:"meeting_id"`
+	Attachments     []AttachmentRequest `json:"attachments"`
+	ClassroomId     string
 }
 type AssignmentDetailResponse struct {
-	ID            string    `json:"id"`
-	Title         string    `json:"title"`
-	ClassroomName string    `json:"classroom_name"`
-	Deadline      *time.Time `json:"deadline"`
-	Instruction   string    `json:"instruction"`
-	MeetingId     *string   `json:"meeting_id"`
+	ID            string                `json:"id"`
+	Title         string                `json:"title"`
+	ClassroomName string                `json:"classroom_name"`
+	Deadline      *time.Time            `json:"deadline"`
+	Instruction   string                `json:"instruction"`
+	LateSubmission string                `json:"late_submission"`
+	MeetingId     *string               `json:"meeting_id"`
 	Stats         *SubmissionStatsResponse `json:"stats"`
-	Attachments   []AttachmentResponse       `json:"attachments"`
+	Attachments   []AttachmentResponse     `json:"attachments"`
 }
 type AssignmentResponse struct {
 	ID                 string                   `json:"id"`
 	Title              string                   `json:"title"`
 	Deadline           *time.Time               `json:"deadline"`
 	Instruction        string                   `json:"instruction"`
+	LateSubmission     string                   `json:"late_submission"`
 	Stats              *SubmissionStatsResponse `json:"stats"`
 	MySubmissionStatus string                   `json:"my_submission_status"`
 	MyScore            *float64                 `json:"my_score"`

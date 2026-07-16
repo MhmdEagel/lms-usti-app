@@ -20,6 +20,7 @@ func ErrForumPermissionDenied(err error) *AppError { return NewAppError(403, "ti
 func ErrClassroomArchived(err error) *AppError { return NewAppError(400, "kelas sudah diarsipkan", err) }
 func ErrMeetingNotFound(err error) *AppError { return NewAppError(404, "pertemuan tidak ditemukan", err) }
 func ErrMeetingMaxReached(err error) *AppError { return NewAppError(400, "maksimal 16 pertemuan per kelas", err) }
+func ErrDeadlinePassed(err error) *AppError { return NewAppError(400, "Batas pengumpulan tugas telah berlalu", err) }
 
 type AppError struct {
 	Code    int

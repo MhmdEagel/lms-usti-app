@@ -104,6 +104,7 @@ interface IAssignment {
   classroom_name: string;
   deadline?: string?;
   instruction?: string?;
+  late_submission: string;
   meeting_id?: string | null;
   attachments?: IAttachment[];
   stats?: SubmissionStats | null;
@@ -122,6 +123,7 @@ interface IUpdateAssignment {
   title?: string;
   deadline?: string | null;
   instruction?: string;
+  late_submission?: string;
   meeting_id?: string | null;
   attachments?: IAttachment[];
 }
@@ -239,7 +241,6 @@ interface Viewer {
 }
 
 interface IClassroomPolicies {
-  late_submission: string;
   forum_permission: string;
   comment_permission: string;
 }

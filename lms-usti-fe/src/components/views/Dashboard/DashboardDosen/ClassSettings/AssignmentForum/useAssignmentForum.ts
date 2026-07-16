@@ -16,7 +16,6 @@ export function useAssignmentForum(classroomId: string, policies: IClassroomPoli
   const form = useForm<ClassPolicyFormData>({
     resolver: zodResolver(classPolicySchema),
     defaultValues: {
-      lateSubmission: "allow",
       forumPermission: "comment_only",
       commentPermission: "active",
     },
@@ -25,7 +24,6 @@ export function useAssignmentForum(classroomId: string, policies: IClassroomPoli
 
   useEffect(() => {
     if (policies) {
-      setValue("lateSubmission", policies.late_submission as "allow" | "not_allowed");
       setValue("forumPermission", policies.forum_permission as "full_access" | "comment_only" | "dosen_only");
       setValue("commentPermission", policies.comment_permission as "active" | "inactive");
     }
@@ -35,7 +33,6 @@ export function useAssignmentForum(classroomId: string, policies: IClassroomPoli
     setIsPending(true);
     try {
       await classroomServices.updatePolicies(classroomId, {
-        late_submission: data.lateSubmission,
         forum_permission: data.forumPermission,
         comment_permission: data.commentPermission,
       });

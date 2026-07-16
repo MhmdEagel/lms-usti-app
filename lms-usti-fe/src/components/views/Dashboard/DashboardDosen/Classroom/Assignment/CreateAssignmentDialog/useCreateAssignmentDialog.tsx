@@ -19,6 +19,15 @@ const useCreateAssignmentDialog = (defaultMeetingId?: string) => {
   const [attachments, setAttachments] = useState<IAttachment[]>([]);
 
   const [hasDeadline, setHasDeadline] = useState(false);
+
+  const handleSetHasDeadline = (checked: boolean) => {
+    setHasDeadline(checked);
+    if (checked) {
+      assignmentForm.setValue("lateSubmission", "allow");
+    } else {
+      assignmentForm.setValue("lateSubmission", null);
+    }
+  };
   const [isPending, setIsPending] = useState(false);
   const [isPendingUploadFile, setIsPendingUploadFile] = useState(false);
   const [meetingId, setMeetingId] = useState<string | null>(defaultMeetingId || null);
@@ -28,6 +37,7 @@ const useCreateAssignmentDialog = (defaultMeetingId?: string) => {
       title: "",
       instruction: "",
       deadline: "",
+      lateSubmission: null,
       meeting_id: defaultMeetingId || null,
     },
     resolver: zodResolver(createAssignmentSchema),
@@ -61,13 +71,16 @@ const useCreateAssignmentDialog = (defaultMeetingId?: string) => {
     classroomId: string,
   ) => {
     setIsPending(true);
-    const payload = {
+    const payload: Record<string, unknown> = {
       title: data.title,
       meeting_id: meetingId || data.meeting_id || null,
       deadline: data.deadline || undefined,
       instruction: data.instruction || undefined,
       attachments,
     };
+    if (hasDeadline && data.lateSubmission) {
+      payload.late_submission = data.lateSubmission;
+    }
 
     try {
       await assignmentServices.create(payload, classroomId);
@@ -111,7 +124,7 @@ const useCreateAssignmentDialog = (defaultMeetingId?: string) => {
     setOpen,
 
     hasDeadline,
-    setHasDeadline,
+    setHasDeadline: handleSetHasDeadline,
 
     attachments,
     setAttachments,

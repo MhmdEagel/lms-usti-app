@@ -19,10 +19,9 @@ export default async function PertemuanTugasPage({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 border-b-1 pb-4">
         <div>
           <h2 className="text-lg font-semibold">Pertemuan</h2>
-          <div className="border-b mt-1" />
         </div>
         <CreateMeetingDialog classroomId={classroomId} />
       </div>

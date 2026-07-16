@@ -9,20 +9,21 @@ import (
 )
 
 type Assignment struct {
-	ID          string    `json:"id" gorm:"primaryKey"`
-	Title       string    `json:"title" gorm:"not null"`
-	Deadline    sql.NullTime `json:"deadline"`
-	Instruction string    `json:"instruction" gorm:"not null"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	DosenId     string    `json:"dosen_id"`
-	Dosen       User      `json:"dosen" gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE"`
-	ClassroomId string    `json:"classroom_id"`
-	Classroom   Classroom `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE"`
-	MeetingId   *string   `json:"meeting_id"`
-	Meeting     *Meeting  `gorm:"foreignKey:MeetingId;constraint:OnDelete:CASCADE;"`
-	Attachments []AssignmentAttachment `json:"attachments" gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
-	Submissions []Submission           `json:"submissions" gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
+	ID                           string    `json:"id" gorm:"primaryKey"`
+	Title                        string    `json:"title" gorm:"not null"`
+	Deadline                     sql.NullTime `json:"deadline"`
+	Instruction                  string    `json:"instruction" gorm:"not null"`
+	LateSubmission string `json:"late_submission" gorm:"type:varchar(20);default:allow"`
+	CreatedAt                    time.Time `json:"created_at"`
+	UpdatedAt                    time.Time `json:"updated_at"`
+	DosenId                      string    `json:"dosen_id"`
+	Dosen                        User      `json:"dosen" gorm:"foreignKey:DosenId;constraint:OnDelete:CASCADE"`
+	ClassroomId                  string    `json:"classroom_id"`
+	Classroom                    Classroom `gorm:"foreignKey:ClassroomId;constraint:OnDelete:CASCADE"`
+	MeetingId                    *string   `json:"meeting_id"`
+	Meeting                      *Meeting  `gorm:"foreignKey:MeetingId;constraint:OnDelete:CASCADE;"`
+	Attachments                  []AssignmentAttachment `json:"attachments" gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
+	Submissions                  []Submission           `json:"submissions" gorm:"foreignKey:AssignmentId;constraint:OnDelete:CASCADE;"`
 }
 
 func (assignment *Assignment) BeforeCreate(tx *gorm.DB) error {

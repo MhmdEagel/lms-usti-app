@@ -182,6 +182,8 @@ export default async function AssignmentDetail(props: PropTypes) {
                     classroomId={classroomId}
                     assignmentId={assignmentId}
                     mySubmission={mySubmission}
+                    deadline={data.deadline}
+                    lateSubmission={data.late_submission}
                   />
                 </div>
               </div>
