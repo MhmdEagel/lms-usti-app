@@ -32,6 +32,9 @@ dummy/
 credentials.json
 storage
 
+# Compiled binaries
+seed
+
 # Editor/IDE
 # .idea/
 # .vscode/
