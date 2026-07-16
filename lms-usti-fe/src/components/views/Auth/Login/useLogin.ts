@@ -1,13 +1,11 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ILogin } from "@/types/Auth";
 import { useSearchParams } from "next/navigation";
 import { loginSchema } from "@/schemas/schemas";
 import loginUser from "@/actions/login";
 import { z } from "zod";
-import { AxiosError } from "axios";
-import { ErrorResponse } from "@/types/Response";
 
 const useLogin = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -27,16 +25,15 @@ const useLogin = () => {
     try {
       setIsPending(true);
       const callbackUrl = searchParams.get("callbackUrl") || undefined;
-      await loginUser(data, callbackUrl);
-    } catch (error) {
-      const err = error as Error;
-      setError("root", {
-        message: err.message,
-      });
+      const result = await loginUser(data, callbackUrl);
+      if (!result.success) {
+        setError("root", { message: result.error });
+      }
     } finally {
       setIsPending(false);
     }
   };
+
   return {
     isVisible,
     handleLogin,

@@ -2,8 +2,11 @@
 
 import { cookies } from "next/headers";
 
-export const getAccessToken = async () => {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get("access_token");
-  return accessToken?.value
+export const getAccessToken = async (): Promise<string | null> => {
+  try {
+    const cookieStore = await cookies();
+    return cookieStore.get("access_token")?.value ?? null;
+  } catch {
+    return null;
+  }
 };
