@@ -17,7 +17,7 @@ const (
 type Material struct {
 	ID          string `gorm:"primaryKey"`
 	Title       string `gorm:"not null"`
-	Description string
+	Description string `gorm:"type:text"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DosenId     string

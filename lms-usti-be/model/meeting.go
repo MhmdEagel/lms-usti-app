@@ -11,7 +11,7 @@ type Meeting struct {
 	ID          string    `gorm:"primaryKey"`
 	Position    int       `gorm:"not null"`
 	Topic       string    `gorm:"not null"`
-	Description string
+	Description string `gorm:"type:text"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	ClassroomId string

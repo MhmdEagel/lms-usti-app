@@ -12,7 +12,7 @@ type Assignment struct {
 	ID                           string    `json:"id" gorm:"primaryKey"`
 	Title                        string    `json:"title" gorm:"not null"`
 	Deadline                     sql.NullTime `json:"deadline"`
-	Instruction                  string    `json:"instruction" gorm:"not null"`
+	Instruction                  string    `json:"instruction" gorm:"type:text;not null"`
 	LateSubmission string `json:"late_submission" gorm:"type:varchar(20);default:allow"`
 	CreatedAt                    time.Time `json:"created_at"`
 	UpdatedAt                    time.Time `json:"updated_at"`
