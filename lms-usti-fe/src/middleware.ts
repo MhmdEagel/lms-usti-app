@@ -51,7 +51,7 @@ export async function middleware(request: NextRequest) {
       }
     }
   } catch {
-    return NextResponse.redirect(loginUrl(nextUrl.pathname));
+    return NextResponse.redirect(loginUrl(isAuthRoute ? undefined : nextUrl.pathname));
   }
 }
 

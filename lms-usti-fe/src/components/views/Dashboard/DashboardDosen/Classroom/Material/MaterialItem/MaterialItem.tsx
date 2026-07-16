@@ -26,8 +26,8 @@ export default function MaterialItem({
   if (compact) {
     return (
       <Link href={`/${type}/kelas/${classroomId}/materi/${materialId}`}>
-        <Card className="py-2 cursor-pointer">
-          <CardHeader className="flex gap-2 items-center py-2">
+        <Card className="cursor-pointer py-3 hover:bg-accent/50">
+          <CardHeader className="flex gap-2 items-center">
             <div className="rounded-full bg-accent p-2">
               <Book className="size-4" />
             </div>

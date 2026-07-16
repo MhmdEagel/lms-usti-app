@@ -15,7 +15,7 @@ export default function MeetingTabNavigation({ classroomId, type }: PropTypes) {
   const baseUrl = `/${type}/kelas/${classroomId}/pertemuan`;
 
   const tabs = [
-    { label: "Semua Pertemuan", icon: BookOpen, href: baseUrl },
+    { label: "Semua Perkuliahan", icon: BookOpen, href: baseUrl },
     { label: "Materi", icon: Book, href: `${baseUrl}/materi` },
     { label: "Tugas", icon: ListTodo, href: `${baseUrl}/tugas` },
   ];

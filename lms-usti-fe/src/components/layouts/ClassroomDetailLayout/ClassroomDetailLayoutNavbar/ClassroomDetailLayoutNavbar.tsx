@@ -33,7 +33,7 @@ export default function ClassroomDetailLayoutNavbar({
             href={`/${type}/${segment}/${classroomId}/pertemuan`}
           >
             <BookOpen size={16} />
-            <span>Pertemuan</span>
+            <span>Perkuliahan</span>
           </ClassroomDetailLayoutNavbarItem>
           <ClassroomDetailLayoutNavbarItem
             isActive={url === `/${type}/${segment}/${classroomId}/anggota`}

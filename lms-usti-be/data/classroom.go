@@ -124,7 +124,9 @@ type MahasiswaAssignmentItem struct {
 }
 
 type MahasiswaDashboardStatsResponse struct {
-	UpcomingAssignments []MahasiswaAssignmentItem `json:"upcoming_assignments"`
+	TotalClassrooms        int64                      `json:"total_classrooms"`
+	TotalPendingAssignments int64                     `json:"total_pending_assignments"`
+	UpcomingAssignments    []MahasiswaAssignmentItem `json:"upcoming_assignments"`
 }
 
 type ClassroomGradeAssignment struct {

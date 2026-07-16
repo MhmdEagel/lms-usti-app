@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -48,31 +48,29 @@ export default function AssignmentItem({ assignmentId, title, deadline, type = "
   if (compact) {
     return (
       <Card
-        className="hover:bg-accent/50 cursor-pointer transition-colors"
+        className="cursor-pointer hover:bg-accent/50 transition-colors py-3"
         onClick={() =>
           router.push(`/${type}/kelas/${classroomId}/tugas/${assignmentId}`)
         }
       >
-        <CardContent className="flex items-center gap-2 py-2">
-          <div className="p-2 bg-accent rounded-full">
-            <FileText className="h-4 w-4" />
+        <CardHeader className="flex gap-2 items-center">
+          <div className="rounded-full bg-accent p-2">
+            <FileText className="size-4" />
           </div>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0">
             <div className="text-sm font-bold truncate">{title}</div>
             {hasDeadline ? (
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                isOverdue ? "bg-red-50 text-red-600" : "bg-gray-100 text-gray-600"
-              }`}>
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />
                 {dayjs(deadline).format("DD MMMM YYYY, HH:mm")}
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+              <span className="text-xs text-muted-foreground">
                 Tidak ada deadline
               </span>
             )}
           </div>
-        </CardContent>
+        </CardHeader>
       </Card>
     );
   }

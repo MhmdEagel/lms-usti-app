@@ -11,4 +11,13 @@ type APIResponse = {
   }
   data: any
 }
+
+import "axios";
+
+declare module "axios" {
+  interface AxiosError {
+    userMessage?: string;
+  }
+}
+
 export type { ErrorResponse, APIResponse };

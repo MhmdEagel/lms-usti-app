@@ -247,6 +247,13 @@ func (c *ClassroomRepository) GetMahasiswaDashboardStats(mahasiswaId string) (da
 		UpcomingAssignments: []data.MahasiswaAssignmentItem{},
 	}
 
+	if err := c.Db.Model(&model.ClassroomMahasiswa{}).
+		Joins("JOIN classrooms ON classrooms.id = classroom_mahasiswas.classroom_id").
+		Where("classroom_mahasiswas.user_id = ? AND classrooms.is_archived = ?", mahasiswaId, false).
+		Count(&result.TotalClassrooms).Error; err != nil {
+		return result, err
+	}
+
 	rows, err := c.Db.Raw(`
 		SELECT
 			a.id AS assignment_id,
@@ -283,6 +290,8 @@ func (c *ClassroomRepository) GetMahasiswaDashboardStats(mahasiswaId string) (da
 
 		result.UpcomingAssignments = append(result.UpcomingAssignments, item)
 	}
+
+	result.TotalPendingAssignments = int64(len(result.UpcomingAssignments))
 
 	return result, nil
 }

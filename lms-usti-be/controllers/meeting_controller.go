@@ -44,7 +44,8 @@ func (c *MeetingController) Create(ctx *gin.Context) {
 
 func (c *MeetingController) FindAll(ctx *gin.Context) {
 	classroomId := ctx.Param("id")
-	meetings, err := c.meetingService.FindAll(classroomId)
+	search := ctx.Query("search")
+	meetings, err := c.meetingService.FindAll(classroomId, search)
 	if err != nil {
 		handleError(ctx, err)
 		return

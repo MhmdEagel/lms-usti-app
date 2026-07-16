@@ -21,8 +21,8 @@ export default async function MahasiswaAssignmentList() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-          <ClipboardList size={24} />
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+          <ClipboardList size={20} className="sm:size-6" />
           Tugas Yang Perlu Dikerjakan
         </CardTitle>
       </CardHeader>

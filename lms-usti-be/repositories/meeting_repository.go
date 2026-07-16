@@ -11,7 +11,7 @@ type MeetingRepository struct {
 
 type MeetingRepositoryInterface interface {
 	Create(meeting *model.Meeting) error
-	FindAll(classroomId string) ([]model.Meeting, error)
+	FindAll(classroomId string, search string) ([]model.Meeting, error)
 	FindById(meetingId string) (model.Meeting, error)
 	Update(meeting model.Meeting) error
 	Delete(meetingId, classroomId string) error
@@ -28,9 +28,22 @@ func (m *MeetingRepository) Create(meeting *model.Meeting) error {
 	return m.Db.Create(meeting).Error
 }
 
-func (m *MeetingRepository) FindAll(classroomId string) ([]model.Meeting, error) {
+func (m *MeetingRepository) FindAll(classroomId string, search string) ([]model.Meeting, error) {
 	var meetings []model.Meeting
-	err := m.Db.Where("classroom_id = ?", classroomId).
+	query := m.Db.Where("classroom_id = ?", classroomId)
+
+	if search != "" {
+		like := "%" + search + "%"
+		subquery := m.Db.Table("meetings").
+			Select("DISTINCT meetings.id").
+			Joins("LEFT JOIN materials ON materials.meeting_id = meetings.id").
+			Joins("LEFT JOIN assignments ON assignments.meeting_id = meetings.id").
+			Where("meetings.classroom_id = ?", classroomId).
+			Where("meetings.topic LIKE ? OR materials.title LIKE ? OR assignments.title LIKE ?", like, like, like)
+		query = query.Where("id IN (?)", subquery)
+	}
+
+	err := query.
 		Preload("Materials", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id, title, created_at, classroom_id, dosen_id, meeting_id")
 		}).
