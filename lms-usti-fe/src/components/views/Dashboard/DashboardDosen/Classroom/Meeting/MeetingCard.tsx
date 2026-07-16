@@ -52,12 +52,12 @@ export default function MeetingCard({ meeting, type, classroomId }: PropTypes) {
   };
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden py-4">
       <div className="flex items-center justify-between">
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="flex-1 flex items-center justify-between p-4 hover:bg-accent/50 transition-colors text-left min-w-0"
+          className="flex-1 flex items-center justify-between px-2 hover:bg-accent/50 transition-colors text-left min-w-0"
         >
           <div className="flex items-center gap-3 min-w-0">
             <div className="shrink-0">

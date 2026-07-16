@@ -67,8 +67,8 @@ export default function SubmitAssignmentDialog({
 
   const hasSubmission = mySubmission?.status === "submitted";
   const hasDeadline = deadline && !deadline.startsWith("0001");
-  const isOverdue = hasDeadline && dayjs(deadline).tz("Asia/Jakarta").isBefore(dayjs().tz("Asia/Jakarta"));
-  const isSubmissionBlocked = isOverdue && lateSubmission === "not_allowed";
+  const isOverdue = !!(hasDeadline && dayjs(deadline).tz("Asia/Jakarta").isBefore(dayjs().tz("Asia/Jakarta")));
+  const isSubmissionBlocked = !!(isOverdue && lateSubmission === "not_allowed");
 
   const handleSubmit = async () => {
     setIsPending(true);

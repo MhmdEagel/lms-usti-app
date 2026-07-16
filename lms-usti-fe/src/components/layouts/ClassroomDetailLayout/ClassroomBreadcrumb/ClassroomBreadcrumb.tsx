@@ -22,6 +22,7 @@ export default function ClassroomBreadcrumb(props: PropTypes) {
   const segments = pathname.split("/").filter(Boolean);
   const lastSegment = segments[segments.length - 1];
   const page = validPages.includes(lastSegment) ? lastSegment : null;
+  const pageLabel = page === "pertemuan" ? "Perkuliahan" : page;
   return (
     <Breadcrumb>
       <BreadcrumbList>
@@ -44,7 +45,7 @@ export default function ClassroomBreadcrumb(props: PropTypes) {
                 href={`/${type}/${segment}/${classroomId}/${page}`}
                 className="capitalize"
               >
-                {page}
+                {pageLabel || "Forum Kelas"}
               </BreadcrumbLink>
             </BreadcrumbItem>
           </>

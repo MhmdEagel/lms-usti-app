@@ -181,6 +181,8 @@ interface IMahasiswaAssignmentItem {
 }
 
 interface IMahasiswaDashboardStats {
+  total_classrooms: number;
+  total_pending_assignments: number;
   upcoming_assignments: IMahasiswaAssignmentItem[];
 }
 

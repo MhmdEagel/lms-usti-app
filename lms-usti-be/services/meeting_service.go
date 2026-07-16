@@ -15,7 +15,7 @@ type MeetingService struct {
 
 type MeetingServiceInterface interface {
 	Create(req data.MeetingRequest) error
-	FindAll(classroomId string) ([]data.MeetingResponse, error)
+	FindAll(classroomId string, search string) ([]data.MeetingResponse, error)
 	FindById(meetingId, classroomId string) (data.MeetingResponse, error)
 	Update(meetingId, classroomId, userID string, req data.MeetingUpdateRequest) error
 	Delete(meetingId, classroomId, userID string) error
@@ -53,11 +53,11 @@ func (s *MeetingService) Create(req data.MeetingRequest) error {
 	return s.meetingRepository.Create(meeting)
 }
 
-func (s *MeetingService) FindAll(classroomId string) ([]data.MeetingResponse, error) {
+func (s *MeetingService) FindAll(classroomId string, search string) ([]data.MeetingResponse, error) {
 	if _, err := s.classroomRepository.FindById(classroomId); err != nil {
 		return nil, data.ErrClassroomNotFound(err)
 	}
-	meetings, err := s.meetingRepository.FindAll(classroomId)
+	meetings, err := s.meetingRepository.FindAll(classroomId, search)
 	if err != nil {
 		return nil, err
 	}

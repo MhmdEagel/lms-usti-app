@@ -2,8 +2,8 @@ import instance from "@/lib/axios";
 import endpoint from "./endpoint.constant";
 
 export const meetingServices = {
-  getMeetings: (classroomId: string) =>
-    instance.get(`${endpoint.MEETING}/${classroomId}/meetings`),
+  getMeetings: (classroomId: string, search?: string) =>
+    instance.get(`${endpoint.MEETING}/${classroomId}/meetings`, { params: { search } }),
 
   getMeetingById: (classroomId: string, meetingId: string) =>
     instance.get(`${endpoint.MEETING}/${classroomId}/meetings/${meetingId}`),

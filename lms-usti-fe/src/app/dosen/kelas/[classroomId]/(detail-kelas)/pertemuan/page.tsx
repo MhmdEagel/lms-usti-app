@@ -4,14 +4,17 @@ import MeetingSkeleton from "@/components/views/Dashboard/DashboardDosen/Classro
 
 export default async function PertemuanPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ classroomId: string }>;
+  searchParams: Promise<{ search?: string }>;
 }) {
   const { classroomId } = await params;
+  const { search } = await searchParams;
 
   return (
     <Suspense fallback={<MeetingSkeleton />}>
-      <MeetingContent classroomId={classroomId} />
+      <MeetingContent classroomId={classroomId} search={search} />
     </Suspense>
   );
 }
