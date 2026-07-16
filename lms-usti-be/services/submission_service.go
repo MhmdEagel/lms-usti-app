@@ -138,6 +138,10 @@ func (s *SubmissionService) Submit(submitReq data.SubmitRequest) error {
 	if err != nil {
 		return err
 	}
+	now := time.Now()
+	if assignment.Deadline.Valid && lib.IsLate(now, assignment.Deadline.Time) && assignment.LateSubmission == "not_allowed" {
+		return data.ErrDeadlinePassed(nil)
+	}
 	submission, err := s.submissionRepository.FindByAssignmentIdAndStudentId(assignment.ID, submitReq.ID)
 	if err != nil {
 		return err
@@ -164,7 +168,6 @@ func (s *SubmissionService) Submit(submitReq data.SubmitRequest) error {
 			return err
 		}
 	}
-	now := time.Now()
 	submitDate := lib.ToNullTime(&now)
 	submitStatus := "submitted"
 	updatedSubmission := model.Submission{

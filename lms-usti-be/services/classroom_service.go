@@ -61,7 +61,6 @@ func (c *ClassroomService) Create(classroomRequest data.CreateClassroomRequest) 
 		}
 		policy := model.ClassroomPolicy{
 			ClassroomID:       created.ID,
-			LateSubmission:    model.LateSubmissionAllow,
 			ForumPermission:   model.ForumPermissionComment,
 			CommentPermission: model.CommentPermissionActive,
 		}

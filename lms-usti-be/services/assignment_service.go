@@ -34,7 +34,7 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 	if err != nil {
 		return data.ErrClassroomNotFound(err)
 	}
-	return a.assignmentRepository.Transaction(
+		return a.assignmentRepository.Transaction(
 		func(repo repositories.AssignmentRepositoryInterface) error {
 			assignment := &model.Assignment{
 				Title:       assignmentRequest.Title,
@@ -43,6 +43,9 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 				MeetingId:   assignmentRequest.MeetingId,
 				ClassroomId: classroom.ID,
 				DosenId:     assignmentRequest.DosenId,
+			}
+			if assignmentRequest.LateSubmission != nil {
+				assignment.LateSubmission = *assignmentRequest.LateSubmission
 			}
 			if err := repo.Create(assignment); err != nil {
 				return err
@@ -131,6 +134,7 @@ func (a *AssignmentService) FindAll(classroomId string, search string, paginatio
 				Title:              v.Title,
 				Instruction:        v.Instruction,
 				Deadline:           lib.FromNullTime(v.Deadline),
+				LateSubmission:     v.LateSubmission,
 				Stats:              &stats,
 				MySubmissionStatus: "",
 				MyScore:            nil,
@@ -168,6 +172,7 @@ func (a *AssignmentService) FindById(assignmentId, classroomId, userID string) (
 		Title:         res.Title,
 		Deadline:      lib.FromNullTime(res.Deadline),
 		Instruction:   res.Instruction,
+		LateSubmission: res.LateSubmission,
 		MeetingId:     res.MeetingId,
 		ClassroomName: classroom.ClassName,
 	}
@@ -206,6 +211,9 @@ func (a *AssignmentService) Update(assignmentRequest data.AssignmentUpdateReques
 			}
 			res.Deadline = lib.ToNullTime(assignmentRequest.Deadline)
 			res.MeetingId = assignmentRequest.MeetingId
+			if assignmentRequest.LateSubmission != nil {
+				res.LateSubmission = *assignmentRequest.LateSubmission
+			}
 			if err := repo.Update(res); err != nil {
 				return err
 			}

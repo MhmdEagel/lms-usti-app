@@ -26,7 +26,6 @@ func (s *ClassroomPolicyService) FindByClassroomId(classroomID string) (data.Cla
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return data.ClassroomPolicyResponse{
-				LateSubmission:    model.LateSubmissionAllow,
 				ForumPermission:   model.ForumPermissionComment,
 				CommentPermission: model.CommentPermissionActive,
 			}, nil
@@ -34,7 +33,6 @@ func (s *ClassroomPolicyService) FindByClassroomId(classroomID string) (data.Cla
 		return data.ClassroomPolicyResponse{}, data.ErrInternalServer(err)
 	}
 	return data.ClassroomPolicyResponse{
-		LateSubmission:    policy.LateSubmission,
 		ForumPermission:   policy.ForumPermission,
 		CommentPermission: policy.CommentPermission,
 	}, nil
@@ -45,7 +43,6 @@ func (s *ClassroomPolicyService) Update(classroomID string, req data.ClassroomPo
 	if err == gorm.ErrRecordNotFound {
 		policy := model.ClassroomPolicy{
 			ClassroomID:       classroomID,
-			LateSubmission:    req.LateSubmission,
 			ForumPermission:   req.ForumPermission,
 			CommentPermission: req.CommentPermission,
 		}
@@ -56,7 +53,6 @@ func (s *ClassroomPolicyService) Update(classroomID string, req data.ClassroomPo
 	}
 	policy := model.ClassroomPolicy{
 		ClassroomID:       classroomID,
-		LateSubmission:    req.LateSubmission,
 		ForumPermission:   req.ForumPermission,
 		CommentPermission: req.CommentPermission,
 	}

@@ -21,5 +21,6 @@ export const createAssignmentSchema = z.object({
     })
     .nullable()
     .optional(),
+  lateSubmission: z.enum(["allow", "not_allowed"]).nullable().optional(),
   attachments: z.array(AttachmentSchema).optional(),
 });

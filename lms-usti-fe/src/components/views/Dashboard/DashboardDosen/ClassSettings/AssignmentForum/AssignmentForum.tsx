@@ -22,32 +22,6 @@ export default function AssignmentForum({ classroomId, policies }: PropTypes) {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6 pb-6">
         <FormField
           control={control}
-          name="lateSubmission"
-          render={({ field }) => (
-            <FormItem>
-              <Card>
-                <CardHeader className="px-4 sm:px-6">
-                  <CardTitle className="text-sm sm:text-base">Pengumpulan Setelah Tenggat</CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 sm:px-6">
-                  <RadioGroup onValueChange={field.onChange} value={field.value} className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="allow" id="late-allow" />
-                      <Label htmlFor="late-allow" className="text-sm sm:text-base leading-relaxed">Izinkan</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="not_allowed" id="late-not-allowed" />
-                      <Label htmlFor="late-not-allowed" className="text-sm sm:text-base leading-relaxed">Tidak diizinkan</Label>
-                    </div>
-                  </RadioGroup>
-                </CardContent>
-              </Card>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={control}
           name="forumPermission"
           render={({ field }) => (
             <FormItem>

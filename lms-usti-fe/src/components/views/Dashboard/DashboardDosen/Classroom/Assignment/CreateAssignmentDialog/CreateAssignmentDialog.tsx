@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import ContentEditor from "@/components/ui/content-editor";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import useCreateAssignmentDialog from "./useCreateAssignmentDialog";
 import FileItem from "@/components/common/FileItem/FileItem";
 import LinkItem from "@/components/common/LinkItem/LinkItem";
@@ -203,6 +204,29 @@ export default function CreateAssignmentDialog({
                             value={field.value ?? ""}
                             onChange={field.onChange}
                           />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {hasDeadline && (
+                  <FormField
+                    control={assignmentForm.control}
+                    name="lateSubmission"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Izin Pengumpulan Setelah Deadline</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value ?? "allow"}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih izin..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="allow">Diizinkan</SelectItem>
+                              <SelectItem value="not_allowed">Tidak diizinkan</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
