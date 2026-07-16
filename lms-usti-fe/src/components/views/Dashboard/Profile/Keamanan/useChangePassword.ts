@@ -26,34 +26,34 @@ export const useChangePassword = () => {
 
   const handleSubmitPassword = async (values: ChangePasswordForm) => {
     setIsPending(true);
-    try {
-      await sendOTP(values.old_password);
+    const result = await sendOTP(values.old_password);
+    setIsPending(false);
+
+    if (result.success) {
       toast.success("Kode OTP telah dikirim ke email");
       setStep("otp");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Gagal mengirim OTP");
-    } finally {
-      setIsPending(false);
+    } else {
+      toast.error(result.error);
     }
   };
 
   const handleSubmitOTP = async (otp: string) => {
     setIsPending(true);
-    try {
-      const values = form.getValues();
-      await verifyOTP({
-        otp,
-        old_password: values.old_password,
-        new_password: values.new_password,
-      });
+    const values = form.getValues();
+    const result = await verifyOTP({
+      otp,
+      old_password: values.old_password,
+      new_password: values.new_password,
+    });
+    setIsPending(false);
+
+    if (result.success) {
       toast.success("Password berhasil diubah");
       form.reset();
       setStep("password");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Gagal memverifikasi OTP");
+    } else {
+      toast.error(result.error);
       setStep("password");
-    } finally {
-      setIsPending(false);
     }
   };
 

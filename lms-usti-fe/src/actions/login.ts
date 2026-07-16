@@ -2,17 +2,25 @@
 
 import authServices from "@/services/auth.service";
 import { ILogin } from "@/types/Auth";
-import { APIResponse } from "@/types/Response";
-import { AxiosError } from "axios";
+import { extractErrorMessage } from "@/lib/error";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 
-const loginUser = async (data: ILogin, callbackUrl?: string) => {
-  const { email, password } = data;
+type LoginResult =
+  | { success: true }
+  | { success: false; error: string };
+
+const loginUser = async (
+  data: ILogin,
+  callbackUrl?: string
+): Promise<LoginResult> => {
   try {
-    const res = await authServices.login({ email, password });
-    const response = res.data;
-    const accessToken = response.data.access_token;
+    const res = await authServices.login({
+      email: data.email,
+      password: data.password,
+    });
+    const accessToken = res.data.data.access_token;
     const cookieStore = await cookies();
     cookieStore.set("access_token", accessToken, {
       httpOnly: true,
@@ -21,24 +29,22 @@ const loginUser = async (data: ILogin, callbackUrl?: string) => {
     });
     const meRes = await authServices.me();
     const role = meRes.data.data.role;
-    if (callbackUrl) {
-      redirect(callbackUrl);
-    }
-    if (role === "MAHASISWA") {
-      redirect("/mahasiswa");
-    } else if (role === "ADMIN") {
-      redirect("/admin/users");
-    } else if (role === "PRODI") {
-      redirect("/prodi")
-    } else {
-      redirect("/dosen");
+
+    if (callbackUrl) redirect(callbackUrl);
+
+    switch (role) {
+      case "MAHASISWA":
+        redirect("/mahasiswa");
+      case "ADMIN":
+        redirect("/admin/users");
+      case "PRODI":
+        redirect("/prodi");
+      default:
+        redirect("/dosen");
     }
   } catch (error) {
-    if (error instanceof AxiosError) {
-      const err = error as AxiosError<APIResponse>;
-      throw new Error(err.response?.data.meta.message);
-    }
-    throw error;
+    if (isRedirectError(error)) throw error;
+    return { success: false, error: extractErrorMessage(error) };
   }
 };
 
