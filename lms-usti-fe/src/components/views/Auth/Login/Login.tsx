@@ -135,10 +135,6 @@ export default function Login() {
               <span>mahasiswausti@yopmail.com</span>
               <span>: mahasiswausti123 (MAHASISWA)</span>
             </div>
-            <div className="text-sm">
-              <span>proditi@yopmail.com</span>
-              <span>: proditi123 (PRODI)</span>
-            </div>
           </div>
         </div>
         <div className="absolute left-1 top-1">
