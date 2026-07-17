@@ -40,7 +40,7 @@ export default async function WaitingGradeList() {
         {waitingGrades.length === 0 ? (
           <p className="text-muted-foreground text-sm">Tidak ada tugas yang menunggu penilaian.</p>
         ) : (
-          <div className="space-y-4">
+          <div className="max-h-[400px] overflow-y-auto flex flex-col gap-4 pr-1">
             {Object.entries(grouped).map(([classroomId, items]) => (
               <Card key={classroomId}>
                 <CardHeader>

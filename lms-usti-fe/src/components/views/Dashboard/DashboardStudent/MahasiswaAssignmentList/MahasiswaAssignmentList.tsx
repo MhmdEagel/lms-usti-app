@@ -30,7 +30,7 @@ export default async function MahasiswaAssignmentList() {
         {stats.upcoming_assignments.length === 0 ? (
           <p className="text-muted-foreground text-sm">Semua tugas sudah dikerjakan</p>
         ) : (
-          <div className="max-h-[320px] overflow-y-auto space-y-2 pr-1">
+          <div className="max-h-[400px] overflow-y-auto flex flex-col gap-2 pr-1">
             {stats.upcoming_assignments.map((item) => (
               <Link
                 key={item.assignment_id}
