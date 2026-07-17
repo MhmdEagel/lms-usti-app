@@ -204,7 +204,7 @@ func seedClassroom(db *gorm.DB, dosen model.User) model.Classroom {
 		ClassName:   className,
 		Term:        1,
 		RoomNumber:  301,
-		Day:         6,
+		Day:         4,
 		ClassStart:  classStart,
 		ClassEnd:    classEnd,
 		DosenId:     dosen.ID,
