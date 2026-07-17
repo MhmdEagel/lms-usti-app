@@ -29,7 +29,7 @@ export default async function RecentForumPosts() {
         {posts.length === 0 ? (
           <p className="text-muted-foreground text-sm">Belum ada postingan terbaru.</p>
         ) : (
-          <div className="space-y-3">
+          <div className="max-h-[400px] overflow-y-auto flex flex-col gap-3 pr-1">
             {posts.slice(0, 5).map((post) => (
               <Link key={post.id} href={`/dosen/forum/${post.id}`}>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">

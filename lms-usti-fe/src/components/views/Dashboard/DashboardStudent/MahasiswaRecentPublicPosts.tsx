@@ -35,7 +35,7 @@ export default async function MahasiswaRecentPublicPosts() {
         {posts.length === 0 ? (
           <p className="text-muted-foreground text-sm">Belum ada postingan terbaru</p>
         ) : (
-          <div className="max-h-[320px] overflow-y-auto space-y-3">
+          <div className="max-h-[400px] overflow-y-auto flex flex-col gap-3 pr-1">
             {posts.map((post) => (
               <Link key={post.id} href={`/mahasiswa/forum/${post.id}`}>
                 <Card className="hover:bg-muted/50 transition-colors cursor-pointer">

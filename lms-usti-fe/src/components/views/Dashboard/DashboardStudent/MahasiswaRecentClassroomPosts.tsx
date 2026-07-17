@@ -48,7 +48,7 @@ export default async function MahasiswaRecentClassroomPosts() {
         {recentPosts.length === 0 ? (
           <p className="text-muted-foreground text-sm">Belum ada postingan terbaru</p>
         ) : (
-          <div className="max-h-[320px] overflow-y-auto space-y-3">
+          <div className="max-h-[400px] overflow-y-auto flex flex-col gap-3 pr-1">
             {recentPosts.map((post) => (
               <Link
                 key={post.id}
