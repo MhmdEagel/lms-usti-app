@@ -125,15 +125,28 @@ export default function Login() {
               </div>
             </form>
           </Form>
-          <div className="bg-blue-100 p-4 rounded-lg text-blue-900">
-            <div className="font-bold">Akun demo</div>
-            <div className="text-sm">
+          <div className="bg-blue-100 p-4 rounded-lg text-blue-900 space-y-1">
+            <div className="font-bold">Akun Demo Dosen</div>
+            <div className="text-xs">
               <span>dosenusti@yopmail.com</span>
-              <span>: dosenusti123 (DOSEN)</span>
+              <span>: dosenusti123</span>
             </div>
-            <div className="text-sm">
+            <div className="font-bold mt-2">Akun Demo Mahasiswa</div>
+            <div className="text-xs">
               <span>mahasiswausti@yopmail.com</span>
-              <span>: mahasiswausti123 (MAHASISWA)</span>
+              <span>: mahasiswausti123</span>
+            </div>
+            <div className="text-xs">
+              <span>john.marston@lms-usti.ac.id</span>
+              <span>: mahasiswausti123</span>
+            </div>
+            <div className="text-xs">
+              <span>abigail.roberts@lms-usti.ac.id</span>
+              <span>: mahasiswausti123</span>
+            </div>
+            <div className="text-xs">
+              <span>charles.smith@lms-usti.ac.id</span>
+              <span>: mahasiswausti123</span>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/MhmdEagel/lms-usti-be/config"
 	"github.com/MhmdEagel/lms-usti-be/controllers"
+	"github.com/MhmdEagel/lms-usti-be/env"
 	"github.com/MhmdEagel/lms-usti-be/middleware"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
 	"github.com/MhmdEagel/lms-usti-be/services"
@@ -17,7 +18,7 @@ func InitRouter() *gin.Engine {
 	r := gin.Default()
 	r.MaxMultipartMemory = 8 << 20
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
+		AllowOrigins:     []string{env.CLIENT_URL},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
