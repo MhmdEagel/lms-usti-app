@@ -33,7 +33,7 @@ credentials.json
 storage
 
 # Compiled binaries
-seed
+/seed
 
 # Editor/IDE
 # .idea/
