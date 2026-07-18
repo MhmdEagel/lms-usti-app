@@ -63,7 +63,7 @@ export default function Profile({ user }: ProfileProps) {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingPicture}
-                  className="absolute bottom-0 right-0 bg-primary p-1.5 rounded-full cursor-pointer hover:bg-primary/90 transition disabled:opacity-70"
+                  className="absolute bottom-0 right-0 bg-foreground p-1.5 rounded-full cursor-pointer hover:bg-foreground/90 transition disabled:opacity-70 ring-2 ring-background"
                 >
                   {isUploadingPicture ? (
                     <Loader2 className="size-4 text-white animate-spin" />
