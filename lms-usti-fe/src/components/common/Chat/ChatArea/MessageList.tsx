@@ -94,7 +94,7 @@ export default function MessageList({
 
   if (messages.length === 0 && !hasMore) {
     return (
-      <div className="flex-1 p-4 bg-[#f6f8fc]" ref={scrollRef}>
+      <div className="flex-1 p-4 bg-[#f6f8fc] overflow-y-auto flex flex-col" ref={scrollRef}>
         <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
           Belum ada pesan. Kirim pesan pertama!
         </div>
@@ -107,7 +107,7 @@ export default function MessageList({
   }
 
   return (
-    <div className="p-4 space-y-1 bg-[#f6f8fc]" ref={scrollRef}>
+    <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-1 bg-[#f6f8fc]" ref={scrollRef}>
       {isLoadingMore && (
         <div className="text-center text-xs text-muted-foreground py-2">Memuat pesan...</div>
       )}
