@@ -30,7 +30,7 @@ export function useChatWebSocket({
   const connect = useCallback(() => {
     if (!token) return
 
-    const httpUrl = environtment.API_URL || "http://localhost:3001/lms-usti-api"
+    const httpUrl = (environtment.API_URL || "http://localhost:3001/lms-usti-api").replace(/\/+$/, "")
     const wsUrl = httpUrl.replace(/^http/, "ws") + "/ws/chat"
     const socket = new WebSocket(wsUrl)
     wsRef.current = socket
