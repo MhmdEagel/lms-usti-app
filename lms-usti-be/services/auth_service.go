@@ -119,7 +119,9 @@ func (a *AuthService) UpdateProfile(userID string, req data.UpdateProfileRequest
 	}
 	if req.Profile != nil {
 		if user.Image != "" {
-			_ = a.mediaService.Remove(user.Image, MediaKindProfile)
+			if err := a.mediaService.Remove(user.Image, MediaKindProfile); err != nil {
+				log.Printf("UpdateProfile: failed to remove old profile image %s: %v", user.Image, err)
+			}
 		}
 		user.Image = *req.Profile
 	}
