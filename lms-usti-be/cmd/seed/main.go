@@ -32,7 +32,7 @@ var (
 
 	mahasiswaPassword = "mahasiswausti123"
 
-	className        = "Interaksi Manusia dan Komputer"
+	className        = "Pemrograman Web"
 	classProdi       = "Teknik Informatika"
 	classTahunAjaran = "2026/2027"
 
@@ -42,18 +42,18 @@ var (
 		Position    int
 	}{
 		{
-			Topic:       "Pendahuluan Interaksi Manusia dan Komputer",
-			Description: "Pengertian IMK, sejarah perkembangan, dan ruang lingkup.",
+			Topic:       "Pendahuluan Pemrograman Web",
+			Description: "Pengertian web, arsitektur client-server, pengenalan HTML, CSS, dan JavaScript.",
 			Position:    1,
 		},
 		{
-			Topic:       "Prinsip Desain Antarmuka",
-			Description: "Prinsip-prinsip desain yang berpusat pada pengguna (User-Centered Design).",
+			Topic:       "HTML Dasar dan Semantic Elements",
+			Description: "Struktur dokumen HTML, tag semantic, form, dan multimedia.",
 			Position:    2,
 		},
 		{
-			Topic:       "Metode Evaluasi Usability",
-			Description: "Berbagai metode evaluasi usability termasuk System Usability Scale (SUS).",
+			Topic:       "CSS Layouting: Flexbox dan Grid",
+			Description: "Teknik layout menggunakan Flexbox dan CSS Grid untuk desain responsif.",
 			Position:    3,
 		},
 	}
@@ -66,25 +66,98 @@ var (
 		LateSub     string
 	}{
 		{
-			Title:       "Tugas 1: Analisis Antarmuka Aplikasi",
-			Instruction: "Pilih salah satu aplikasi yang sering Anda gunakan. Analisis antarmuka berdasarkan 8 aturan emas Shneiderman. Berikan screenshot dan penjelasan untuk setiap aturan.",
+			Title:       "Tugas 1: Halaman Profil Pribadi",
+			Instruction: "Buat halaman HTML profil pribadi yang terdiri dari: foto, biodata, riwayat pendidikan, dan skill. Gunakan semantic HTML5.",
 			MeetingIdx:  0,
 			Deadline:    7,
 			LateSub:     "not_allowed",
 		},
 		{
-			Title:       "Tugas 2: Prototype Desain UI",
-			Instruction: "Buat prototype low-fidelity untuk aplikasi pemesanan makanan online. Gunakan Figma atau alat desain lainnya. Kumpulkan dalam format PDF.",
-			MeetingIdx:  0,
+			Title:       "Tugas 2: Form Registrasi dengan Validasi",
+			Instruction: "Buat form registrasi yang lengkap dengan berbagai jenis input dan validasi menggunakan HTML5. Sertakan input: nama, email, password, tanggal lahir, dan upload foto.",
+			MeetingIdx:  1,
 			Deadline:    14,
 			LateSub:     "allow",
 		},
 		{
-			Title:       "Tugas 3: Evaluasi Heuristik",
-			Instruction: "Lakukan evaluasi heuristik pada website e-commerce pilihan Anda. Gunakan 10 heuristik Nielsen. Dokumentasikan temuan Anda dalam bentuk laporan.",
-			MeetingIdx:  1,
+			Title:       "Tugas 3: Landing Page Responsif",
+			Instruction: "Buat landing page menggunakan Flexbox dan CSS Grid. Halaman harus responsif di mobile, tablet, dan desktop.",
+			MeetingIdx:  2,
 			Deadline:    21,
 			LateSub:     "allow",
+		},
+	}
+
+	materials = []struct {
+		Title       string
+		Description string
+		MeetingIdx  int
+	}{
+		{
+			Title:       "Materi HTML Dasar",
+			Description: "Dokumentasi lengkap tag-tag HTML5 beserta contoh penggunaannya.",
+			MeetingIdx:  0,
+		},
+		{
+			Title:       "Slide CSS Flexbox",
+			Description: "Slide presentasi tentang CSS Flexbox lengkap dengan diagram dan contoh kode.",
+			MeetingIdx:  1,
+		},
+		{
+			Title:       "Video Tutorial CSS Grid",
+			Description: "Video tutorial implementasi CSS Grid untuk layout halaman web modern.",
+			MeetingIdx:  2,
+		},
+	}
+
+	materialAttachments = []struct {
+		Name       string
+		Type       model.AttachmentType
+		Url        string
+		UniqueName string
+		MaterialIdx int
+	}{
+		{
+			Name:        "dummy_pdf.pdf",
+			Type:        model.AttachmentTypeFile,
+			Url:         "/lms-usti-api/media/materials/dummy_pdf.pdf",
+			UniqueName:  "dummy_pdf.pdf",
+			MaterialIdx: 0,
+		},
+		{
+			Name:        "dummy_video.mp4",
+			Type:        model.AttachmentTypeFile,
+			Url:         "/lms-usti-api/media/materials/dummy_video.mp4",
+			UniqueName:  "dummy_video.mp4",
+			MaterialIdx: 0,
+		},
+		{
+			Name:        "dummy_pdf.pdf",
+			Type:        model.AttachmentTypeFile,
+			Url:         "/lms-usti-api/media/materials/dummy_pdf.pdf",
+			UniqueName:  "dummy_pdf.pdf",
+			MaterialIdx: 1,
+		},
+		{
+			Name:        "dummy_video.mp4",
+			Type:        model.AttachmentTypeFile,
+			Url:         "/lms-usti-api/media/materials/dummy_video.mp4",
+			UniqueName:  "dummy_video.mp4",
+			MaterialIdx: 1,
+		},
+		{
+			Name:        "dummy_pdf.pdf",
+			Type:        model.AttachmentTypeFile,
+			Url:         "/lms-usti-api/media/materials/dummy_pdf.pdf",
+			UniqueName:  "dummy_pdf.pdf",
+			MaterialIdx: 2,
+		},
+		{
+			Name:        "dummy_video.mp4",
+			Type:        model.AttachmentTypeFile,
+			Url:         "/lms-usti-api/media/materials/dummy_video.mp4",
+			UniqueName:  "dummy_video.mp4",
+			MaterialIdx: 2,
 		},
 	}
 )
@@ -102,6 +175,7 @@ func main() {
 	classroomForumPosts := seedClassroomForums(Db, classroom, dosen)
 	seedClassroomForumComments(Db, classroomForumPosts, dosen, students)
 	meetingRecords := seedMeetings(Db, classroom, dosen)
+	materialRecords := seedMaterials(Db, classroom, dosen, meetingRecords)
 	assignmentRecords := seedAssignments(Db, classroom, dosen, meetingRecords)
 	seedSubmissions(Db, assignmentRecords, students)
 
@@ -112,6 +186,7 @@ func main() {
 	fmt.Printf("   Classroom: %s\n", className)
 	fmt.Printf("   Students:  %d\n", len(students))
 	fmt.Printf("   Meetings:  %d\n", len(meetingRecords))
+	fmt.Printf("   Materials:  %d\n", len(materialRecords))
 	fmt.Printf("   Assignments: %d\n", len(assignmentRecords))
 	fmt.Printf("   Public Forum Posts: 2\n")
 	fmt.Printf("   Forum Comments: 4\n")
@@ -384,8 +459,8 @@ func seedClassroomForums(db *gorm.DB, classroom model.Classroom, dosen model.Use
 			DosenId:     dosen.ID,
 		},
 		{
-			Title:       "Materi Tambahan - Jurnal Referensi",
-			Content:     "Berikut jurnal yang relevan dengan materi interaksi manusia dan komputer. Silakan dibaca sebelum pertemuan berikutnya.",
+			Title:       "Materi Tambahan - Referensi CSS",
+			Content:     "Berikut tautan referensi CSS yang dapat membantu memahami layouting: CSS Tricks, MDN Web Docs, dan Flexbox Froggy untuk latihan interaktif.",
 			ClassroomId: classroom.ID,
 			DosenId:     dosen.ID,
 		},
@@ -447,4 +522,38 @@ func seedClassroomForumComments(db *gorm.DB, posts []model.ClassroomForumPost, d
 		}
 	}
 	fmt.Printf("💬 %d komentar forum kelas\n", len(comments))
+}
+
+func seedMaterials(db *gorm.DB, classroom model.Classroom, dosen model.User, meetings []model.Meeting) []model.Material {
+	created := make([]model.Material, 0, len(materials))
+	for _, m := range materials {
+		material := model.Material{
+			Title:       m.Title,
+			Description: m.Description,
+			DosenId:     dosen.ID,
+			ClassroomId: classroom.ID,
+			MeetingId:   &meetings[m.MeetingIdx].ID,
+		}
+		if err := db.Create(&material).Error; err != nil {
+			log.Fatalf("Gagal seed material: %v", err)
+		}
+		created = append(created, material)
+	}
+	fmt.Printf("📄 %d materi\n", len(created))
+
+	for _, ma := range materialAttachments {
+		attachment := model.MaterialAttachment{
+			Name:       ma.Name,
+			Type:       ma.Type,
+			Url:        ma.Url,
+			UniqueName: ma.UniqueName,
+			MaterialId: created[ma.MaterialIdx].ID,
+		}
+		if err := db.Create(&attachment).Error; err != nil {
+			log.Fatalf("Gagal seed material attachment: %v", err)
+		}
+	}
+	fmt.Printf("📎 %d lampiran materi\n", len(materialAttachments))
+
+	return created
 }
