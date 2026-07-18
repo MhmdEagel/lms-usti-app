@@ -79,6 +79,10 @@ export function useChatState() {
     setMessages((prev) => [...prev, tempMsg])
   }, [])
 
+  const removePendingMessages = useCallback(() => {
+    setMessages((prev) => prev.filter((m) => !m.id.startsWith("temp_")))
+  }, [])
+
   const updateConversations = useCallback((convs: IChatConversation[]) => {
     setConversations(convs)
     setIsLoadingConversations(false)
@@ -157,5 +161,6 @@ export function useChatState() {
     setIsLoadingMore,
     addConversation,
     addPendingMessage,
+    removePendingMessages,
   }
 }

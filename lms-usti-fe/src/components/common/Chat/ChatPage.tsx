@@ -149,7 +149,7 @@ export default function ChatPage({ user, token, initialConversationId }: PropTyp
   }, [])
 
   const handleSendMessage = useCallback(
-    (content: string) => {
+    async (content: string) => {
       const state = chatRef.current
       const convId = state.selectedConversationId
       if (!convId || !content.trim()) return
@@ -160,7 +160,16 @@ export default function ChatPage({ user, token, initialConversationId }: PropTyp
         profile: user.profile || "",
         role: user.role,
       }, content)
-      ws.sendMessage(convId, content)
+      if (ws.isConnected) {
+        ws.sendMessage(convId, content)
+      } else {
+        try {
+          await chatServices.sendMessage(convId, content)
+        } catch {
+          state.removePendingMessages()
+          toast.error("Gagal mengirim pesan. Periksa koneksi Anda.")
+        }
+      }
     },
     [user, ws],
   )
