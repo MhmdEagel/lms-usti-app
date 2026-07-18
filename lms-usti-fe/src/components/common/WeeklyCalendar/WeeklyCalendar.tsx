@@ -38,7 +38,7 @@ function toGridRow(time: string): number {
 
 export default function WeeklyCalendar({ events, role }: PropTypes) {
   const router = useRouter();
-  const ROW_HEIGHT = 48;
+  const ROW_HEIGHT = 36;
 
   const eventsByDay = useMemo(() => {
     const map: Record<number, CalendarEvent[]> = { 1: [], 2: [], 3: [], 4: [], 5: [] };
@@ -55,106 +55,104 @@ export default function WeeklyCalendar({ events, role }: PropTypes) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg md:text-xl">Jadwal Perkuliahan</CardTitle>
+        <CardTitle className="text-base md:text-xl">Jadwal Perkuliahan</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-2 md:p-6">
         <div className="overflow-x-auto">
-          <div className="overflow-y-auto" style={{ maxHeight: "70vh" }}>
-            <div
-              className="grid"
-              style={{
-                minWidth: "600px",
-                gridTemplateColumns: "60px repeat(5, 1fr)",
-            gridTemplateRows: `auto repeat(${ROWS}, ${ROW_HEIGHT}px)`,
-          }}
-        >
-          <div className="bg-secondary" style={{ gridColumn: 1, gridRow: 1 }} />
-          {DAYS.map((day) => (
-            <div
-              key={day}
-              className="bg-secondary p-3 text-center font-semibold text-base text-foreground capitalize border-l border-border"
-              style={{ gridColumn: DAYS.indexOf(day) + 2, gridRow: 1 }}
-            >
-              {day}
-            </div>
-          ))}
-
-          {HOURS.map((hour, i) => (
-            <div
-              key={hour}
-              className="text-base text-muted-foreground text-right pr-3 border-b border-border/30"
-              style={{
-                gridColumn: 1,
-                gridRow: `${i * 2 + 2} / ${i * 2 + 4}`,
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "flex-end",
-                paddingTop: "2px",
-              }}
-            >
-              {hour}
-            </div>
-          ))}
-
-          {[1, 2, 3, 4, 5].map((day) => {
-            const col = day + 1;
-            return (
+          <div
+            className="grid"
+            style={{
+              minWidth: "640px",
+              gridTemplateColumns: "50px repeat(5, 1fr)",
+              gridTemplateRows: `auto repeat(${ROWS}, ${ROW_HEIGHT}px)`,
+            }}
+          >
+            <div className="bg-secondary" style={{ gridColumn: 1, gridRow: 1 }} />
+            {DAYS.map((day) => (
               <div
                 key={day}
-                className="relative border-l border-border/50"
+                className="bg-secondary p-2 md:p-3 text-center font-semibold text-xs md:text-base text-foreground capitalize border-l border-border"
+                style={{ gridColumn: DAYS.indexOf(day) + 2, gridRow: 1 }}
+              >
+                {day}
+              </div>
+            ))}
+
+            {HOURS.map((hour, i) => (
+              <div
+                key={hour}
+                className="text-xs md:text-sm text-muted-foreground text-right pr-1 md:pr-3 border-b border-border/30"
                 style={{
-                  gridColumn: col,
-                  gridRow: `2 / ${ROWS + 2}`,
-                  display: "grid",
-                  gridTemplateRows: `repeat(${ROWS}, ${ROW_HEIGHT}px)`,
+                  gridColumn: 1,
+                  gridRow: `${i * 2 + 2} / ${i * 2 + 4}`,
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "flex-end",
+                  paddingTop: "1px",
                 }}
               >
-                {Array.from({ length: ROWS - 1 }, (_, i) => (
-                  <div
-                    key={i}
-                    className="border-t border-border/30"
-                    style={{ gridRow: i + 1, gridColumn: 1 }}
-                  />
-                ))}
-
-                {eventsByDay[day].map((ev, idx) => {
-                  const rowStart = toGridRow(ev.startTime);
-                  const rowEnd = toGridRow(ev.endTime);
-                  return (
-                    <div
-                      key={`${ev.extendedProps.classroomId}-${idx}`}
-                      className="group relative rounded-lg border border-primary/20 border-l-[3px] border-l-primary bg-primary/10 cursor-pointer flex flex-col px-3 py-2 hover:bg-primary/20 transition-colors"
-                      style={{
-                        gridRow: `${rowStart} / ${rowEnd}`,
-                        zIndex: 10,
-                        minHeight: 0,
-                      }}
-                      onClick={() => {
-                        if (ev.extendedProps.classroomId) {
-                          router.push(`/${role}/kelas/${ev.extendedProps.classroomId}`);
-                        }
-                      }}
-                    >
-                      <div className="font-semibold text-base text-foreground leading-tight truncate">
-                        {ev.title}
-                      </div>
-                      {ev.extendedProps.roomNumber ? (
-                        <div className="text-sm text-muted-foreground leading-tight truncate">
-                          R. {ev.extendedProps.roomNumber}
-                        </div>
-                      ) : null}
-                      <div className="text-xs text-muted-foreground/70 leading-tight mt-auto truncate">
-                        {ev.startTime} - {ev.endTime}
-                      </div>
-                    </div>
-                  );
-                })}
+                {hour}
               </div>
-            );
-          })}
+            ))}
+
+            {[1, 2, 3, 4, 5].map((day) => {
+              const col = day + 1;
+              return (
+                <div
+                  key={day}
+                  className="relative border-l border-border/50"
+                  style={{
+                    gridColumn: col,
+                    gridRow: `2 / ${ROWS + 2}`,
+                    display: "grid",
+                    gridTemplateRows: `repeat(${ROWS}, ${ROW_HEIGHT}px)`,
+                  }}
+                >
+                  {Array.from({ length: ROWS - 1 }, (_, i) => (
+                    <div
+                      key={i}
+                      className="border-t border-border/30"
+                      style={{ gridRow: i + 1, gridColumn: 1 }}
+                    />
+                  ))}
+
+                  {eventsByDay[day].map((ev, idx) => {
+                    const rowStart = toGridRow(ev.startTime);
+                    const rowEnd = toGridRow(ev.endTime);
+                    return (
+                      <div
+                        key={`${ev.extendedProps.classroomId}-${idx}`}
+                        className="group relative rounded-md border border-primary/20 border-l-[3px] border-l-primary bg-primary/10 cursor-pointer flex flex-col px-2 py-1 md:px-3 md:py-2 hover:bg-primary/20 transition-colors"
+                        style={{
+                          gridRow: `${rowStart} / ${rowEnd}`,
+                          zIndex: 10,
+                          minHeight: 0,
+                        }}
+                        onClick={() => {
+                          if (ev.extendedProps.classroomId) {
+                            router.push(`/${role}/kelas/${ev.extendedProps.classroomId}`);
+                          }
+                        }}
+                      >
+                        <div className="font-semibold text-xs md:text-sm text-foreground leading-tight truncate">
+                          {ev.title}
+                        </div>
+                        {ev.extendedProps.roomNumber ? (
+                          <div className="text-[10px] md:text-xs text-muted-foreground leading-tight truncate">
+                            R. {ev.extendedProps.roomNumber}
+                          </div>
+                        ) : null}
+                        <div className="text-[10px] md:text-xs text-muted-foreground/70 leading-tight mt-auto truncate hidden md:block">
+                          {ev.startTime} - {ev.endTime}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
           </div>
         </div>
-      </div>
       </CardContent>
     </Card>
   );
