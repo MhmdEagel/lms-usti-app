@@ -17,12 +17,15 @@ import { Input } from "@/components/ui/input";
 import AddLinkDialog from "@/components/common/AddLinkDialog/AddLinkDialog";
 import FileItem from "@/components/common/FileItem/FileItem";
 import LinkItem from "@/components/common/LinkItem/LinkItem";
-import ViewPdf from "@/components/common/ViewPdf/ViewPdf";
+import dynamic from "next/dynamic";
 import useEditMaterialDialog, { type TrackedAttachment } from "./useEditMaterialDialog";
+
+const ViewPdf = dynamic(() => import("@/components/common/ViewPdf/ViewPdf"), {
+  ssr: false,
+});
 import { Spinner } from "@/components/ui/spinner";
 import type { IAttachment, IMaterial } from "@/types/Classroom";
 import { Dispatch, SetStateAction, useEffect, useCallback } from "react";
-import dynamic from "next/dynamic";
 import MeetingSelect from "../../Meeting/MeetingSelect";
 
 interface PropTypes {
