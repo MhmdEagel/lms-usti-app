@@ -32,7 +32,27 @@ var (
 
 	mahasiswaPassword = "mahasiswausti123"
 
-	className        = "Pemrograman Web"
+	classroomsSeed = []struct {
+		Name      string
+		Day       int
+		StartHour int
+		StartMin  int
+		EndHour   int
+		EndMin    int
+		Room      int
+	}{
+		{Name: "Pemrograman Web",             Day: 1, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 101},
+		{Name: "Pemrograman Mobile",          Day: 1, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 102},
+		{Name: "Basis Data",                  Day: 2, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 103},
+		{Name: "Jaringan Komputer",           Day: 2, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 104},
+		{Name: "Kecerdasan Buatan",           Day: 3, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 105},
+		{Name: "Sistem Operasi",              Day: 3, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 106},
+		{Name: "Rekayasa Perangkat Lunak",    Day: 4, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 107},
+		{Name: "Keamanan Siber",              Day: 4, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 108},
+		{Name: "Struktur Data & Algoritma",   Day: 5, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 109},
+		{Name: "Pemrograman Berorientasi Objek", Day: 5, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 110},
+	}
+
 	classProdi       = "Teknik Informatika"
 	classTahunAjaran = "2026/2027"
 
@@ -168,30 +188,37 @@ func main() {
 	cleanupDatabase(Db)
 	dosen := seedDosen(Db)
 	students := seedMahasiswas(Db)
-	classroom := seedClassroom(Db, dosen)
-	enrollMahasiswas(Db, classroom, students)
+	classrooms := seedClassrooms(Db, dosen)
 	forumPosts := seedPublicForums(Db, dosen, students)
 	seedPublicForumComments(Db, forumPosts, dosen, students)
-	classroomForumPosts := seedClassroomForums(Db, classroom, dosen)
-	seedClassroomForumComments(Db, classroomForumPosts, dosen, students)
-	meetingRecords := seedMeetings(Db, classroom, dosen)
-	materialRecords := seedMaterials(Db, classroom, dosen, meetingRecords)
-	assignmentRecords := seedAssignments(Db, classroom, dosen, meetingRecords)
-	seedSubmissions(Db, assignmentRecords, students)
+
+	var totalMeetings, totalMaterials, totalAssignments int
+	for _, cls := range classrooms {
+		enrollMahasiswas(Db, cls, students)
+		classroomForumPosts := seedClassroomForums(Db, cls, dosen)
+		seedClassroomForumComments(Db, classroomForumPosts, dosen, students)
+		meetingRecords := seedMeetings(Db, cls, dosen)
+		materialRecords := seedMaterials(Db, cls, dosen, meetingRecords)
+		assignmentRecords := seedAssignments(Db, cls, dosen, meetingRecords)
+		seedSubmissions(Db, assignmentRecords, students)
+		totalMeetings += len(meetingRecords)
+		totalMaterials += len(materialRecords)
+		totalAssignments += len(assignmentRecords)
+	}
 
 	fmt.Println("\n✅ DATA SEEDED SUCCESSFULLY!")
 	fmt.Printf("   Dosen:     %s (%s)\n", dosenName, dosenEmail)
 	fmt.Printf("   Password Dosen: %s\n", dosenPassword)
 	fmt.Printf("   Password Mahasiswa: %s\n", mahasiswaPassword)
-	fmt.Printf("   Classroom: %s\n", className)
+	fmt.Printf("   Classrooms: %d\n", len(classrooms))
 	fmt.Printf("   Students:  %d\n", len(students))
-	fmt.Printf("   Meetings:  %d\n", len(meetingRecords))
-	fmt.Printf("   Materials:  %d\n", len(materialRecords))
-	fmt.Printf("   Assignments: %d\n", len(assignmentRecords))
+	fmt.Printf("   Meetings:  %d\n", totalMeetings)
+	fmt.Printf("   Materials:  %d\n", totalMaterials)
+	fmt.Printf("   Assignments: %d\n", totalAssignments)
 	fmt.Printf("   Public Forum Posts: 2\n")
 	fmt.Printf("   Forum Comments: 4\n")
-	fmt.Printf("   Classroom Forum Comments: 5\n")
-	fmt.Printf("   Classroom Forum Posts: 3\n")
+	fmt.Printf("   Classroom Forum Comments: %d\n", len(classrooms)*5)
+	fmt.Printf("   Classroom Forum Posts: %d\n", len(classrooms)*3)
 	fmt.Printf("\n   Login di http://localhost:3000/auth/login\n")
 }
 
@@ -270,27 +297,34 @@ func seedMahasiswas(db *gorm.DB) []model.User {
 	return students
 }
 
-func seedClassroom(db *gorm.DB, dosen model.User) model.Classroom {
-	classStart := time.Date(2026, 8, 1, 8, 0, 0, 0, time.UTC)
-	classEnd := time.Date(2026, 12, 31, 10, 0, 0, 0, time.UTC)
+func seedClassrooms(db *gorm.DB, dosen model.User) []model.Classroom {
+	baseDate := time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC)
+	records := make([]model.Classroom, 0, len(classroomsSeed))
 
-	classroom := model.Classroom{
-		ClassCover:  "basic",
-		ClassName:   className,
-		Term:        1,
-		RoomNumber:  301,
-		Day:         4,
-		ClassStart:  classStart,
-		ClassEnd:    classEnd,
-		DosenId:     dosen.ID,
-		Prodi:       classProdi,
-		TahunAjaran: classTahunAjaran,
+	for _, cs := range classroomsSeed {
+		start := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), cs.StartHour, cs.StartMin, 0, 0, time.UTC)
+		end := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), cs.EndHour, cs.EndMin, 0, 0, time.UTC)
+
+		classroom := model.Classroom{
+			ClassCover:  "basic",
+			ClassName:   cs.Name,
+			Term:        1,
+			RoomNumber:  cs.Room,
+			Day:         cs.Day,
+			ClassStart:  start,
+			ClassEnd:    end,
+			DosenId:     dosen.ID,
+			Prodi:       classProdi,
+			TahunAjaran: classTahunAjaran,
+		}
+		if err := db.Create(&classroom).Error; err != nil {
+			log.Fatalf("Gagal seed classroom %s: %v", cs.Name, err)
+		}
+		records = append(records, classroom)
+		fmt.Printf("📚 Kelas: %s — Day %d %02d:%02d-%02d:%02d (%s)\n",
+			classroom.ClassName, cs.Day, cs.StartHour, cs.StartMin, cs.EndHour, cs.EndMin, classroom.ClassCode)
 	}
-	if err := db.Create(&classroom).Error; err != nil {
-		log.Fatalf("Gagal seed classroom: %v", err)
-	}
-	fmt.Printf("📚 Kelas: %s (%s)\n", classroom.ClassName, classroom.ClassCode)
-	return classroom
+	return records
 }
 
 func enrollMahasiswas(db *gorm.DB, classroom model.Classroom, students []model.User) {
