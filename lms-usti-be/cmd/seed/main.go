@@ -40,20 +40,22 @@ var (
 	classroomsSeed = []struct {
 		Name      string
 		Day       int
+		StartHour int
+		StartMin  int
+		EndHour   int
+		EndMin    int
 		Room      int
-		StartTime string
-		EndTime   string
 	}{
-		{Name: "Pemrograman Web",             Day: 1, Room: 101, StartTime: "08:00", EndTime: "09:40"},
-		{Name: "Pemrograman Mobile",          Day: 1, Room: 102, StartTime: "10:00", EndTime: "11:40"},
-		{Name: "Basis Data",                  Day: 2, Room: 103, StartTime: "08:00", EndTime: "09:40"},
-		{Name: "Jaringan Komputer",           Day: 2, Room: 104, StartTime: "10:00", EndTime: "11:40"},
-		{Name: "Kecerdasan Buatan",           Day: 3, Room: 105, StartTime: "08:00", EndTime: "09:40"},
-		{Name: "Sistem Operasi",              Day: 3, Room: 106, StartTime: "10:00", EndTime: "11:40"},
-		{Name: "Rekayasa Perangkat Lunak",    Day: 4, Room: 107, StartTime: "08:00", EndTime: "09:40"},
-		{Name: "Keamanan Siber",              Day: 4, Room: 108, StartTime: "10:00", EndTime: "11:40"},
-		{Name: "Struktur Data & Algoritma",   Day: 5, Room: 109, StartTime: "08:00", EndTime: "09:40"},
-		{Name: "Pemrograman Berorientasi Objek", Day: 5, Room: 110, StartTime: "10:00", EndTime: "11:40"},
+		{Name: "Pemrograman Web",             Day: 1, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 101},
+		{Name: "Pemrograman Mobile",          Day: 1, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 102},
+		{Name: "Basis Data",                  Day: 2, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 103},
+		{Name: "Jaringan Komputer",           Day: 2, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 104},
+		{Name: "Kecerdasan Buatan",           Day: 3, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 105},
+		{Name: "Sistem Operasi",              Day: 3, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 106},
+		{Name: "Rekayasa Perangkat Lunak",    Day: 4, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 107},
+		{Name: "Keamanan Siber",              Day: 4, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 108},
+		{Name: "Struktur Data & Algoritma",   Day: 5, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 109},
+		{Name: "Pemrograman Berorientasi Objek", Day: 5, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 110},
 	}
 
 	classProdi       = "Teknik Informatika"
@@ -323,23 +325,12 @@ func seedMahasiswas(db *gorm.DB) []model.User {
 }
 
 func seedClassrooms(db *gorm.DB, dosen model.User) []model.Classroom {
-	loc, err := time.LoadLocation("Asia/Jakarta")
-	if err != nil {
-		log.Fatalf("Gagal load timezone: %v", err)
-	}
-	baseDate := time.Date(2026, 8, 1, 0, 0, 0, 0, loc)
+	baseDate := time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC)
 	records := make([]model.Classroom, 0, len(classroomsSeed))
 
 	for _, cs := range classroomsSeed {
-		startParts := strings.Split(cs.StartTime, ":")
-		endParts := strings.Split(cs.EndTime, ":")
-		startHour, _ := strconv.Atoi(startParts[0])
-		startMin, _ := strconv.Atoi(startParts[1])
-		endHour, _ := strconv.Atoi(endParts[0])
-		endMin, _ := strconv.Atoi(endParts[1])
-
-		start := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), startHour, startMin, 0, 0, loc)
-		end := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), endHour, endMin, 0, 0, loc)
+		start := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), cs.StartHour, cs.StartMin, 0, 0, time.UTC)
+		end := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), cs.EndHour, cs.EndMin, 0, 0, time.UTC)
 
 		classroom := model.Classroom{
 			ClassCover:  "basic",
@@ -357,8 +348,8 @@ func seedClassrooms(db *gorm.DB, dosen model.User) []model.Classroom {
 			log.Fatalf("Gagal seed classroom %s: %v", cs.Name, err)
 		}
 		records = append(records, classroom)
-		fmt.Printf("📚 Kelas: %s — Day %d %s-%s (%s)\n",
-			classroom.ClassName, cs.Day, cs.StartTime, cs.EndTime, classroom.ClassCode)
+		fmt.Printf("📚 Kelas: %s — Day %d %02d:%02d-%02d:%02d (%s)\n",
+			classroom.ClassName, cs.Day, cs.StartHour, cs.StartMin, cs.EndHour, cs.EndMin, classroom.ClassCode)
 	}
 	return records
 }
