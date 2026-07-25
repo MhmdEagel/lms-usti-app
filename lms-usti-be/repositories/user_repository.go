@@ -25,6 +25,7 @@ type UserRepositoryInterface interface {
 	Delete(userID string) error
 	FindAllClassrooms(userID string) (classrooms []model.Classroom, err error)
 	FindBySearch(search string) ([]model.User, error)
+	FindAllByRole(role string, search string) ([]model.User, error)
 }
 
 func (u *UserRepository) Create(user model.User) error {
@@ -96,6 +97,16 @@ func (u *UserRepository) FindBySearch(search string) ([]model.User, error) {
 		Where("fullname LIKE ? OR email LIKE ?", "%"+search+"%", "%"+search+"%").
 		Limit(20).
 		Find(&users).Error
+	return users, err
+}
+
+func (u *UserRepository) FindAllByRole(role string, search string) ([]model.User, error) {
+	var users []model.User
+	query := u.Db.Where("role = ?", role)
+	if search != "" {
+		query = query.Where("fullname LIKE ? OR email LIKE ?", "%"+search+"%", "%"+search+"%")
+	}
+	err := query.Limit(20).Find(&users).Error
 	return users, err
 }
 

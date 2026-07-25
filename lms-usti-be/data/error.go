@@ -21,6 +21,7 @@ func ErrClassroomArchived(err error) *AppError { return NewAppError(400, "kelas 
 func ErrMeetingNotFound(err error) *AppError { return NewAppError(404, "pertemuan tidak ditemukan", err) }
 func ErrMeetingMaxReached(err error) *AppError { return NewAppError(400, "maksimal 16 pertemuan per kelas", err) }
 func ErrDeadlinePassed(err error) *AppError { return NewAppError(400, "Batas pengumpulan tugas telah berlalu", err) }
+func ErrDosenNotFound(err error) *AppError { return NewAppError(404, "dosen tidak ditemukan", err) }
 
 type AppError struct {
 	Code    int

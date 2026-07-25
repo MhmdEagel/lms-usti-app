@@ -38,7 +38,15 @@ func (c *ClassroomController) Create(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	req.DosenId = user.ID
+	if user.Role == "PRODI" {
+		if req.DosenId == "" {
+			res := data.NewResponse(http.StatusBadRequest, "dosen wajib dipilih", nil)
+			ctx.JSON(http.StatusBadRequest, res)
+			return
+		}
+	} else {
+		req.DosenId = user.ID
+	}
 	err := c.classroomService.Create(req)
 	if err != nil {
 		log.Printf("Classroom Create: %v", err)
@@ -321,6 +329,43 @@ func (c *ClassroomController) GetMahasiswaDashboardStats(ctx *gin.Context) {
 		return
 	}
 	res := data.NewResponse(http.StatusOK, "berhasil mengambil dashboard stats mahasiswa", stats)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *ClassroomController) FindAllClassrooms(ctx *gin.Context) {
+	search := ctx.Query("search")
+	limit, _ := strconv.Atoi(ctx.Query("limit"))
+	page, _ := strconv.Atoi(ctx.Query("page"))
+
+	filter := data.ClassroomFilter{
+		Search:      search,
+		Prodi:       ctx.Query("prodi"),
+		Term:        ctx.Query("term"),
+		TahunAjaran: ctx.Query("tahun_ajaran"),
+	}
+	pagination := data.Pagination{Limit: limit, Current: page}
+	paginationResult, err := c.classroomService.FindAll(filter, pagination)
+	if err != nil {
+		log.Printf("FindAllClassrooms: %v", err)
+		appErr := data.ErrInternalServer(nil)
+		res := data.NewResponseFromError(appErr)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := data.NewPaginationResponse(http.StatusOK, "successfully find all classrooms", paginationResult.Pagination, paginationResult.Data)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *ClassroomController) GetDosenList(ctx *gin.Context) {
+	search := ctx.Query("search")
+	dosens, err := c.classroomService.GetDosenList(search)
+	if err != nil {
+		log.Printf("GetDosenList: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "successfully get dosen list", dosens)
 	ctx.JSON(http.StatusOK, res)
 }
 

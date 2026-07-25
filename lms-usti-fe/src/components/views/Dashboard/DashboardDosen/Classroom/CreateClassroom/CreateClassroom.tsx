@@ -56,18 +56,23 @@ export default function CreateClassroom() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DialogTrigger asChild>
-            <Button size={"icon"} variant="default">
+      <div className="flex items-center gap-2">
+        <DialogTrigger asChild>
+          <Button variant="default" className="hidden sm:inline-flex">
+            Tambah Kelas
+          </Button>
+        </DialogTrigger>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size={"icon"} variant="default" className="sm:hidden" onClick={() => setIsOpen(true)}>
               <Plus />
             </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Buat Kelas</p>
-        </TooltipContent>
-      </Tooltip>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Tambah Kelas</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
       <DialogContent
         resetForm={() => createClassForm.reset()}
         className="overflow-y-auto max-h-150"

@@ -13,6 +13,13 @@ interface ICreateClassroom {
   class_end: string?;
   prodi: string?;
   tahun_ajaran: string?;
+  dosen_id?: string?;
+}
+
+interface IDosenListItem {
+  id: string;
+  fullname: string;
+  email: string;
 }
 interface IUpdateClassroom {
   class_cover?: string?;
@@ -323,4 +330,5 @@ export type {
   ClassroomGradesResponse,
   StudentGradeAssignment,
   StudentGradesResponse,
+  IDosenListItem,
 };

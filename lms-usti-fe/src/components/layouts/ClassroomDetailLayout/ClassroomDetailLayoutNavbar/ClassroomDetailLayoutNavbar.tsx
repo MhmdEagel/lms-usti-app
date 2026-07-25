@@ -43,8 +43,8 @@ export default function ClassroomDetailLayoutNavbar({
             <span>Anggota</span>
           </ClassroomDetailLayoutNavbarItem>
           <ClassroomDetailLayoutNavbarItem
-            isActive={url === `/${type}/${segment}/${classroomId}/penilaian`}
-            href={`/${type}/${segment}/${classroomId}/penilaian`}
+            isActive={url === `/${type}/${segment}/${classroomId}/nilai`}
+            href={`/${type}/${segment}/${classroomId}/nilai`}
           >
             <ClipboardList size={16} />
             <span>Nilai</span>

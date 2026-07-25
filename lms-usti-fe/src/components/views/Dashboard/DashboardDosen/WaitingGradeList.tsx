@@ -48,7 +48,7 @@ export default async function WaitingGradeList() {
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 gap-3">
                   {items.map((wg) => (
-                    <Link key={wg.submission_id} href={`/dosen/kelas/${classroomId}/tugas/${wg.assignment_id}/penilaian`}>
+                    <Link key={wg.submission_id} href={`/dosen/kelas/${classroomId}/tugas/${wg.assignment_id}/nilai`}>
                       <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                         <CardContent className="px-4">
                           <div className="flex items-center gap-3">

@@ -8,7 +8,9 @@ export default async function WeeklySchedule() {
   if (!user) return null;
 
   let scheduleRes;
-  if (user.role === "DOSEN") {
+  if (user.role === "PRODI") {
+    scheduleRes = await classroomServices.findAllClassrooms({ limit: 9999 });
+  } else if (user.role === "DOSEN") {
     scheduleRes = await classroomServices.findAllDosenClassrooms({ limit: 9999 });
   } else {
     scheduleRes = await classroomServices.findAllMahasiswaClassrooms({ limit: 9999 });

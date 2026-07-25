@@ -8,6 +8,7 @@ const endpoint = {
     FORUM: "/forum",
     POLICIES: "/policies",
     CHAT: "/chat",
-    MEETING: "/classroom"
+    MEETING: "/classroom",
+    DOSEN_LIST: "/classroom/prodi/dosen-list",
 }
 export default endpoint

@@ -16,7 +16,7 @@ type CreateClassroomRequest struct {
 	ClassEnd    time.Time `json:"class_end" binding:"required"`
 	Prodi       string    `json:"prodi" binding:"required"`
 	TahunAjaran string    `json:"tahun_ajaran" binding:"required"`
-	DosenId     string
+	DosenId     string    `json:"dosen_id"`
 }
 type UpdateClassroomRequest struct {
 	Id          string
@@ -158,6 +158,12 @@ type ViewerResponse struct {
 	Fullname string `json:"fullname"`
 	Profile  string `json:"profile"`
 	Role     string `json:"role"`
+}
+
+type DosenListItem struct {
+	ID       string `json:"id"`
+	Fullname string `json:"fullname"`
+	Email    string `json:"email"`
 }
 
 type ClassroomGradesResponse struct {

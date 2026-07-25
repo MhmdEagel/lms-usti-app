@@ -32,7 +32,7 @@ export default async function RecentForumPosts() {
           <div className="max-h-[400px] overflow-y-auto flex flex-col gap-3 pr-1">
             {posts.slice(0, 5).map((post) => (
               <Link key={post.id} href={`/dosen/forum/${post.id}`}>
-                <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                <Card className="hover:bg-muted/50  cursor-pointer">
                   <CardContent className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <Avatar className="size-10 shrink-0">

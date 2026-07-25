@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
+import { cn } from "@/lib/utils";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import PRODI_COLORS, { DEFAULT_PRODI_COLOR } from "@/constants/prodiColors.constant";
 
 const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
 const HOURS = Array.from({ length: 14 }, (_, i) => `${String(i + 8).padStart(2, "0")}:00`);
@@ -52,13 +54,39 @@ export default function WeeklyCalendar({ events, role }: PropTypes) {
     return map;
   }, [events]);
 
+  const legendProdis = useMemo(() => {
+    const set = new Set<string>();
+    for (const ev of events) {
+      if (ev.extendedProps.prodi) set.add(ev.extendedProps.prodi);
+    }
+    return Array.from(set).sort();
+  }, [events]);
+
   return (
-    <Card>
+    <Card className="mx-auto w-full px-4">
       <CardHeader>
         <CardTitle className="text-base md:text-xl">Jadwal Perkuliahan</CardTitle>
+        {legendProdis.length > 1 && (
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+            {legendProdis.map((prodi) => {
+              const color = PRODI_COLORS[prodi] ?? DEFAULT_PRODI_COLOR;
+              return (
+                <div key={prodi} className="flex items-center gap-1.5">
+                  <span
+                    className={cn(
+                      "inline-block size-3 rounded-sm border",
+                      color.bg,
+                      color.border,
+                    )}
+                  />
+                  <span className="text-xs text-muted-foreground">{prodi}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </CardHeader>
-      <CardContent className="p-2 md:p-6">
-        <div className="overflow-x-auto">
+      <CardContent className="p-2 md:p-6 overflow-x-scroll overflow-y-scroll max-w-4xl max-h-[600px] mx-auto">
           <div
             className="grid"
             style={{
@@ -71,7 +99,7 @@ export default function WeeklyCalendar({ events, role }: PropTypes) {
             {DAYS.map((day) => (
               <div
                 key={day}
-                className="bg-secondary p-2 md:p-3 text-center font-semibold text-xs md:text-base text-foreground capitalize border-l border-border"
+                className="bg-secondary p-2 md:p-3 text-center font-semibold text-xs md:text-base text-foreground capitalize border-l border-border truncate"
                 style={{ gridColumn: DAYS.indexOf(day) + 2, gridRow: 1 }}
               >
                 {day}
@@ -119,10 +147,18 @@ export default function WeeklyCalendar({ events, role }: PropTypes) {
                   {eventsByDay[day].map((ev, idx) => {
                     const rowStart = toGridRow(ev.startTime);
                     const rowEnd = toGridRow(ev.endTime);
+                    const prodiColor =
+                      PRODI_COLORS[ev.extendedProps.prodi] ?? DEFAULT_PRODI_COLOR;
                     return (
                       <div
                         key={`${ev.extendedProps.classroomId}-${idx}`}
-                        className="group relative rounded-md border border-primary/20 border-l-[3px] border-l-primary bg-primary/10 cursor-pointer flex flex-col px-2 py-1 md:px-3 md:py-2 hover:bg-primary/20 transition-colors"
+                        className={cn(
+                          "group relative rounded-md border-l-[3px] cursor-pointer flex flex-col px-2 py-1 md:px-3 md:py-2 transition-colors max-w-[180px]",
+                          prodiColor.bg,
+                          prodiColor.borderLeft,
+                          prodiColor.border,
+                          prodiColor.hover,
+                        )}
                         style={{
                           gridRow: `${rowStart} / ${rowEnd}`,
                           zIndex: 10,
@@ -134,15 +170,15 @@ export default function WeeklyCalendar({ events, role }: PropTypes) {
                           }
                         }}
                       >
-                        <div className="font-semibold text-xs md:text-sm text-foreground leading-tight truncate">
+                        <div className={cn("font-semibold text-xs md:text-sm leading-tight truncate", prodiColor.text)}>
                           {ev.title}
                         </div>
                         {ev.extendedProps.roomNumber ? (
-                          <div className="text-[10px] md:text-xs text-muted-foreground leading-tight truncate">
+                          <div className={cn("text-[10px] md:text-xs leading-tight truncate", prodiColor.text)}>
                             R. {ev.extendedProps.roomNumber}
                           </div>
                         ) : null}
-                        <div className="text-[10px] md:text-xs text-muted-foreground/70 leading-tight mt-auto truncate hidden md:block">
+                        <div className={cn("text-[10px] md:text-xs leading-tight mt-auto truncate hidden md:block", prodiColor.text)}>
                           {ev.startTime} - {ev.endTime}
                         </div>
                       </div>
@@ -152,7 +188,6 @@ export default function WeeklyCalendar({ events, role }: PropTypes) {
               );
             })}
           </div>
-        </div>
       </CardContent>
     </Card>
   );

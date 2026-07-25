@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/MhmdEagel/lms-usti-be/config"
@@ -18,6 +20,9 @@ var (
 	dosenEmail    = "dosenusti@yopmail.com"
 	dosenPassword = "dosenusti123"
 	dosenNidn     = "0012345678"
+
+	prodiEmail    = "proditi@yopmail.com"
+	prodiPassword = "prodiusti123"
 
 	mahasiswas = []struct {
 		Name  string
@@ -35,22 +40,20 @@ var (
 	classroomsSeed = []struct {
 		Name      string
 		Day       int
-		StartHour int
-		StartMin  int
-		EndHour   int
-		EndMin    int
 		Room      int
+		StartTime string
+		EndTime   string
 	}{
-		{Name: "Pemrograman Web",             Day: 1, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 101},
-		{Name: "Pemrograman Mobile",          Day: 1, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 102},
-		{Name: "Basis Data",                  Day: 2, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 103},
-		{Name: "Jaringan Komputer",           Day: 2, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 104},
-		{Name: "Kecerdasan Buatan",           Day: 3, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 105},
-		{Name: "Sistem Operasi",              Day: 3, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 106},
-		{Name: "Rekayasa Perangkat Lunak",    Day: 4, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 107},
-		{Name: "Keamanan Siber",              Day: 4, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 108},
-		{Name: "Struktur Data & Algoritma",   Day: 5, StartHour: 8,  StartMin: 0,  EndHour: 10, EndMin: 0,  Room: 109},
-		{Name: "Pemrograman Berorientasi Objek", Day: 5, StartHour: 10, StartMin: 0,  EndHour: 12, EndMin: 0,  Room: 110},
+		{Name: "Pemrograman Web",             Day: 1, Room: 101, StartTime: "08:00", EndTime: "09:40"},
+		{Name: "Pemrograman Mobile",          Day: 1, Room: 102, StartTime: "10:00", EndTime: "11:40"},
+		{Name: "Basis Data",                  Day: 2, Room: 103, StartTime: "08:00", EndTime: "09:40"},
+		{Name: "Jaringan Komputer",           Day: 2, Room: 104, StartTime: "10:00", EndTime: "11:40"},
+		{Name: "Kecerdasan Buatan",           Day: 3, Room: 105, StartTime: "08:00", EndTime: "09:40"},
+		{Name: "Sistem Operasi",              Day: 3, Room: 106, StartTime: "10:00", EndTime: "11:40"},
+		{Name: "Rekayasa Perangkat Lunak",    Day: 4, Room: 107, StartTime: "08:00", EndTime: "09:40"},
+		{Name: "Keamanan Siber",              Day: 4, Room: 108, StartTime: "10:00", EndTime: "11:40"},
+		{Name: "Struktur Data & Algoritma",   Day: 5, Room: 109, StartTime: "08:00", EndTime: "09:40"},
+		{Name: "Pemrograman Berorientasi Objek", Day: 5, Room: 110, StartTime: "10:00", EndTime: "11:40"},
 	}
 
 	classProdi       = "Teknik Informatika"
@@ -187,6 +190,8 @@ func main() {
 
 	cleanupDatabase(Db)
 	dosen := seedDosen(Db)
+	prodi := seedProdi(Db)
+	_ = prodi
 	students := seedMahasiswas(Db)
 	classrooms := seedClassrooms(Db, dosen)
 	forumPosts := seedPublicForums(Db, dosen, students)
@@ -209,6 +214,8 @@ func main() {
 	fmt.Println("\n✅ DATA SEEDED SUCCESSFULLY!")
 	fmt.Printf("   Dosen:     %s (%s)\n", dosenName, dosenEmail)
 	fmt.Printf("   Password Dosen: %s\n", dosenPassword)
+	fmt.Printf("   Prodi:     %s\n", prodiEmail)
+	fmt.Printf("   Password Prodi: %s\n", prodiPassword)
 	fmt.Printf("   Password Mahasiswa: %s\n", mahasiswaPassword)
 	fmt.Printf("   Classrooms: %d\n", len(classrooms))
 	fmt.Printf("   Students:  %d\n", len(students))
@@ -274,6 +281,24 @@ func seedDosen(db *gorm.DB) model.User {
 	return dosen
 }
 
+func seedProdi(db *gorm.DB) model.User {
+	hash, err := lib.HashPassword(prodiPassword)
+	if err != nil {
+		log.Fatalf("Gagal hash password: %v", err)
+	}
+	prodi := model.User{
+		Fullname: "Prodi TI",
+		Email:    prodiEmail,
+		Password: hash,
+		Role:     "PRODI",
+	}
+	if err := db.Create(&prodi).Error; err != nil {
+		log.Fatalf("Gagal seed prodi: %v", err)
+	}
+	fmt.Printf("👤 Prodi: %s\n", prodi.Email)
+	return prodi
+}
+
 func seedMahasiswas(db *gorm.DB) []model.User {
 	students := make([]model.User, 0, len(mahasiswas))
 	for _, m := range mahasiswas {
@@ -298,12 +323,23 @@ func seedMahasiswas(db *gorm.DB) []model.User {
 }
 
 func seedClassrooms(db *gorm.DB, dosen model.User) []model.Classroom {
-	baseDate := time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC)
+	loc, err := time.LoadLocation("Asia/Jakarta")
+	if err != nil {
+		log.Fatalf("Gagal load timezone: %v", err)
+	}
+	baseDate := time.Date(2026, 8, 1, 0, 0, 0, 0, loc)
 	records := make([]model.Classroom, 0, len(classroomsSeed))
 
 	for _, cs := range classroomsSeed {
-		start := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), cs.StartHour, cs.StartMin, 0, 0, time.UTC)
-		end := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), cs.EndHour, cs.EndMin, 0, 0, time.UTC)
+		startParts := strings.Split(cs.StartTime, ":")
+		endParts := strings.Split(cs.EndTime, ":")
+		startHour, _ := strconv.Atoi(startParts[0])
+		startMin, _ := strconv.Atoi(startParts[1])
+		endHour, _ := strconv.Atoi(endParts[0])
+		endMin, _ := strconv.Atoi(endParts[1])
+
+		start := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), startHour, startMin, 0, 0, loc)
+		end := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), endHour, endMin, 0, 0, loc)
 
 		classroom := model.Classroom{
 			ClassCover:  "basic",
@@ -321,8 +357,8 @@ func seedClassrooms(db *gorm.DB, dosen model.User) []model.Classroom {
 			log.Fatalf("Gagal seed classroom %s: %v", cs.Name, err)
 		}
 		records = append(records, classroom)
-		fmt.Printf("📚 Kelas: %s — Day %d %02d:%02d-%02d:%02d (%s)\n",
-			classroom.ClassName, cs.Day, cs.StartHour, cs.StartMin, cs.EndHour, cs.EndMin, classroom.ClassCode)
+		fmt.Printf("📚 Kelas: %s — Day %d %s-%s (%s)\n",
+			classroom.ClassName, cs.Day, cs.StartTime, cs.EndTime, classroom.ClassCode)
 	}
 	return records
 }
