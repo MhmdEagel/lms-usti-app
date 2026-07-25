@@ -42,15 +42,22 @@ const newClassroomSchema = z
   .object({
     class_cover: z.string({ required_error: "Cover kelas harus dipilih" }),
     class_name: z.string({ required_error: "Nama Kelas wajib diisi" }),
-    room_number: z.coerce
-      .number({ required_error: "Ruang wajib diisi" })
-      .nonnegative("Ruang tidak boleh negatif"),
-    term: z.coerce.number({ required_error: "Semester Wajib diisi" }),
+    room_number: z
+      .string({ required_error: "Ruang wajib diisi" })
+      .min(1, "Ruang wajib diisi")
+      .regex(/^\d+$/, "Ruang wajib diisi"),
+    term: z
+      .string({ required_error: "Semester wajib diisi" })
+      .min(1, "Semester wajib diisi")
+      .regex(/^\d+$/, "Semester wajib diisi"),
     day: z.string({ required_error: "Hari wajib dipilih" }),
     class_start: z.string({ required_error: "Jam mulai kelas wajib diisi" }),
     class_end: z.string({ required_error: "Jam selesai kelas wajib diisi" }),
     prodi: z.string({ required_error: "Program studi wajib dipilih" }),
-    tahun_ajaran: z.string({ required_error: "Tahun ajaran wajib diisi" }),
+    tahun_ajaran: z
+      .string({ required_error: "Tahun ajaran wajib diisi" })
+      .min(1, "Tahun ajaran wajib diisi")
+      .regex(/^\d{4}\/\d{4}$/, "Format tahun ajaran tidak sesuai (contoh: 2025/2026)"),
   })
   .refine(
     (data) => {
@@ -71,11 +78,13 @@ const editClassroomSchema = z
       .string({ required_error: "Nama Kelas wajib diisi" })
       .optional(),
     term: z
-      .string({
-        required_error: "Semester harus diisi",
-      })
+      .string({ required_error: "Semester harus diisi" })
+      .regex(/^\d*$/, "Semester harus berupa angka")
       .optional(),
-    room_number: z.string({ required_error: "Ruang wajib diisi" }).optional(),
+    room_number: z
+      .string({ required_error: "Ruang wajib diisi" })
+      .regex(/^\d*$/, "Ruang harus berupa angka")
+      .optional(),
     day: z.string({ required_error: "Hari wajib dipilih" }).optional(),
     class_start: z
       .string({ required_error: "Jam mulai kelas wajib diisi" })

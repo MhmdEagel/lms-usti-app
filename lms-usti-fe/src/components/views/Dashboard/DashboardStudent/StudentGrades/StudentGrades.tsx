@@ -1,23 +1,27 @@
 "use client";
 
-import type { StudentGradesResponse } from "@/types/Classroom";
-import { Book, ClipboardList } from "lucide-react";
+import { useCallback } from "react";
+import type { StudentGradeAssignment, StudentGradesResponse } from "@/types/Classroom";
+import { ClipboardList } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { DataTable } from "@/components/ui/data-table";
+import { columns } from "./columns";
 
 interface PropTypes {
   data: StudentGradesResponse;
   classroomId: string;
 }
 
-const statusConfig: Record<string, { label: string; className: string }> = {
-  not_submitted: { label: "Belum Dikerjakan", className: "bg-gray-100 text-gray-500" },
-  submitted: { label: "Belum Dinilai", className: "bg-yellow-100 text-yellow-700" },
-  graded: { label: "Sudah Dinilai", className: "bg-green-100 text-green-700" },
-};
-
 export default function StudentGrades({ data, classroomId }: PropTypes) {
   const router = useRouter();
   const hasAssignments = data.assignments.length > 0;
+
+  const handleRowClick = useCallback(
+    (row: StudentGradeAssignment) => {
+      router.push(`/mahasiswa/kelas/${classroomId}/tugas/${row.id}`);
+    },
+    [classroomId, router]
+  );
 
   if (!hasAssignments) {
     return (
@@ -35,57 +39,20 @@ export default function StudentGrades({ data, classroomId }: PropTypes) {
         <div className="text-base md:text-xl font-semibold">Daftar Nilai</div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-blue-100">
-              <th className="px-4 py-3 text-left font-medium text-black whitespace-nowrap min-w-[200px]">
-                Nama Tugas
-              </th>
-              <th className="px-4 py-3 text-left font-medium text-black whitespace-nowrap min-w-[80px]">
-                Nilai
-              </th>
-              <th className="px-4 py-3 text-left font-medium text-black whitespace-nowrap min-w-[140px]">
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.assignments.map((assignment) => {
-              const config = statusConfig[assignment.status] || statusConfig.not_submitted;
-              return (
-                <tr
-                  key={assignment.id}
-                  className="border-t hover:bg-blue-50 cursor-pointer"
-                  onClick={() => router.push(`/mahasiswa/kelas/${classroomId}/tugas/${assignment.id}`)}
-                >
-                  <td className="px-4 py-3 whitespace-nowrap font-medium text-black">
-                    {assignment.title}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-black">
-                    {assignment.score !== null && assignment.score !== undefined
-                      ? assignment.score
-                      : <span className="text-black">-</span>}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.className}`}>
-                      {config.label}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-            <tr className="border-t bg-blue-100 font-semibold">
-              <td className="px-4 py-3 whitespace-nowrap text-black">Rata-rata</td>
-              <td className="px-4 py-3 whitespace-nowrap text-black" colSpan={2}>
-                {data.average !== null && data.average !== undefined
-                  ? Math.round(data.average * 10) / 10
-                  : "-"}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={data.assignments}
+        onRowClick={handleRowClick}
+      />
+
+      {data.average !== null && data.average !== undefined && (
+        <div className="flex items-center gap-2 text-sm font-medium bg-muted/50 border border-t-0 rounded-b-md px-4 py-3">
+          <span>Rata-rata:</span>
+          <span className="font-bold text-primary">
+            {Math.round(data.average * 10) / 10}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

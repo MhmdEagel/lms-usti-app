@@ -6,6 +6,7 @@ import type {
   ICreateClassroom,
   IJoinClassroom,
   IUpdateClassroom,
+  IDosenListItem,
 } from "@/types/Classroom";
 
 export const classroomServices = {
@@ -67,4 +68,8 @@ export const classroomServices = {
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/grades`),
   getMyGrades: (classroomId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/my-grades`),
+  getDosenList: (search?: string) =>
+    instance.get<{ meta: { status: number; message: string }; data: IDosenListItem[] }>(endpoint.DOSEN_LIST, { params: { search } }),
+  findAllClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; page?: number; limit?: number }) =>
+    instance.get(`${endpoint.CLASSROOM}/prodi/classrooms`, { params }),
 };

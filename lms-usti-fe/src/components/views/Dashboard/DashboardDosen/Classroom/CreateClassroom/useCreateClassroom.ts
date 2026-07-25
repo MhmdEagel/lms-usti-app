@@ -49,9 +49,9 @@ const useCreateClassroom = () => {
       await classroomServices.create({
         class_cover,
         class_name,
-        term,
+        term: Number(term),
         day: parseInt(`${day}`),
-        room_number,
+        room_number: Number(room_number),
         class_start: timeStartDateObj.toISOString(),
         class_end: timeEndDateObj.toISOString(),
         prodi,

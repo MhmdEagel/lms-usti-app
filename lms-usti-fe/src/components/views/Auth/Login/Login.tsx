@@ -131,6 +131,11 @@ export default function Login() {
               <span>dosenusti@yopmail.com</span>
               <span>: dosenusti123</span>
             </div>
+            <div className="font-bold mt-2">Akun Demo Prodi</div>
+            <div className="text-xs">
+              <span>proditi@yopmail.com</span>
+              <span>: prodiusti123</span>
+            </div>
             <div className="font-bold mt-2">Akun Demo Mahasiswa</div>
             <div className="text-xs">
               <span>mahasiswausti@yopmail.com</span>

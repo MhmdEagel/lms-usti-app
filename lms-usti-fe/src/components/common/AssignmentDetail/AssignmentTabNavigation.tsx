@@ -11,7 +11,7 @@ export default function AssignmentTabNavigation() {
   const classroomId = params.classroomId as string;
   const assignmentId = params.assignmentId as string;
   const isComments = pathname.includes("/comments");
-  const isPenilaian = pathname.includes("/penilaian");
+  const isPenilaian = pathname.includes("/nilai");
 
   const segments = pathname.split("/");
   const role = segments[1];
@@ -30,7 +30,7 @@ export default function AssignmentTabNavigation() {
     {
       label: "Penilaian",
       icon: ClipboardList,
-      href: `/${role}/kelas/${classroomId}/tugas/${assignmentId}/penilaian`,
+      href: `/${role}/kelas/${classroomId}/tugas/${assignmentId}/nilai`,
       showFor: "dosen",
     },
   ];

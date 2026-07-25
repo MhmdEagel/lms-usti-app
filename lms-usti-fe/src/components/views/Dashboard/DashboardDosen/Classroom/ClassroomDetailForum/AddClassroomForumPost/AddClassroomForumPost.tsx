@@ -44,7 +44,7 @@ export default function AddForumPost({ id, classroomId, canCreatePost }: PropTyp
                 <DialogTrigger asChild>
                   <Button size="sm" className="ml-auto">
                     <Plus className="h-4 w-4 sm:mr-1" />
-                    <span className="hidden sm:inline">Buat Postingan</span>
+                    <span className="hidden sm:inline">Buat Postingan </span>
                   </Button>
                 </DialogTrigger>
               </TooltipTrigger>

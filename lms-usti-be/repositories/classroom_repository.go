@@ -16,6 +16,7 @@ type ClassroomRepository struct {
 type ClassroomRepositoryInterface interface {
 	Create(classroom model.Classroom) (model.Classroom, error)
 	FindById(classroomId string) (classroom model.Classroom, err error)
+	FindAll(filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error)
 	FindByClassCode(classCode string) (classroom model.Classroom, err error)
 	FindAllByDosenId(dosenId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error)
 	FindAllByMahasiswaId(mahasiswaId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error)
@@ -36,6 +37,35 @@ type ClassroomRepositoryInterface interface {
 func NewClassroomRepository(Db *gorm.DB) ClassroomRepositoryInterface {
 	return &ClassroomRepository{Db: Db}
 }
+func (c *ClassroomRepository) FindAll(filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error) {
+	var classrooms []model.Classroom
+	query := c.Db.Scopes(lib.Paginate(classrooms, &pagination, c.Db)).Preload("Dosen").Where("is_archived = ?", false).Order("created_at DESC")
+	if filter.Search != "" {
+		query = query.Where("class_name LIKE ?", "%"+filter.Search+"%")
+	}
+	if filter.Prodi != "" {
+		query = query.Where("prodi = ?", filter.Prodi)
+	}
+	if filter.Term != "" {
+		term, err := strconv.Atoi(filter.Term)
+		if err == nil {
+			query = query.Where("term = ?", term)
+		}
+	}
+	if filter.TahunAjaran != "" {
+		query = query.Where("tahun_ajaran = ?", filter.TahunAjaran)
+	}
+	result := query.Find(&classrooms)
+	if result.Error != nil {
+		return paginationResult, result.Error
+	}
+	paginationResult = &data.PaginationWithData{
+		Pagination: pagination,
+		Data:       classrooms,
+	}
+	return paginationResult, nil
+}
+
 func (c *ClassroomRepository) Create(classroom model.Classroom) (model.Classroom, error) {
 	result := c.Db.Create(&classroom)
 	if result.Error != nil {

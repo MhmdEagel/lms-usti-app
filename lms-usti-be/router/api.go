@@ -3,7 +3,6 @@ package router
 import (
 	"github.com/MhmdEagel/lms-usti-be/config"
 	"github.com/MhmdEagel/lms-usti-be/controllers"
-	"github.com/MhmdEagel/lms-usti-be/env"
 	"github.com/MhmdEagel/lms-usti-be/middleware"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
 	"github.com/MhmdEagel/lms-usti-be/services"
@@ -18,7 +17,7 @@ func InitRouter() *gin.Engine {
 	r := gin.Default()
 	r.MaxMultipartMemory = 8 << 20
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{env.CLIENT_URL},
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
@@ -117,6 +116,8 @@ func InitRouter() *gin.Engine {
 			classroom.GET("/dosen/classrooms", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.FindAllByDosenId)
 			classroom.GET("/mahasiswa/dashboard-stats", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.GetMahasiswaDashboardStats)
 			classroom.GET("/mahasiswa/classrooms", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.FindAllByMahasiswaId)
+			classroom.GET("/prodi/dosen-list", aclMiddleware.Handle([]string{"PRODI"}), classroomController.GetDosenList)
+			classroom.GET("/prodi/classrooms", aclMiddleware.Handle([]string{"PRODI"}), classroomController.FindAllClassrooms)
 			classroom.POST("/create", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), classroomController.Create)
 			classroom.POST("/join", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.Enroll)
 			classroom.GET("/:id", classroomController.FindById)

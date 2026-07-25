@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/MhmdEagel/lms-usti-be/config"
@@ -18,6 +20,9 @@ var (
 	dosenEmail    = "dosenusti@yopmail.com"
 	dosenPassword = "dosenusti123"
 	dosenNidn     = "0012345678"
+
+	prodiEmail    = "proditi@yopmail.com"
+	prodiPassword = "prodiusti123"
 
 	mahasiswas = []struct {
 		Name  string
@@ -187,6 +192,8 @@ func main() {
 
 	cleanupDatabase(Db)
 	dosen := seedDosen(Db)
+	prodi := seedProdi(Db)
+	_ = prodi
 	students := seedMahasiswas(Db)
 	classrooms := seedClassrooms(Db, dosen)
 	forumPosts := seedPublicForums(Db, dosen, students)
@@ -209,6 +216,8 @@ func main() {
 	fmt.Println("\n✅ DATA SEEDED SUCCESSFULLY!")
 	fmt.Printf("   Dosen:     %s (%s)\n", dosenName, dosenEmail)
 	fmt.Printf("   Password Dosen: %s\n", dosenPassword)
+	fmt.Printf("   Prodi:     %s\n", prodiEmail)
+	fmt.Printf("   Password Prodi: %s\n", prodiPassword)
 	fmt.Printf("   Password Mahasiswa: %s\n", mahasiswaPassword)
 	fmt.Printf("   Classrooms: %d\n", len(classrooms))
 	fmt.Printf("   Students:  %d\n", len(students))
@@ -272,6 +281,24 @@ func seedDosen(db *gorm.DB) model.User {
 	}
 	fmt.Printf("👨‍🏫 Dosen: %s\n", dosen.Fullname)
 	return dosen
+}
+
+func seedProdi(db *gorm.DB) model.User {
+	hash, err := lib.HashPassword(prodiPassword)
+	if err != nil {
+		log.Fatalf("Gagal hash password: %v", err)
+	}
+	prodi := model.User{
+		Fullname: "Prodi TI",
+		Email:    prodiEmail,
+		Password: hash,
+		Role:     "PRODI",
+	}
+	if err := db.Create(&prodi).Error; err != nil {
+		log.Fatalf("Gagal seed prodi: %v", err)
+	}
+	fmt.Printf("👤 Prodi: %s\n", prodi.Email)
+	return prodi
 }
 
 func seedMahasiswas(db *gorm.DB) []model.User {

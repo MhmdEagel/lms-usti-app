@@ -32,8 +32,10 @@ type ClassroomServiceInterface interface {
 	Unarchive(classroomId string, userID string) error
 	GetClassroomGrades(classroomId string) (data.ClassroomGradesResponse, error)
 	GetMyGrades(classroomId string, studentId string) (data.StudentGradesResponse, error)
+	FindAll(filter data.ClassroomFilter, pagination data.Pagination) (paginationResult data.PaginationWithData, err error)
 	GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error)
 	GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error)
+	GetDosenList(search string) ([]data.DosenListItem, error)
 }
 
 func NewClassroomService(classroomRepository repositories.ClassroomRepositoryInterface,
@@ -42,6 +44,13 @@ func NewClassroomService(classroomRepository repositories.ClassroomRepositoryInt
 }
 
 func (c *ClassroomService) Create(classroomRequest data.CreateClassroomRequest) error {
+	dosen, err := c.userRepository.FindById(classroomRequest.DosenId)
+	if err != nil {
+		return data.ErrDosenNotFound(err)
+	}
+	if dosen.Role != "DOSEN" {
+		return data.ErrDosenNotFound(nil)
+	}
 	return c.classroomRepository.Transaction(func(repo repositories.ClassroomRepositoryInterface) error {
 		classroom := model.Classroom{
 			ClassCover:  classroomRequest.ClassCover,
@@ -66,6 +75,36 @@ func (c *ClassroomService) Create(classroomRequest data.CreateClassroomRequest) 
 		}
 		return repo.DB().Create(&policy).Error
 	})
+}
+
+func (c *ClassroomService) FindAll(filter data.ClassroomFilter, pagination data.Pagination) (paginationResult data.PaginationWithData, err error) {
+	paginationRes, err := c.classroomRepository.FindAll(filter, pagination)
+	if err != nil {
+		return paginationResult, err
+	}
+
+	var classrooms []data.ClassroomResponse
+	for _, v := range paginationRes.Data.([]model.Classroom) {
+		classroomResponse := data.ClassroomResponse{
+			ID:          v.ID,
+			ClassCover:  v.ClassCover,
+			ClassCode:   v.ClassCode,
+			ClassName:   v.ClassName,
+			Term:        v.Term,
+			RoomNumber:  v.RoomNumber,
+			Day:         v.Day,
+			ClassStart:  v.ClassStart,
+			ClassEnd:    v.ClassEnd,
+			Prodi:       v.Prodi,
+			TahunAjaran: v.TahunAjaran,
+			IsArchived:  v.IsArchived,
+			Dosen:       v.Dosen,
+		}
+		classrooms = append(classrooms, classroomResponse)
+	}
+
+	paginationRes.Data = classrooms
+	return *paginationRes, nil
 }
 
 func (c *ClassroomService) FindAllByDosenId(dosenId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult data.PaginationWithData, err error) {
@@ -416,6 +455,22 @@ func (c *ClassroomService) GetMyGrades(classroomId string, studentId string) (da
 
 func (c *ClassroomService) GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error) {
 	return c.classroomRepository.GetMahasiswaDashboardStats(mahasiswaId)
+}
+
+func (c *ClassroomService) GetDosenList(search string) ([]data.DosenListItem, error) {
+	users, err := c.userRepository.FindAllByRole("DOSEN", search)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]data.DosenListItem, len(users))
+	for i, u := range users {
+		items[i] = data.DosenListItem{
+			ID:       u.ID,
+			Fullname: u.Fullname,
+			Email:    u.Email,
+		}
+	}
+	return items, nil
 }
 
 func (c *ClassroomService) GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error) {
