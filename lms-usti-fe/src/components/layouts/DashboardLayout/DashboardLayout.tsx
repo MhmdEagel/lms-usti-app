@@ -31,6 +31,7 @@ export default function DashboardLayout(props: PropTypes) {
 
   return (
     <SidebarProvider
+      className="min-w-0"
       style={
         {
           "--header-height": "calc(var(--spacing) * 16)",
@@ -38,10 +39,10 @@ export default function DashboardLayout(props: PropTypes) {
       }
     >
       <DashboardSidebar user={user} sidebarItems={sidebarItems} />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <Toaster />
         <DashboardHeader />
-        <main className="flex flex-1 flex-col overflow-y-auto">{children}</main>
+        <main className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden min-w-0">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -5,7 +5,7 @@ interface PropTypes {
   profileId?: string;
   classroomName: string;
   profileName: string;
-  role: "DOSEN" | "MAHASISWA";
+  role: "DOSEN" | "MAHASISWA" | "PRODI";
 }
 
 export default function MemberProfileBreadcrumb(props: PropTypes) {

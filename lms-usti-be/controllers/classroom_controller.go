@@ -465,7 +465,7 @@ func (c *ClassroomController) GetGrades(ctx *gin.Context) {
 		return
 	}
 
-	if classroom.Dosen.ID != user.ID {
+	if classroom.Dosen.ID != user.ID && user.Role != "PRODI" {
 		res := data.NewResponse(http.StatusForbidden, "akses ditolak", nil)
 		ctx.JSON(http.StatusForbidden, res)
 		return

@@ -17,4 +17,5 @@ type CommentResponse struct {
 type CommentUserResponse struct {
 	Fullname string `json:"fullname"`
 	Profile  string `json:"profile"`
+	Role     string `json:"role"`
 }

@@ -56,6 +56,7 @@ export default async function MahasiswaRecentPublicPosts() {
                           <p className="font-medium text-sm truncate">{post.title}</p>
                         </div>
                         <p className="text-xs text-muted-foreground truncate">{post.author_name}</p>
+                        <span className={"text-[10px] font-semibold px-1.5 py-0.5 rounded mt-0.5 inline-block " + (post.author_role === "DOSEN" ? "bg-blue-100 text-blue-700" : post.author_role === "MAHASISWA" ? "bg-green-100 text-green-700" : post.author_role === "PRODI" ? "bg-purple-100 text-purple-700" : post.author_role === "ADMIN" ? "bg-red-100 text-red-700" : "bg-muted text-muted-foreground")}>{post.author_role}</span>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                           <span>{dayjs(post.created_at).fromNow()}</span>
                           <span className="flex items-center gap-1">

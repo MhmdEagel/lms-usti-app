@@ -78,6 +78,7 @@ func (s *ClassroomForumPostService) FindAll(classroomId string, search string, p
 			IsPinned:      v.IsPinned,
 			ClassroomName: v.Classroom.ClassName,
 			CreatedBy:     v.Dosen.Fullname,
+			AuthorRole:    v.Dosen.Role,
 			CreatedAt:     v.CreatedAt.Format(time.RFC3339Nano),
 			CommentCount:  counts[v.ID],
 		}
@@ -103,6 +104,7 @@ func (s *ClassroomForumPostService) FindById(forumPostId, classroomId string) (d
 		IsPinned:      forumPost.IsPinned,
 		ClassroomName: forumPost.Classroom.ClassName,
 		CreatedBy:     forumPost.Dosen.Fullname,
+		AuthorRole:    forumPost.Dosen.Role,
 		CreatedAt:     forumPost.CreatedAt.Format(time.RFC3339Nano),
 		CommentCount:  count,
 	}, nil

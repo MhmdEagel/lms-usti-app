@@ -62,6 +62,7 @@ type ClassroomForumPostResponse struct {
 	IsPinned      bool   `json:"is_pinned"`
 	ClassroomName string `json:"classroom_name"`
 	CreatedBy     string `json:"created_by"`
+	AuthorRole    string `json:"author_role"`
 	CreatedAt     string `json:"created_at"`
 	CommentCount  int64  `json:"comment_count"`
 }

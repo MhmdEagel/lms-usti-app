@@ -11,6 +11,7 @@ type ForumPostResponse struct {
 	Content       string `json:"content"`
 	AuthorName    string `json:"author_name"`
 	AuthorProfile string `json:"author_profile"`
+	AuthorRole    string `json:"author_role"`
 	CreatedBy     string `json:"created_by"`
 	IsPinned      bool   `json:"is_pinned"`
 	CommentCount  int    `json:"comment_count"`
@@ -23,6 +24,7 @@ type ForumPostDetailResponse struct {
 	Content       string            `json:"content"`
 	AuthorName    string            `json:"author_name"`
 	AuthorProfile string            `json:"author_profile"`
+	AuthorRole    string            `json:"author_role"`
 	CreatedBy     string            `json:"created_by"`
 	IsPinned      bool              `json:"is_pinned"`
 	CreatedAt     string            `json:"created_at"`

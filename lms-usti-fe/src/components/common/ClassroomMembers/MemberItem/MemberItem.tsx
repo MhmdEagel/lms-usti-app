@@ -17,7 +17,8 @@ export default function MemberItem({
   classroomId: string;
   isCurrentUser?: boolean;
 }) {
-  const href = `/${viewerRole === "DOSEN" ? "dosen" : "mahasiswa"}/kelas/${classroomId}/anggota/${id}`;
+  const roleSlug = viewerRole === "DOSEN" ? "dosen" : viewerRole === "PRODI" ? "prodi" : "mahasiswa";
+  const href = `/${roleSlug}/kelas/${classroomId}/anggota/${id}`;
 
   const card = (
     <Card className="py-3 px-4 cursor-pointer hover:bg-primary/10">
@@ -34,6 +35,6 @@ export default function MemberItem({
       </div>
     </Card>
   );
-  if (isCurrentUser || viewerRole !== "DOSEN") return card;
+  if (isCurrentUser || (viewerRole !== "DOSEN" && viewerRole !== "PRODI")) return card;
   return <Link href={href}>{card}</Link>;
 }

@@ -42,7 +42,7 @@ export default function MemberProfile({
   role?: string;
   classroomId: string;
   className: string;
-  viewerRole: "DOSEN" | "MAHASISWA";
+  viewerRole: "DOSEN" | "MAHASISWA" | "PRODI";
   currentUserId?: string;
 }) {
   const router = useRouter();

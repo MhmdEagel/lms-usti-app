@@ -54,8 +54,9 @@ export default function CommentItem({
         <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-semibold text-sm">{comment.user.fullname}</span>
+        <div className="font-semibold text-sm">{comment.user.fullname}</div>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className={"text-[10px] font-semibold px-1.5 py-0.5 rounded " + (comment.user.role === "DOSEN" ? "bg-blue-100 text-blue-700" : comment.user.role === "MAHASISWA" ? "bg-green-100 text-green-700" : comment.user.role === "PRODI" ? "bg-purple-100 text-purple-700" : comment.user.role === "ADMIN" ? "bg-red-100 text-red-700" : "bg-muted text-muted-foreground")}>{comment.user.role}</span>
           <span className="text-xs text-muted-foreground">
             {dayjs(comment.created_at).fromNow()}
           </span>

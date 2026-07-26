@@ -38,7 +38,7 @@ export default function DosenCombobox({ value, onChange }: PropTypes) {
       options={options}
       value={value}
       onChange={onChange}
-      placeholder="Cari dosen pengampu..."
+      placeholder="Cari dosen untuk ditugaskan di kelas"
       onSearch={handleSearch}
       loading={loading}
       emptyMessage="Tidak ada dosen ditemukan."

@@ -42,6 +42,7 @@ func (c *CommentService) FindAll(commentableType, commentableId string) ([]data.
 			User: data.CommentUserResponse{
 				Fullname: v.User.Fullname,
 				Profile:  v.User.Image,
+				Role:     v.User.Role,
 			},
 			CreatedAt: v.CreatedAt,
 		})
