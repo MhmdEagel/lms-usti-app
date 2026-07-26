@@ -46,6 +46,7 @@ interface IClassroomForumPost extends ICreateClassroomForumPost {
   id: string;
   classroom_name: string;
   created_by: string;
+  author_role: string;
   created_at: string;
   is_pinned: boolean;
   comment_count?: number;
@@ -294,7 +295,7 @@ interface IComment {
   id: string;
   content: string;
   created_by: string;
-  user: { fullname: string; profile: string };
+  user: { fullname: string; profile: string; role: string };
   created_at: string;
 }
 

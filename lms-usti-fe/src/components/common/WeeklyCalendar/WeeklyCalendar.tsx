@@ -31,7 +31,7 @@ const DAYS = [
   { key: 5, name: "Jumat" },
 ];
 const TOTAL_SLOTS = 6;
-const ROW_HEIGHT = 64;
+const ROW_HEIGHT = 84;
 
 export interface CalendarEvent {
   title: string;
@@ -76,16 +76,12 @@ function doesOverlap(eventStart: string, eventEnd: string, slotIdx: number): boo
 function EventItem({
   event,
   role,
-  gridColumn,
-  gridRow,
   onOpenChange,
   onEdit,
   onDelete,
 }: {
   event: CalendarEvent;
   role: string;
-  gridColumn: number;
-  gridRow: number;
   onOpenChange?: (open: boolean) => void;
   onEdit?: (event: CalendarEvent) => void;
   onDelete?: (event: CalendarEvent) => void;
@@ -102,19 +98,18 @@ function EventItem({
         <PopoverTrigger asChild>
           <div
             className={cn(
-              "flex h-full w-full cursor-pointer flex-col justify-center overflow-hidden px-2 py-1 transition-colors",
+              "flex h-full w-full cursor-pointer flex-col justify-center gap-1 overflow-hidden px-2 py-1 transition-colors",
               prodiColor.bg,
               prodiColor.hover,
             )}
-            style={{ gridColumn, gridRow, zIndex: 10 }}
           >
-            <div className={cn("text-[13px] font-semibold leading-tight", prodiColor.text)}>
+            <div className={cn("text-base font-semibold leading-tight overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
               {event.title}
             </div>
-            <div className={cn("text-[11px] leading-tight opacity-80", prodiColor.text)}>
+            <div className={cn("text-base leading-tight opacity-80 overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
               {event.extendedProps.prodi}
             </div>
-            <div className={cn("text-[11px] leading-tight", prodiColor.text)}>
+            <div className={cn("text-base leading-tight overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
               {event.startTime}-{event.endTime}
             </div>
           </div>
@@ -158,24 +153,23 @@ function EventItem({
   return (
     <div
       className={cn(
-        "flex h-full w-full cursor-pointer flex-col justify-center overflow-hidden px-2 py-1 transition-colors",
+        "flex h-full w-full cursor-pointer flex-col justify-center gap-1 overflow-hidden px-2 py-1 transition-colors",
         prodiColor.bg,
         prodiColor.hover,
       )}
-      style={{ gridColumn, gridRow, zIndex: 10 }}
       onClick={() => {
         if (event.extendedProps.classroomId) {
           router.push(`/${role}/kelas/${event.extendedProps.classroomId}`);
         }
       }}
     >
-      <div className={cn("text-[13px] font-semibold leading-tight", prodiColor.text)}>
+      <div className={cn("text-base font-semibold leading-tight overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
         {event.title}
       </div>
-      <div className={cn("text-[11px] leading-tight opacity-80", prodiColor.text)}>
+      <div className={cn("text-base leading-tight opacity-80 overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
         {event.extendedProps.prodi}
       </div>
-      <div className={cn("text-[11px] leading-tight", prodiColor.text)}>
+      <div className={cn("text-base leading-tight overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
         {event.startTime}-{event.endTime}
       </div>
     </div>
@@ -238,10 +232,12 @@ export default function WeeklyCalendar({ events: initialEvents, role, showHeader
   const router = useRouter();
   const [events, setEvents] = useState(initialEvents);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setEvents(initialEvents);
   }, [initialEvents]);
+
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -308,10 +304,8 @@ export default function WeeklyCalendar({ events: initialEvents, role, showHeader
   }, [selectedEvent, router]);
 
 
-  console.log(legendProdis)
-
   return (
-    <Card className="">
+    <Card className="min-w-0">
       {showHeader && (
         <CardHeader>
           <CardTitle className="text-base md:text-xl">Jadwal Perkuliahan</CardTitle>
@@ -334,124 +328,111 @@ export default function WeeklyCalendar({ events: initialEvents, role, showHeader
               </div>
             );
           })}
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block size-3 rounded-sm border border-dashed border-muted-foreground/40" />
+            <span className="text-xs text-muted-foreground">R. X = Ruangan</span>
+          </div>
         </div>
       )}
-      <CardContent ref={scrollRef} className="px-0 max-w-4xl mx-auto overflow-x-auto overflow-y-auto" style={{ maxHeight: showHeader ? "calc(100vh - 130px)" : "calc(100vh - 90px)" }}>
-        <div
-          className="grid"
-          style={{
-            minWidth: "2280px",
-            gridTemplateColumns: "100px 100px repeat(16, minmax(130px, 1fr))",
-            gridTemplateRows: `auto auto repeat(${TOTAL_SLOTS * 5}, ${ROW_HEIGHT}px)`,
-            gap: "1px",
-            backgroundColor: "hsl(var(--border) / 0.4)",
-          }}
+      <CardContent ref={scrollRef} className="px-0 w-full max-w-full overflow-x-auto overflow-y-auto" style={{ maxHeight: showHeader ? "calc(100vh - 130px)" : "calc(100vh - 90px)" }}>
+        <table
+          className="border-collapse"
+          style={{ minWidth: isMobile ? "550px" : "1800px" }}
         >
-          {/* ======== ROW 1-2: HEADERS ======== */}
-
-          {/* Empty cells in cols 1-2 spanning both header rows */}
-          <div style={{ gridColumn: "1", gridRow: "1 / 3" }} />
-          <div style={{ gridColumn: "2", gridRow: "1 / 3" }} />
-
-          {/* Room headers — span both header rows */}
-          {ROOMS.map((room) => (
-            <div
-              key={`header-room-${room}`}
-              className="bg-secondary flex items-center justify-center p-1 md:p-2 text-center font-semibold text-xs md:text-sm text-foreground"
-              style={{ gridColumn: room + 2, gridRow: "1 / 3", position: "sticky", top: 0, zIndex: 30 }}
-            >
-              R. {room}
-            </div>
-          ))}
-
-          {/* Row 2: HARI + JAM headers */}
-          <div
-            className="bg-secondary flex items-center justify-center p-1 md:p-2 font-semibold text-xs md:text-sm text-foreground"
-            style={{ gridColumn: 1, gridRow: 2, position: "sticky", top: 0, left: 0, zIndex: 40 }}
-          >
-            HARI
-          </div>
-          <div
-            className="bg-secondary flex items-center justify-center p-1 md:p-2 font-semibold text-xs md:text-sm text-foreground"
-            style={{ gridColumn: 2, gridRow: 2, position: "sticky", top: 0, left: "100px", zIndex: 35 }}
-          >
-            JAM
-          </div>
-
-          {/* ======== ROWS 3-37: DATA ======== */}
-          {DAYS.map((day, dayIdx) => {
-            const rowBase = 3 + dayIdx * TOTAL_SLOTS;
-            return (
-              <div key={`day-group-${day.key}`} style={{ display: "contents" }}>
-                {/* Merged HARI cell (spans 7 rows) */}
-                <div
-                  className="bg-secondary flex items-center justify-center p-2 font-bold text-xs md:text-sm text-foreground/70"
-                  style={{
-                    gridColumn: 1,
-                    gridRow: `${rowBase} / ${rowBase + TOTAL_SLOTS}`,
-                    position: "sticky",
-                    left: 0,
-                    zIndex: 20,
-                  }}
+          <thead>
+            <tr>
+              {/* Empty corner cells for HARI/JAM */}
+              <th
+                className="bg-secondary sticky top-0 left-0 z-40"
+                style={{ width: isMobile ? "30px" : "60px", minWidth: isMobile ? "30px" : "60px" }}
+              />
+              <th
+                className="bg-secondary sticky top-0 left-0 z-35"
+                style={{
+                  width: isMobile ? "55px" : "100px",
+                  minWidth: isMobile ? "55px" : "100px",
+                  left: isMobile ? "30px" : "60px",
+                }}
+              />
+              {/* Room number headers */}
+              {ROOMS.map((room) => (
+                <th
+                  key={`header-room-${room}`}
+                  className="bg-secondary sticky top-0 p-1 md:p-2 text-center font-semibold text-[10px] md:text-xs text-foreground z-10"
+                  style={{ width: isMobile ? "40px" : "130px", minWidth: isMobile ? "40px" : "130px" }}
                 >
-                  <span className="rotate-180 [writing-mode:vertical-rl]">{day.name}</span>
-                </div>
-
-                {/* 7 time-slot rows for this day */}
-                {TIME_SLOTS.map((slot, slotIdx) => {
-                  const row = rowBase + slotIdx;
-                  return (
-                    <div key={`row-${day.key}-${slotIdx}`} style={{ display: "contents" }}>
-                      {/* JAM label */}
-                      <div
-                        className="flex items-start justify-end px-2 pt-1 text-[10px] md:text-xs text-muted-foreground bg-background"
-                        style={{
-                          gridColumn: 2,
-                          gridRow: row,
-                          position: "sticky",
-                          left: "100px",
-                          zIndex: 25,
-                        }}
+                  R. {room}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {DAYS.map((day, dayIdx) => (
+              TIME_SLOTS.map((slot, slotIdx) => {
+                const isFirstSlot = slotIdx === 0;
+                return (
+                  <tr key={`row-${day.key}-${slotIdx}`}>
+                    {/* HARI cell — rowspan on first slot of day */}
+                    {isFirstSlot && (
+                      <td
+                        className="bg-secondary sticky left-0 z-20 p-2 font-bold text-[10px] md:text-xs text-foreground/70 border border-border"
+                        rowSpan={TOTAL_SLOTS}
+                        style={{ width: isMobile ? "30px" : "60px", minWidth: isMobile ? "30px" : "60px", height: `${ROW_HEIGHT * TOTAL_SLOTS}px` }}
                       >
-                        {slot.label}
-                      </div>
+                        <span className="rotate-180 [writing-mode:vertical-rl] flex items-center justify-center h-full">{day.name}</span>
+                      </td>
+                    )}
+                    {/* JAM cell */}
+                    <td
+                      className="bg-background p-1 md:p-2 text-right text-[10px] md:text-xs text-muted-foreground border border-border"
+                      style={{
+                        width: isMobile ? "55px" : "100px",
+                        minWidth: isMobile ? "55px" : "100px",
+                        height: `${ROW_HEIGHT}px`,
+                        position: "sticky",
+                        left: isMobile ? "30px" : "60px",
+                        zIndex: 15,
+                      }}
+                    >
+                      {slot.label}
+                    </td>
+                    {/* Room cells */}
+                    {ROOMS.map((room) => {
+                      const cellKey = `${day.key}-${slotIdx}-${room}`;
+                      const ev = cellMap[cellKey];
 
-                      {/* Room cells for this time slot */}
-                      {ROOMS.map((room) => {
-                        const cellKey = `${day.key}-${slotIdx}-${room}`;
-                        const ev = cellMap[cellKey];
-                        const col = room + 2;
-
-                        if (ev) {
-                          return (
+                      if (ev) {
+                        return (
+                          <td
+                            key={cellKey}
+                            className="border border-border p-0"
+                            style={{ minWidth: isMobile ? "40px" : "130px", height: `${ROW_HEIGHT}px` }}
+                          >
                             <EventItem
-                              key={cellKey}
                               event={ev}
                               role={role}
-                              gridColumn={col}
-                              gridRow={row}
                               onOpenChange={setPopoverOpen}
                               onEdit={handleEdit}
                               onDelete={handleDelete}
                             />
-                          );
-                        }
-
-                        return (
-                          <div
-                            key={cellKey}
-                            className="bg-background"
-                            style={{ gridColumn: col, gridRow: row }}
-                          />
+                          </td>
                         );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
-          </div>
+                      }
+
+                      return (
+                        <td
+                          key={cellKey}
+                          className="bg-background border border-border"
+                          style={{ minWidth: isMobile ? "40px" : "130px", height: `${ROW_HEIGHT}px` }}
+                        />
+                      );
+                    })}
+                  </tr>
+                );
+              })
+            ))}
+          </tbody>
+        </table>
       </CardContent>
 
       {selectedEvent && (

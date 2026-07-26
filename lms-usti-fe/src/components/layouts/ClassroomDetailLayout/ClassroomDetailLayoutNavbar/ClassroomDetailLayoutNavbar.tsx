@@ -49,7 +49,7 @@ export default function ClassroomDetailLayoutNavbar({
             <ClipboardList size={16} />
             <span>Nilai</span>
           </ClassroomDetailLayoutNavbarItem>
-          {type === "dosen" && (
+          {(type === "dosen" || type === "prodi") && (
           <ClassroomDetailLayoutNavbarItem
             isActive={url === `/${type}/${segment}/${classroomId}/pengaturan`}
             href={`/${type}/${segment}/${classroomId}/pengaturan`}

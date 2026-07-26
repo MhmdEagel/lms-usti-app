@@ -71,12 +71,10 @@ export default function ForumItem({
                 <UserIcon />
               </AvatarFallback>
             </Avatar>
-            <div className="min-w-0">
-              <div className="text-primary font-bold text-sm truncate">
-                {announcement.created_by}
+              <div className="min-w-0">
+                <div className="text-primary font-bold text-sm truncate">{announcement.created_by}</div>
+                <span className={"text-[10px] font-semibold px-1.5 py-0.5 rounded mt-0.5 inline-block " + (announcement.author_role === "DOSEN" ? "bg-blue-100 text-blue-700" : announcement.author_role === "MAHASISWA" ? "bg-green-100 text-green-700" : announcement.author_role === "PRODI" ? "bg-purple-100 text-purple-700" : announcement.author_role === "ADMIN" ? "bg-red-100 text-red-700" : "bg-muted text-muted-foreground")}>{announcement.author_role}</span>
               </div>
-              <div className="capitalize text-xs sm:text-sm">Dosen</div>
-            </div>
           </div>
           {announcement.is_pinned && (
             <div className="ml-4 flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">

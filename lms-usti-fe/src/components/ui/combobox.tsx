@@ -43,12 +43,11 @@ export function ComboBox({
   );
 
   useEffect(() => {
-    if (!onSearch) return;
+    if (!onSearch || !inputValue) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    const delay = inputValue ? 400 : 0;
     debounceRef.current = setTimeout(() => {
       onSearch(inputValue);
-    }, delay);
+    }, 400);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
