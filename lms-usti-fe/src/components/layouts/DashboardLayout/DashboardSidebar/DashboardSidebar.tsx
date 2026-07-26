@@ -8,6 +8,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { SidebarItem } from "@/types/Dashboard";
@@ -27,6 +30,14 @@ interface PropTypes {
   sidebarItems?: SidebarItem[];
 }
 
+const GROUP_ORDER = ["UTAMA", "PEMBELAJARAN", "KOMUNIKASI", "SISTEM"];
+const GROUP_LABELS: Record<string, string> = {
+  UTAMA: "Utama",
+  PEMBELAJARAN: "Pembelajaran",
+  KOMUNIKASI: "Komunikasi",
+  SISTEM: "Sistem",
+};
+
 export default function DashboardSidebar(props: PropTypes) {
   const { sidebarItems, user } = props;
   const pathname = usePathname();
@@ -35,6 +46,8 @@ export default function DashboardSidebar(props: PropTypes) {
   const handleLogout = async () => {
     await logoutUser();
   };
+
+  const hasGroups = sidebarItems?.some((item) => item.group);
 
   return (
     <Sidebar>
@@ -58,24 +71,56 @@ export default function DashboardSidebar(props: PropTypes) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="px-2">
-        <SidebarMenu>
-          {sidebarItems?.map((item) => (
-            <SidebarMenuItem key={item.key}>
-              <SidebarMenuButton
-                className={cn({
-                  "bg-blue-900 hover:bg-blue-900/95 text-white hover:text-white":
-                    url === item.href,
-                })}
-                asChild
-              >
-                <a href={item.href}>
-                  {item.icon}
-                  <span>{item.label}</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        {hasGroups
+          ? GROUP_ORDER.map((group) => {
+              const groupItems = sidebarItems?.filter((item) => item.group === group);
+              if (!groupItems || groupItems.length === 0) return null;
+              return (
+                <SidebarGroup key={group}>
+                  <SidebarGroupLabel>{GROUP_LABELS[group]}</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {groupItems.map((item) => (
+                        <SidebarMenuItem key={item.key}>
+                          <SidebarMenuButton
+                            className={cn({
+                              "bg-blue-900 hover:bg-blue-900/95 text-white hover:text-white":
+                                url === item.href,
+                            })}
+                            asChild
+                          >
+                            <a href={item.href}>
+                              {item.icon}
+                              <span>{item.label}</span>
+                            </a>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              );
+            })
+          : sidebarItems && (
+              <SidebarMenu>
+                {sidebarItems.map((item) => (
+                  <SidebarMenuItem key={item.key}>
+                    <SidebarMenuButton
+                      className={cn({
+                        "bg-blue-900 hover:bg-blue-900/95 text-white hover:text-white":
+                          url === item.href,
+                      })}
+                      asChild
+                    >
+                      <a href={item.href}>
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            )}
       </SidebarContent>
       <SidebarFooter>
         <DashboardUserNav

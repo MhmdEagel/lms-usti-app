@@ -5,6 +5,7 @@ interface SidebarItem {
   label: string;
   href: string;
   icon: JSX.Element;
+  group?: string;
 }
 
 export type {SidebarItem};

@@ -20,8 +20,9 @@ interface ScheduleEvent {
 interface PropTypes {
   events: ScheduleEvent[];
   role: string;
+  showHeader?: boolean;
 }
 
-export default function WeeklyScheduleClient({ events, role }: PropTypes) {
-  return <WeeklyCalendar events={events} role={role} />;
+export default function WeeklyScheduleClient({ events, role, showHeader }: PropTypes) {
+  return <WeeklyCalendar events={events} role={role} showHeader={showHeader} />;
 }

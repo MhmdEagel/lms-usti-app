@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/lib"
@@ -21,7 +22,7 @@ type ClassroomRepositoryInterface interface {
 	FindAllByDosenId(dosenId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error)
 	FindAllByMahasiswaId(mahasiswaId string, filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error)
 	Update(classroom model.Classroom) error
-	Delete(classroomId string, dosenId string) error
+	Delete(classroomId string, userID string, userRole string) error
 	Archive(classroomId string, dosenId string) error
 	Unarchive(classroomId string, dosenId string) error
 	Enroll(classroomMahasiswa model.ClassroomMahasiswa) error
@@ -30,6 +31,7 @@ type ClassroomRepositoryInterface interface {
 	RemoveMember(classroomId string, memberId string) error
 	GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error)
 	GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error)
+	FindOverlapping(day int, classStart time.Time, classEnd time.Time, roomNumber int, excludeId string) ([]model.Classroom, error)
 	Transaction(fn func(repo ClassroomRepositoryInterface) error) error
 	DB() *gorm.DB
 }
@@ -257,12 +259,18 @@ func (c *ClassroomRepository) Unarchive(classroomId string, dosenId string) erro
 	return nil
 }
 
-func (c *ClassroomRepository) Delete(classroomId string, dosenId string) error {
+func (c *ClassroomRepository) Delete(classroomId string, userID string, userRole string) error {
 	classroom, err := c.FindById(classroomId)
 	if err != nil {
 		return err
 	}
-	res := c.Db.Where("dosen_id = ? AND id = ? ", dosenId, classroom.ID).Delete(model.Classroom{})
+
+	query := c.Db.Where("id = ?", classroom.ID)
+	if userRole == "DOSEN" {
+		query = query.Where("dosen_id = ?", userID)
+	}
+
+	res := query.Delete(model.Classroom{})
 	if res.Error != nil {
 		return res.Error
 	}
@@ -349,6 +357,15 @@ func (c *ClassroomRepository) GetDashboardStats(dosenId string) (data.DashboardS
 	}
 
 	return stats, nil
+}
+
+func (c *ClassroomRepository) FindOverlapping(day int, classStart time.Time, classEnd time.Time, roomNumber int, excludeId string) ([]model.Classroom, error) {
+	var classrooms []model.Classroom
+	err := c.Db.Where("day = ? AND room_number = ? AND id <> ? AND class_start < ? AND class_end > ? AND is_archived = false", day, roomNumber, excludeId, classEnd, classStart).Find(&classrooms).Error
+	if err != nil {
+		return nil, err
+	}
+	return classrooms, nil
 }
 
 func (c *ClassroomRepository) withTx(tx *gorm.DB) ClassroomRepositoryInterface {

@@ -3,19 +3,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { classroomServices } from "@/services/classroom.service";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
+import { toISOTime } from "@/lib/utils";
+import { toast } from "sonner";
+import { createClassroom } from "@/actions/classroom";
 
 const prodiClassroomSchema = z.object({
-  class_cover: z.string({ required_error: "Cover kelas harus dipilih" }),
-  class_name: z.string({ required_error: "Nama Kelas wajib diisi" }),
+  class_name: z.string({ required_error: "Nama Kelas wajib diisi" }).min(1, "Nama Kelas wajib diisi"),
   room_number: z
     .string({ required_error: "Ruang wajib diisi" })
     .min(1, "Ruang wajib diisi")
@@ -24,10 +19,10 @@ const prodiClassroomSchema = z.object({
     .string({ required_error: "Semester wajib diisi" })
     .min(1, "Semester wajib diisi")
     .regex(/^\d+$/, "Semester wajib diisi"),
-  day: z.string({ required_error: "Hari wajib dipilih" }),
-  class_start: z.string({ required_error: "Jam mulai kelas wajib diisi" }),
-  class_end: z.string({ required_error: "Jam selesai kelas wajib diisi" }),
-  prodi: z.string({ required_error: "Program studi wajib dipilih" }),
+  day: z.string({ required_error: "Hari wajib dipilih" }).min(1, "Hari wajib dipilih"),
+  class_start: z.string({ required_error: "Jam mulai kelas wajib diisi" }).min(1, "Jam mulai kelas wajib diisi"),
+  class_end: z.string({ required_error: "Jam selesai kelas wajib diisi" }).min(1, "Jam selesai kelas wajib diisi"),
+  prodi: z.string({ required_error: "Program studi wajib dipilih" }).min(1, "Program studi wajib dipilih"),
   tahun_ajaran: z
     .string({ required_error: "Tahun ajaran wajib diisi" })
     .regex(/^\d{4}\/\d{4}$/, "Format tahun ajaran tidak sesuai (contoh: 2025/2026)"),
@@ -38,7 +33,7 @@ const prodiClassroomSchema = z.object({
   },
   {
     message: "Jam selesai kelas harus lebih besar dari jam mulai kelas",
-    path: ["time_end"],
+    path: ["class_end"],
   },
 );
 
@@ -46,11 +41,9 @@ const useCreateClassroom = () => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
-  const [coverPreview, setCoverPreview] = useState("basic");
 
   const createClassForm = useForm({
     defaultValues: {
-      class_cover: "basic",
       room_number: "",
       term: "",
       day: "",
@@ -72,7 +65,6 @@ const useCreateClassroom = () => {
     try {
       setIsPending(true);
       const {
-        class_cover,
         class_name,
         day,
         room_number,
@@ -83,26 +75,26 @@ const useCreateClassroom = () => {
         tahun_ajaran,
         dosen_id,
       } = data;
-      const timeStartDateObj = dayjs.tz(`2010-10-10 ${class_start}`, "Asia/Jakarta");
-      const timeEndDateObj = dayjs.tz(`2010-10-10 ${class_end}`, "Asia/Jakarta");
-      await classroomServices.create({
-        class_cover,
+      const result = await createClassroom({
+        class_cover: "basic",
         class_name,
         term: Number(term),
         day: parseInt(`${day}`),
         room_number: Number(room_number),
-        class_start: timeStartDateObj.toISOString(),
-        class_end: timeEndDateObj.toISOString(),
+        class_start: toISOTime(class_start),
+        class_end: toISOTime(class_end),
         prodi,
         tahun_ajaran,
         dosen_id,
       });
-      handleCloseForm();
-      router.refresh();
-    } catch (e) {
-      createClassForm.setError("root", {
-        message: (e as Error).message,
-      });
+      if (result.success) {
+        handleCloseForm();
+        toast.success(result.message);
+      } else {
+        toast.error(result.error);
+        createClassForm.setError("class_start", { message: result.error });
+        createClassForm.setError("class_end", { message: result.error });
+      }
     } finally {
       setIsPending(false);
     }
@@ -115,8 +107,6 @@ const useCreateClassroom = () => {
     createClassForm,
     handleCreateClassroom,
     handleCloseForm,
-    coverPreview,
-    setCoverPreview,
   };
 };
 

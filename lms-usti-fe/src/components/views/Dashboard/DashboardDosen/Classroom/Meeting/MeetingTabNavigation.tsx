@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 interface PropTypes {
   classroomId: string;
-  type: "dosen" | "mahasiswa";
+  type: "dosen" | "mahasiswa" | "prodi";
 }
 
 export default function MeetingTabNavigation({ classroomId, type }: PropTypes) {

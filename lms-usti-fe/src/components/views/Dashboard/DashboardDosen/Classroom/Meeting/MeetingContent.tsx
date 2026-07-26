@@ -13,7 +13,7 @@ interface PropTypes {
 
 export default async function MeetingContent({ classroomId, search }: PropTypes) {
   const user = await getCurrentUser();
-  const type = user.role.toLowerCase() as "dosen" | "mahasiswa";
+  const type = user.role.toLowerCase() as "dosen" | "mahasiswa" | "prodi";
   const res = await meetingServices.getMeetings(classroomId, search);
   const meetings: IMeeting[] = res.data?.data || [];
 

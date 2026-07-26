@@ -49,7 +49,7 @@ func TestCreateClassroom(t *testing.T) {
 		user := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
 		token := generateToken(user)
 
-		body := `{"class_name":"Matematika Dasar","class_cover":"https://example.com/cover.jpg","term":1,"room_number":101,"day":2,"class_start":"2026-01-01T08:00:00Z","class_end":"2026-01-01T10:00:00Z"}`
+		body := `{"class_name":"Matematika Dasar","class_cover":"https://example.com/cover.jpg","term":1,"room_number":101,"day":2,"class_start":"2026-01-01T08:00:00Z","class_end":"2026-01-01T10:00:00Z","prodi":"TI","tahun_ajaran":"2025/2026"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/classroom/create", body, token)
 		res := parseResponse(w)
 
@@ -78,7 +78,7 @@ func TestCreateClassroom(t *testing.T) {
 		user := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
 		token := generateToken(user)
 
-		body := `{"class_name":"Singkat","class_cover":"https://example.com/cover.jpg","term":1,"room_number":101,"day":2,"class_start":"2026-01-01T08:00:00Z","class_end":"2026-01-01T10:00:00Z"}`
+		body := `{"class_name":"Singkat","class_cover":"https://example.com/cover.jpg","term":1,"room_number":101,"day":2,"class_start":"2026-01-01T08:00:00Z","class_end":"2026-01-01T10:00:00Z","prodi":"TI","tahun_ajaran":"2025/2026"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/classroom/create", body, token)
 		if w.Code != http.StatusBadRequest {
 			t.Errorf("expected 400, got %d: %s", w.Code, string(w.Body.Bytes()))
@@ -87,7 +87,7 @@ func TestCreateClassroom(t *testing.T) {
 
 	t.Run("Create tanpa token", func(t *testing.T) {
 		cleanupDatabase(db)
-		body := `{"class_name":"Matematika Dasar","class_cover":"https://example.com/cover.jpg","term":1,"room_number":101,"day":2,"class_start":"2026-01-01T08:00:00Z","class_end":"2026-01-01T10:00:00Z"}`
+		body := `{"class_name":"Matematika Dasar","class_cover":"https://example.com/cover.jpg","term":1,"room_number":101,"day":2,"class_start":"2026-01-01T08:00:00Z","class_end":"2026-01-01T10:00:00Z","prodi":"TI","tahun_ajaran":"2025/2026"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/classroom/create", body, "")
 		if w.Code != http.StatusUnauthorized {
 			t.Errorf("expected 401, got %d: %s", w.Code, string(w.Body.Bytes()))
@@ -99,10 +99,41 @@ func TestCreateClassroom(t *testing.T) {
 		user := seedUser(db, "Mhs Test", "mhs@test.com", "password123", "MAHASISWA")
 		token := generateToken(user)
 
-		body := `{"class_name":"Matematika Dasar","class_cover":"https://example.com/cover.jpg","term":1,"room_number":101,"day":2,"class_start":"2026-01-01T08:00:00Z","class_end":"2026-01-01T10:00:00Z"}`
+		body := `{"class_name":"Matematika Dasar","class_cover":"https://example.com/cover.jpg","term":1,"room_number":101,"day":2,"class_start":"2026-01-01T08:00:00Z","class_end":"2026-01-01T10:00:00Z","prodi":"TI","tahun_ajaran":"2025/2026"}`
 		w := makeRequest(r, "POST", "/lms-usti-api/classroom/create", body, token)
 		if w.Code != http.StatusForbidden {
 			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
+		}
+	})
+
+	t.Run("Create bentrok — overlapping dengan kelas existing", func(t *testing.T) {
+		cleanupDatabase(db)
+		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
+		token := generateToken(dosen)
+
+		// Buat kelas pertama: day 2 (Selasa), room 101, 08:00-10:00
+		firstBody := `{"class_name":"Matematika Dasar","class_cover":"https://example.com/cover.jpg","term":1,"room_number":101,"day":2,"class_start":"2026-01-01T08:00:00Z","class_end":"2026-01-01T10:00:00Z","prodi":"TI","tahun_ajaran":"2025/2026"}`
+		w1 := makeRequest(r, "POST", "/lms-usti-api/classroom/create", firstBody, token)
+		if w1.Code != http.StatusOK {
+			t.Fatalf("seed classroom: expected 200, got %d: %s", w1.Code, string(w1.Body.Bytes()))
+		}
+
+		// Coba buat kelas kedua: day sama, room sama, waktu overlap 09:00-11:00
+		secondBody := `{"class_name":"Fisika Dasar","class_cover":"https://example.com/cover.jpg","term":1,"room_number":101,"day":2,"class_start":"2026-01-01T09:00:00Z","class_end":"2026-01-01T11:00:00Z","prodi":"TI","tahun_ajaran":"2025/2026"}`
+		w2 := makeRequest(r, "POST", "/lms-usti-api/classroom/create", secondBody, token)
+		if w2.Code != http.StatusConflict {
+			t.Errorf("expected 409 conflict, got %d: %s", w2.Code, string(w2.Body.Bytes()))
+		}
+		res2 := parseResponse(w2)
+		if res2.Meta.Message != "jadwal bentrok dengan kelas \"Matematika Dasar\" (Ruang 101, Selasa 15:00-17:00)" {
+			t.Errorf("expected informative conflict message, got '%s'", res2.Meta.Message)
+		}
+
+		// Verifikasi bahwa hanya 1 kelas yang terdaftar (kelas kedua tidak jadi dibuat)
+		var count int64
+		db.Model(&model.Classroom{}).Count(&count)
+		if count != 1 {
+			t.Errorf("expected 1 classroom (no duplicate), got %d", count)
 		}
 	})
 }
@@ -587,6 +618,29 @@ func TestDeleteClassroom(t *testing.T) {
 		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/some-id", "", token)
 		if w.Code != http.StatusForbidden {
 			t.Errorf("expected 403, got %d: %s", w.Code, string(w.Body.Bytes()))
+		}
+	})
+
+	t.Run("Delete oleh PRODI berhasil", func(t *testing.T) {
+		cleanupDatabase(db)
+		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
+		prodi := seedUser(db, "Prodi Test", "prodi@test.com", "password123", "PRODI")
+		token := generateToken(prodi)
+		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
+
+		w := makeRequest(r, "DELETE", "/lms-usti-api/classroom/"+classroom.ID, "", token)
+		res := parseResponse(w)
+
+		if w.Code != http.StatusOK {
+			t.Errorf("expected 200, got %d: %s", w.Code, string(w.Body.Bytes()))
+		}
+		if res.Meta.Message != "classroom successfully deleted" {
+			t.Errorf("expected 'classroom successfully deleted', got '%s'", res.Meta.Message)
+		}
+		var count int64
+		db.Model(&model.Classroom{}).Where("id = ?", classroom.ID).Count(&count)
+		if count != 0 {
+			t.Errorf("expected classroom to be deleted")
 		}
 	})
 }

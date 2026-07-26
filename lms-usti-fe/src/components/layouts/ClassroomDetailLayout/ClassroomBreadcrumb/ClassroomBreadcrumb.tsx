@@ -11,7 +11,7 @@ import { usePathname } from "next/navigation";
 interface PropTypes {
   classroomName: string;
   classroomId: string;
-  type: "dosen" | "mahasiswa";
+  type: "dosen" | "mahasiswa" | "prodi";
 }
 
 export default function ClassroomBreadcrumb(props: PropTypes) {

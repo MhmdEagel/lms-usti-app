@@ -8,12 +8,7 @@ import { useState } from "react";
 import { AxiosError } from "axios";
 import { ErrorResponse } from "@/types/Response";
 import { z } from "zod";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
+import { toISOTime } from "@/lib/utils";
 
 export const useDetail = () => {
   const router = useRouter();
@@ -35,14 +30,12 @@ export const useDetail = () => {
         room_number,
         term,
       } = payload;
-      const classStartDateObj = dayjs.tz(`2010-10-10 ${class_start}`, "Asia/Jakarta");
-      const classEndDateObj = dayjs(`2010-10-10 ${class_end}`).tz("Asia/Jakarta");
       const res = await classroomServices.update({
         class_cover,
         class_name,
         day: day ? parseInt(day) : undefined,
-        class_start: classStartDateObj.toISOString(),
-        class_end: classEndDateObj.toISOString(),
+        class_start: toISOTime(class_start),
+        class_end: toISOTime(class_end),
         room_number: room_number ? parseInt(room_number) : undefined,
         term: term ? parseInt(term) : undefined,
       }, classroomId);

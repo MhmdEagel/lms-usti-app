@@ -28,7 +28,7 @@ import type { IMeeting } from "@/types/Classroom";
 
 interface PropTypes {
   meeting: IMeeting;
-  type: "dosen" | "mahasiswa";
+  type: "dosen" | "mahasiswa" | "prodi";
   classroomId: string;
 }
 

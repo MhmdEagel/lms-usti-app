@@ -10,7 +10,7 @@ export default function ClassroomDetailLayoutNavbar({
   isArchived,
 }: {
   classroomId: string;
-  type: "dosen" | "mahasiswa";
+  type: "dosen" | "mahasiswa" | "prodi";
   isArchived?: boolean;
 }) {
   const pathname = usePathname();

@@ -9,7 +9,9 @@ interface ICreateClassroom {
   term: number?;
   room_number: number?;
   day: number?;
+  /** ISO 8601 / RFC3339 format, e.g. "2010-10-10T08:00:00+07:00" */
   class_start: string?;
+  /** ISO 8601 / RFC3339 format, e.g. "2010-10-10T10:00:00+07:00" */
   class_end: string?;
   prodi: string?;
   tahun_ajaran: string?;
@@ -27,7 +29,9 @@ interface IUpdateClassroom {
   term?: number?;
   room_number?: number?;
   day?: number?;
+  /** ISO 8601 / RFC3339 format, e.g. "2010-10-10T08:00:00+07:00" */
   class_start?: string?;
+  /** ISO 8601 / RFC3339 format, e.g. "2010-10-10T10:00:00+07:00" */
   class_end?: string?;
   prodi?: string?;
   tahun_ajaran?: string?;
@@ -55,7 +59,9 @@ interface IClassroom {
   term: number;
   room_number: number;
   day: number;
+  /** ISO 8601 / RFC3339 format, e.g. "2010-10-10T08:00:00+07:00" */
   class_start: string;
+  /** ISO 8601 / RFC3339 format, e.g. "2010-10-10T10:00:00+07:00" */
   class_end: string;
   prodi: string;
   tahun_ajaran: string;
