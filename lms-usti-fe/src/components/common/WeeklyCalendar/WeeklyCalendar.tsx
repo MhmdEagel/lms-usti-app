@@ -103,13 +103,13 @@ function EventItem({
               prodiColor.hover,
             )}
           >
-            <div className={cn("text-xs md:text-base font-semibold leading-tight overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
+            <div className={cn("text-base font-semibold leading-tight overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
               {event.title}
             </div>
-            <div className={cn("text-xs md:text-base leading-tight opacity-80 overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
+            <div className={cn("text-base leading-tight opacity-80 overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
               {event.extendedProps.prodi}
             </div>
-            <div className={cn("text-xs md:text-base leading-tight overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
+            <div className={cn("text-base leading-tight overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
               {event.startTime}-{event.endTime}
             </div>
           </div>
@@ -163,13 +163,13 @@ function EventItem({
         }
       }}
     >
-      <div className={cn("text-xs md:text-base font-semibold leading-tight overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
+      <div className={cn("text-base font-semibold leading-tight overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
         {event.title}
       </div>
-      <div className={cn("text-xs md:text-base leading-tight opacity-80 overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
+      <div className={cn("text-base leading-tight opacity-80 overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
         {event.extendedProps.prodi}
       </div>
-      <div className={cn("text-xs md:text-base leading-tight overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
+      <div className={cn("text-base leading-tight overflow-hidden text-ellipsis whitespace-nowrap", prodiColor.text)}>
         {event.startTime}-{event.endTime}
       </div>
     </div>
