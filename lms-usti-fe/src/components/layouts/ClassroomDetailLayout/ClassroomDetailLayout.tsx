@@ -17,7 +17,7 @@ export default function ClassroomDetailLayout({
   children: React.ReactNode;
   classroom: IClassroom;
   classroomId: string;
-  type: "dosen" | "mahasiswa";
+  type: "dosen" | "mahasiswa" | "prodi";
 }) {
   return (
     <div className="space-y-2 p-2 sm:p-4">
@@ -36,6 +36,14 @@ export default function ClassroomDetailLayout({
           <p className="text-sm text-yellow-800 dark:text-yellow-200">
             Kelas telah diarsipkan. Anda dapat mengeluarkannya dari arsip
             dengan membuka pengaturan.
+          </p>
+        </div>
+      )}
+      {classroom.is_archived && type === "prodi" && (
+        <div className="flex items-start gap-3 p-4 rounded-lg border border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800">
+          <AlertTriangle className="size-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+          <p className="text-sm text-yellow-800 dark:text-yellow-200">
+            Kelas telah diarsipkan oleh dosen.
           </p>
         </div>
       )}

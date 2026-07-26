@@ -12,7 +12,7 @@ interface PropTypes {
   class_end: string;
   prodi: string;
   dosen: UserDetail;
-  type: "mahasiswa" | "dosen";
+  type: "mahasiswa" | "dosen" | "prodi";
   term: number;
   isArchived?: boolean;
 }

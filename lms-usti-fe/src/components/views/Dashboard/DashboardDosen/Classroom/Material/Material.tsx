@@ -14,14 +14,19 @@ export default async function Material({
   limit = 10,
   search = "",
   showHeader = true,
+  readOnly = false,
+  type,
 }: {
   classroomId: string;
   page?: number;
   limit?: number;
   search?: string;
   showHeader?: boolean;
+  readOnly?: boolean;
+  type?: string;
 }) {
-  const user = await getCurrentUser();
+  const user = readOnly ? null : await getCurrentUser();
+  const linkType = type ?? user?.role.toLowerCase() ?? "dosen";
   const res = await materialServices.findAllMaterials(classroomId, { page, limit, search });
   const pagination: PaginationInfo = res.data?.pagination;
   const listMateri: IMaterial[] | null = res.data?.data;
@@ -33,7 +38,7 @@ export default async function Material({
         <div className="w-full sm:w-auto sm:flex-1">
           <SearchBar placeholder="Cari materi..." />
         </div>
-        {user?.role === "DOSEN" ? <CreateMaterialDialog classroomId={classroomId} /> : null}
+        {!readOnly && user?.role === "DOSEN" ? <CreateMaterialDialog classroomId={classroomId} /> : null}
       </div>
       <div className="mt-4 flex flex-col gap-4">
         {listMateri && listMateri.length > 0 ? (
@@ -43,7 +48,7 @@ export default async function Material({
               materialId={item.id}
               title={item.title}
               createdAt={item.created_at}
-              type={user.role.toLowerCase()}
+              type={linkType}
               classroomId={classroomId}
             />
           ))

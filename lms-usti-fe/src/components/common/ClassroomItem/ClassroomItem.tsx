@@ -7,7 +7,7 @@ import React from "react";
 
 interface PropTypes {
   classroom: IClassroom;
-  type: "dosen" | "mahasiswa";
+  type: "dosen" | "mahasiswa" | "prodi";
   isArchived?: boolean;
 }
 

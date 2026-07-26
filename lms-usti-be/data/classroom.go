@@ -8,7 +8,7 @@ import (
 
 type CreateClassroomRequest struct {
 	ClassName   string    `json:"class_name" binding:"required,min=8"`
-	ClassCover  string    `json:"class_cover" binding:"required"`
+	ClassCover  string    `json:"class_cover"`
 	Term        int       `json:"term" binding:"required"`
 	RoomNumber  int       `json:"room_number" binding:"required"`
 	Day         int       `json:"day" binding:"required"`

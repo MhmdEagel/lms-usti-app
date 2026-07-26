@@ -3,7 +3,7 @@ import { getTimeString } from "@/lib/utils";
 import { getCurrentUser } from "@/lib/auth";
 import WeeklyScheduleClient from "./WeeklyScheduleClient";
 
-export default async function WeeklySchedule() {
+export default async function WeeklySchedule({ showHeader = false }: { showHeader?: boolean }) {
   const user = await getCurrentUser();
   if (!user) return null;
 
@@ -24,9 +24,8 @@ export default async function WeeklySchedule() {
       daysOfWeek: [c.day],
       startTime,
       endTime,
-      extendedProps: { classroomId: c.id, roomNumber: c.room_number, className: c.class_name, term: c.term, prodi: c.prodi, startTime, endTime },
+      extendedProps: { classroomId: c.id, roomNumber: c.room_number, className: c.class_name, term: c.term, prodi: c.prodi, startTime, endTime, tahunAjaran: c.tahun_ajaran },
     };
   }) : [];
-
-  return <WeeklyScheduleClient events={events} role={user.role.toLowerCase()} />;
+  return <WeeklyScheduleClient events={events} role={user.role.toLowerCase()} showHeader={showHeader} />;
 }

@@ -28,9 +28,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
-import CLASS_COVER from "@/constants/classCover.constant";
 import {
   Dialog,
   DialogClose,
@@ -46,8 +43,6 @@ import DosenCombobox from "./DosenCombobox";
 export default function CreateClassroom() {
   const {
     isPending,
-    coverPreview,
-    setCoverPreview,
     handleCreateClassroom,
     createClassForm,
     isOpen,
@@ -86,47 +81,7 @@ export default function CreateClassroom() {
                 Silahkan masukkan data yang diperlukan untuk membuat kelas baru.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4">
-              <Card className="bg-blue-200 min-h-30 mt-4">
-                <CardContent>
-                  <Image
-                    width={500}
-                    height={500}
-                    className="mx-auto block min-w-55 max-w-55"
-                    src={`/images/ilustration/classroom/${coverPreview}.svg`}
-                    alt="cover image"
-                  />
-                </CardContent>
-              </Card>
-              <FormField
-                name="class_cover"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cover Kelas</FormLabel>
-                    <Select
-                      onValueChange={(value) => {
-                        setCoverPreview(value);
-                        return field.onChange(value);
-                      }}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Pilih cover kelas" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {CLASS_COVER.map((item) => (
-                          <SelectItem key={item.id} value={item.value}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="grid gap-4 mt-4">
               <FormField
                 control={createClassForm.control}
                 name="class_name"
@@ -298,11 +253,6 @@ export default function CreateClassroom() {
                   </FormItem>
                 )}
               />
-              {createClassForm.formState.errors.root && (
-                <p className="text-sm text-destructive">
-                  {createClassForm.formState.errors.root.message}
-                </p>
-              )}
               <div className="flex gap-2 justify-end">
                 <DialogClose asChild>
                   <Button onClick={handleCloseForm} variant="outline">

@@ -35,7 +35,7 @@ async function ArchivedClassroomListContent({
   page,
   limit,
 }: {
-  type: "dosen" | "mahasiswa";
+  type: "dosen" | "mahasiswa" | "prodi";
   searchParams: { [key: string]: string | undefined };
   page: number;
   limit: number;
@@ -48,7 +48,9 @@ async function ArchivedClassroomListContent({
   const fetchFn =
     type === "dosen"
       ? classroomServices.findAllDosenClassrooms
-      : classroomServices.findAllMahasiswaClassrooms;
+      : type === "mahasiswa"
+        ? classroomServices.findAllMahasiswaClassrooms
+        : classroomServices.findAllClassrooms;
   const res = await fetchFn(
     search || prodi || term || tahun_ajaran || room_number
       ? {
@@ -117,7 +119,7 @@ export default function ArchivedClassroomList({
   page = 1,
   limit = 10,
 }: {
-  type: "dosen" | "mahasiswa";
+  type: "dosen" | "mahasiswa" | "prodi";
   searchParams: { [key: string]: string | undefined };
   page?: number;
   limit?: number;

@@ -16,7 +16,7 @@ interface PropTypes {
   assignmentId: string;
   title: string;
   deadline?: string | null;
-  type?: "dosen" | "mahasiswa";
+  type?: "dosen" | "mahasiswa" | "prodi";
   classroomId: string;
   stats?: SubmissionStats | null;
   myStatus?: string;

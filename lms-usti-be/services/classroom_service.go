@@ -1,7 +1,9 @@
 package services
 
 import (
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/model"
@@ -27,7 +29,7 @@ type ClassroomServiceInterface interface {
 	EnrollMahasiswa(joinClassroomRequest data.JoinClassroomRequest, mahasiswaId string) error
 	RemoveMember(classroomId, memberId string) error
 	Update(classroomUpdateRequest data.UpdateClassroomRequest) error
-	Delete(classroomId string, userID string) error
+	Delete(classroomId string, userID string, userRole string) error
 	Archive(classroomId string, userID string) error
 	Unarchive(classroomId string, userID string) error
 	GetClassroomGrades(classroomId string) (data.ClassroomGradesResponse, error)
@@ -52,8 +54,19 @@ func (c *ClassroomService) Create(classroomRequest data.CreateClassroomRequest) 
 		return data.ErrDosenNotFound(nil)
 	}
 	return c.classroomRepository.Transaction(func(repo repositories.ClassroomRepositoryInterface) error {
+		overlapping, err := repo.FindOverlapping(classroomRequest.Day, classroomRequest.ClassStart, classroomRequest.ClassEnd, classroomRequest.RoomNumber, "")
+		if err != nil {
+			return err
+		}
+		if len(overlapping) > 0 {
+			return data.NewAppError(409, errScheduleConflictMsg(overlapping[0]), nil)
+		}
+		classCover := classroomRequest.ClassCover
+		if classCover == "" {
+			classCover = "basic"
+		}
 		classroom := model.Classroom{
-			ClassCover:  classroomRequest.ClassCover,
+			ClassCover:  classCover,
 			ClassName:   classroomRequest.ClassName,
 			Term:        classroomRequest.Term,
 			RoomNumber:  classroomRequest.RoomNumber,
@@ -315,12 +328,26 @@ func (c *ClassroomService) Update(classroomUpdateRequest data.UpdateClassroomReq
 	if classroomUpdateRequest.TahunAjaran != nil {
 		classroom.TahunAjaran = *classroomUpdateRequest.TahunAjaran
 	}
+
+	if classroomUpdateRequest.Day != nil || classroomUpdateRequest.ClassStart != nil || classroomUpdateRequest.ClassEnd != nil || classroomUpdateRequest.RoomNumber != nil {
+		day := classroom.Day
+		start := classroom.ClassStart
+		end := classroom.ClassEnd
+		roomNumber := classroom.RoomNumber
+		overlapping, err := c.classroomRepository.FindOverlapping(day, start, end, roomNumber, classroom.ID)
+		if err != nil {
+			return err
+		}
+		if len(overlapping) > 0 {
+			return data.NewAppError(409, errScheduleConflictMsg(overlapping[0]), nil)
+		}
+	}
+
 	return c.classroomRepository.Update(classroom)
 }
 
-func (c *ClassroomService) Delete(classroomId string, userID string) error {
-	return c.classroomRepository.Delete(classroomId, userID)
-
+func (c *ClassroomService) Delete(classroomId string, userID string, userRole string) error {
+	return c.classroomRepository.Delete(classroomId, userID, userRole)
 }
 
 func (c *ClassroomService) Archive(classroomId string, userID string) error {
@@ -475,4 +502,22 @@ func (c *ClassroomService) GetDosenList(search string) ([]data.DosenListItem, er
 
 func (c *ClassroomService) GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error) {
 	return c.classroomRepository.GetDashboardStats(dosenId)
+}
+
+var jakartaTZ *time.Location
+
+func init() {
+	loc, err := time.LoadLocation("Asia/Jakarta")
+	if err != nil {
+		loc = time.UTC
+	}
+	jakartaTZ = loc
+}
+
+func errScheduleConflictMsg(conflict model.Classroom) string {
+	return fmt.Sprintf("jadwal bentrok dengan kelas \"%s\" (Ruang %d, %s %s-%s)",
+		conflict.ClassName, conflict.RoomNumber,
+		data.GetDayName(conflict.Day),
+		conflict.ClassStart.In(jakartaTZ).Format("15:04"),
+		conflict.ClassEnd.In(jakartaTZ).Format("15:04"))
 }

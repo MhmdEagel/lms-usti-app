@@ -36,7 +36,7 @@ export default async function DashboardStudent() {
       </section>
       <section>
         <Suspense fallback={<ScheduleSkeleton />}>
-          <WeeklySchedule />
+          <WeeklySchedule showHeader />
         </Suspense>
       </section>
     </div>

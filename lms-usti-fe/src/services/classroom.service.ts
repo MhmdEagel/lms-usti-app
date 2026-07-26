@@ -70,6 +70,8 @@ export const classroomServices = {
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/my-grades`),
   getDosenList: (search?: string) =>
     instance.get<{ meta: { status: number; message: string }; data: IDosenListItem[] }>(endpoint.DOSEN_LIST, { params: { search } }),
-  findAllClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; page?: number; limit?: number }) =>
+  findAllClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string; is_archived?: string; page?: number; limit?: number }) =>
     instance.get(`${endpoint.CLASSROOM}/prodi/classrooms`, { params }),
+  updateSchedule: (classroomId: string, payload: { day: number; class_start: string; class_end: string }) =>
+    instance.put(`${endpoint.CLASSROOM}/${classroomId}`, payload),
 };

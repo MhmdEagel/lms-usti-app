@@ -3,7 +3,7 @@ import CreateClassroom from "@/components/views/Dashboard/DashboardProdi/CreateC
 
 export default function ProdiPenjadwalanPage() {
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 p-4 min-h-dvh">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Penjadwalan</h1>
         <CreateClassroom />

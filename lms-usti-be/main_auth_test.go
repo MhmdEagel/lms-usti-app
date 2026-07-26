@@ -58,7 +58,7 @@ func setupTestDB() *gorm.DB {
 	if err != nil {
 		panic("failed to connect to test database: " + err.Error())
 	}
-	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.ClassroomForumPost{}, &model.Meeting{}, &model.Material{}, &model.MaterialAttachment{}, &model.Assignment{}, &model.AssignmentAttachment{}, &model.Submission{}, &model.SubmissionAttachment{}, &model.AuditLogs{}, &model.ContentView{})
+	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.ClassroomPolicy{}, &model.ClassroomForumPost{}, &model.Meeting{}, &model.Material{}, &model.MaterialAttachment{}, &model.Assignment{}, &model.AssignmentAttachment{}, &model.Submission{}, &model.SubmissionAttachment{}, &model.AuditLogs{}, &model.ContentView{})
 	return db
 }
 
@@ -125,7 +125,7 @@ func setupTestRouter(db *gorm.DB) *gin.Engine {
 			classroom.POST("/join", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.Enroll)
 			classroom.GET("/:id", classroomController.FindById)
 			classroom.GET("/:id/members", classroomController.FindAllClassroomMember)
-			classroom.DELETE("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Delete)
+			classroom.DELETE("/:id", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), classroomController.Delete)
 			classroom.PUT("/:id", aclMiddleware.Handle([]string{"DOSEN"}), classroomController.Update)
 		}
 	}

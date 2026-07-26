@@ -5,12 +5,8 @@ import { useState } from "react";
 import { classroomServices } from "@/services/classroom.service";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
+import { toISOTime } from "@/lib/utils";
+import { toast } from "sonner";
 
 const useCreateClassroom = () => {
   const router = useRouter();
@@ -44,25 +40,29 @@ const useCreateClassroom = () => {
         prodi,
         tahun_ajaran,
       } = data;
-      const timeStartDateObj = dayjs.tz(`2010-10-10 ${class_start}`, "Asia/Jakarta");
-      const timeEndDateObj = dayjs.tz(`2010-10-10 ${class_end}`, "Asia/Jakarta");
       await classroomServices.create({
         class_cover,
         class_name,
         term: Number(term),
         day: parseInt(`${day}`),
         room_number: Number(room_number),
-        class_start: timeStartDateObj.toISOString(),
-        class_end: timeEndDateObj.toISOString(),
+        class_start: toISOTime(class_start),
+        class_end: toISOTime(class_end),
         prodi,
         tahun_ajaran,
       });
       handleCloseForm();
+      toast.success("Kelas berhasil dibuat");
       router.refresh();
     } catch (e) {
-      createClassForm.setError("root", {
-        message: (e as Error).message,
-      });
+      const err = e as { response?: { data?: { meta?: { message?: string } } } };
+      const message =
+        err?.response?.data?.meta?.message ??
+        (e as Error).message ??
+        "Gagal membuat kelas";
+      toast.error(message);
+      createClassForm.setError("class_start", { message });
+      createClassForm.setError("class_end", { message });
     } finally {
       setIsPending(false);
     }

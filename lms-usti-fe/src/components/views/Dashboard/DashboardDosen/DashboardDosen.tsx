@@ -32,7 +32,7 @@ export default async function DashboardDosen() {
       </section>
       <section >
         <Suspense fallback={<ScheduleSkeleton />}>
-          <WeeklySchedule />
+          <WeeklySchedule showHeader />
         </Suspense>
       </section>
     </div>

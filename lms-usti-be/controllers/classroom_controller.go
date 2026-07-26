@@ -49,6 +49,12 @@ func (c *ClassroomController) Create(ctx *gin.Context) {
 	}
 	err := c.classroomService.Create(req)
 	if err != nil {
+		appErr, ok := err.(*data.AppError)
+		if ok {
+			res := data.NewResponseFromError(appErr)
+			ctx.JSON(appErr.Code, res)
+			return
+		}
 		log.Printf("Classroom Create: %v", err)
 		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
 		ctx.JSON(http.StatusInternalServerError, res)
@@ -189,6 +195,12 @@ func (c *ClassroomController) Update(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, res)
 			return
 		}
+		appErr, ok := err.(*data.AppError)
+		if ok {
+			res := data.NewResponseFromError(appErr)
+			ctx.JSON(appErr.Code, res)
+			return
+		}
 		log.Printf("Update: %v", err)
 		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
 		ctx.JSON(http.StatusInternalServerError, res)
@@ -213,7 +225,7 @@ func (c *ClassroomController) Delete(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	err := c.classroomService.Delete(classroomId, user.ID)
+	err := c.classroomService.Delete(classroomId, user.ID, user.Role)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			res := data.NewResponse(http.StatusNotFound, "classroom not found", nil)
