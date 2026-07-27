@@ -33,6 +33,7 @@ type UpdateClassroomRequest struct {
 
 type ClassroomFilter struct {
 	Search      string
+	DosenId     string
 	Prodi       string
 	Term        string
 	TahunAjaran string
@@ -68,19 +69,26 @@ type ClassroomForumPostResponse struct {
 }
 
 type ClassroomResponse struct {
-	ID          string     `json:"id"`
-	ClassCover  string     `json:"class_cover"`
-	ClassCode   string     `json:"class_code"`
-	ClassName   string     `json:"class_name"`
-	Term        int        `json:"term"`
-	RoomNumber  int        `json:"room_number"`
-	Day         int        `json:"day"`
-	ClassStart  time.Time  `json:"class_start"`
-	ClassEnd    time.Time  `json:"class_end"`
-	Prodi       string     `json:"prodi"`
-	TahunAjaran string     `json:"tahun_ajaran"`
-	IsArchived  bool       `json:"is_archived"`
-	Dosen       model.User `json:"dosen"`
+	ID              string          `json:"id"`
+	ClassCover      string          `json:"class_cover"`
+	ClassCode       string          `json:"class_code"`
+	ClassName       string          `json:"class_name"`
+	Term            int             `json:"term"`
+	RoomNumber      int             `json:"room_number"`
+	Day             int             `json:"day"`
+	ClassStart      time.Time       `json:"class_start"`
+	ClassEnd        time.Time       `json:"class_end"`
+	Prodi           string          `json:"prodi"`
+	TahunAjaran     string          `json:"tahun_ajaran"`
+	IsArchived      bool            `json:"is_archived"`
+	Dosen           model.User      `json:"dosen"`
+	TotalStudents   int64           `json:"total_students"`
+	MeetingProgress MeetingProgress `json:"meeting_progress"`
+}
+
+type MeetingProgress struct {
+	Current int64 `json:"current"`
+	Total   int64 `json:"total"`
 }
 
 type ClassroomDetailResponse struct {

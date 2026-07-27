@@ -15,7 +15,9 @@ const instance = axios.create({
 
 instance.interceptors.request.use(async (config) => {
   const accessToken = await getAccessToken();
-  config.headers.Authorization = `Bearer ${accessToken}`;
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
   return config;
 });
 
@@ -24,6 +26,7 @@ instance.interceptors.response.use(
   (error) => {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       if (typeof window !== "undefined") {
+        document.cookie = "access_token=; path=/; max-age=0";
         window.location.href = "/auth/login";
       }
     }

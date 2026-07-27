@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { classroomServices } from "@/services/classroom.service";
+import type { IDosenListItem } from "@/types/Classroom";
 import PROGRAM_STUDI from "@/constants/programStudi.constant";
 
 function getProdiLabel(value: string): string {
@@ -14,6 +16,21 @@ function getProdiLabel(value: string): string {
 export default function ActiveFilterCapsules() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [dosenName, setDosenName] = useState("");
+
+  const dosenId = searchParams.get("dosen_id");
+
+  useEffect(() => {
+    if (!dosenId) {
+      setDosenName("");
+      return;
+    }
+    classroomServices.getDosenList("").then((res) => {
+      const items = res.data.data ?? [];
+      const found = items.find((d: IDosenListItem) => d.id === dosenId);
+      if (found) setDosenName(found.fullname);
+    }).catch(() => {});
+  }, [dosenId]);
 
   const removeFilter = useCallback(
     (key: string) => {
@@ -45,6 +62,10 @@ export default function ActiveFilterCapsules() {
   const roomNumber = searchParams.get("room_number");
   if (roomNumber) {
     filters.push({ key: "room_number", display: `Ruangan ${roomNumber}` });
+  }
+
+  if (dosenId) {
+    filters.push({ key: "dosen_id", display: `Dosen ${dosenName || dosenId}` });
   }
 
   if (filters.length === 0) return null;

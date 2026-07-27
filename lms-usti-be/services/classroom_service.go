@@ -98,6 +98,8 @@ func (c *ClassroomService) FindAll(filter data.ClassroomFilter, pagination data.
 
 	var classrooms []data.ClassroomResponse
 	for _, v := range paginationRes.Data.([]model.Classroom) {
+		totalStudents, _ := c.classroomRepository.CountMahasiswaByClassroomId(v.ID)
+		meetingCount, _ := c.classroomRepository.CountMeetingsByClassroomId(v.ID)
 		classroomResponse := data.ClassroomResponse{
 			ID:          v.ID,
 			ClassCover:  v.ClassCover,
@@ -112,6 +114,11 @@ func (c *ClassroomService) FindAll(filter data.ClassroomFilter, pagination data.
 			TahunAjaran: v.TahunAjaran,
 			IsArchived:  v.IsArchived,
 			Dosen:       v.Dosen,
+			TotalStudents: totalStudents,
+			MeetingProgress: data.MeetingProgress{
+				Current: meetingCount,
+				Total:   16,
+			},
 		}
 		classrooms = append(classrooms, classroomResponse)
 	}
@@ -128,6 +135,8 @@ func (c *ClassroomService) FindAllByDosenId(dosenId string, filter data.Classroo
 
 	var classrooms []data.ClassroomResponse
 	for _, v := range paginationRes.Data.([]model.Classroom) {
+		totalStudents, _ := c.classroomRepository.CountMahasiswaByClassroomId(v.ID)
+		meetingCount, _ := c.classroomRepository.CountMeetingsByClassroomId(v.ID)
 		classroomResponse := data.ClassroomResponse{
 			ID:          v.ID,
 			ClassCover:  v.ClassCover,
@@ -142,6 +151,11 @@ func (c *ClassroomService) FindAllByDosenId(dosenId string, filter data.Classroo
 			TahunAjaran: v.TahunAjaran,
 			IsArchived:  v.IsArchived,
 			Dosen:       v.Dosen,
+			TotalStudents: totalStudents,
+			MeetingProgress: data.MeetingProgress{
+				Current: meetingCount,
+				Total:   meetingCount,
+			},
 		}
 		classrooms = append(classrooms, classroomResponse)
 	}
@@ -157,6 +171,8 @@ func (c *ClassroomService) FindAllByMahasiswaId(mahasiswaId string, filter data.
 
 	var classrooms []data.ClassroomResponse
 	for _, v := range paginationRes.Data.([]model.Classroom) {
+		totalStudents, _ := c.classroomRepository.CountMahasiswaByClassroomId(v.ID)
+		meetingCount, _ := c.classroomRepository.CountMeetingsByClassroomId(v.ID)
 		classroomResponse := data.ClassroomResponse{
 			ID:          v.ID,
 			ClassCover:  v.ClassCover,
@@ -170,6 +186,11 @@ func (c *ClassroomService) FindAllByMahasiswaId(mahasiswaId string, filter data.
 			Prodi:       v.Prodi,
 			TahunAjaran: v.TahunAjaran,
 			Dosen:       v.Dosen,
+			TotalStudents: totalStudents,
+			MeetingProgress: data.MeetingProgress{
+				Current: meetingCount,
+				Total:   meetingCount,
+			},
 		}
 		classrooms = append(classrooms, classroomResponse)
 	}

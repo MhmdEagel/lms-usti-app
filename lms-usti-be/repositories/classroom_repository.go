@@ -34,6 +34,8 @@ type ClassroomRepositoryInterface interface {
 	FindOverlapping(day int, classStart time.Time, classEnd time.Time, roomNumber int, excludeId string) ([]model.Classroom, error)
 	Transaction(fn func(repo ClassroomRepositoryInterface) error) error
 	DB() *gorm.DB
+	CountMahasiswaByClassroomId(classroomId string) (int64, error)
+	CountMeetingsByClassroomId(classroomId string) (int64, error)
 }
 
 func NewClassroomRepository(Db *gorm.DB) ClassroomRepositoryInterface {
@@ -41,7 +43,12 @@ func NewClassroomRepository(Db *gorm.DB) ClassroomRepositoryInterface {
 }
 func (c *ClassroomRepository) FindAll(filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error) {
 	var classrooms []model.Classroom
-	query := c.Db.Scopes(lib.Paginate(classrooms, &pagination, c.Db)).Preload("Dosen").Where("is_archived = ?", false).Order("created_at DESC")
+	query := c.Db.Scopes(lib.Paginate(classrooms, &pagination, c.Db)).Preload("Dosen").Order("created_at DESC")
+	if filter.IsArchived != nil {
+		query = query.Where("is_archived = ?", *filter.IsArchived)
+	} else {
+		query = query.Where("is_archived = ?", false)
+	}
 	if filter.Search != "" {
 		query = query.Where("class_name LIKE ?", "%"+filter.Search+"%")
 	}
@@ -56,6 +63,15 @@ func (c *ClassroomRepository) FindAll(filter data.ClassroomFilter, pagination da
 	}
 	if filter.TahunAjaran != "" {
 		query = query.Where("tahun_ajaran = ?", filter.TahunAjaran)
+	}
+	if filter.DosenId != "" {
+		query = query.Where("dosen_id = ?", filter.DosenId)
+	}
+	if filter.RoomNumber != "" {
+		roomNumber, err := strconv.Atoi(filter.RoomNumber)
+		if err == nil {
+			query = query.Where("room_number = ?", roomNumber)
+		}
 	}
 	result := query.Find(&classrooms)
 	if result.Error != nil {
@@ -388,4 +404,16 @@ func (c *ClassroomRepository) Transaction(fn func(repo ClassroomRepositoryInterf
 
 func (c *ClassroomRepository) DB() *gorm.DB {
 	return c.Db
+}
+
+func (c *ClassroomRepository) CountMahasiswaByClassroomId(classroomId string) (int64, error) {
+	var count int64
+	err := c.Db.Model(&model.ClassroomMahasiswa{}).Where("classroom_id = ?", classroomId).Count(&count).Error
+	return count, err
+}
+
+func (c *ClassroomRepository) CountMeetingsByClassroomId(classroomId string) (int64, error) {
+	var count int64
+	err := c.Db.Model(&model.Meeting{}).Where("classroom_id = ?", classroomId).Count(&count).Error
+	return count, err
 }

@@ -349,11 +349,24 @@ func (c *ClassroomController) FindAllClassrooms(ctx *gin.Context) {
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
 
+	isArchivedStr := ctx.Query("is_archived")
+	var isArchived *bool
+	if isArchivedStr == "true" {
+		t := true
+		isArchived = &t
+	} else if isArchivedStr == "false" {
+		f := false
+		isArchived = &f
+	}
+
 	filter := data.ClassroomFilter{
 		Search:      search,
+		DosenId:     ctx.Query("dosen_id"),
 		Prodi:       ctx.Query("prodi"),
 		Term:        ctx.Query("term"),
 		TahunAjaran: ctx.Query("tahun_ajaran"),
+		RoomNumber:  ctx.Query("room_number"),
+		IsArchived:  isArchived,
 	}
 	pagination := data.Pagination{Limit: limit, Current: page}
 	paginationResult, err := c.classroomService.FindAll(filter, pagination)

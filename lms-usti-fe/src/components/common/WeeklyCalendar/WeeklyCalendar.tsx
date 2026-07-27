@@ -10,9 +10,19 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 import PRODI_COLORS, { DEFAULT_PRODI_COLOR } from "@/constants/prodiColors.constant";
+import { useIsMobile } from "@/hooks/use-mobile";
 import DeleteClassroomDialog from "./DeleteClassroomDialog";
 import EditClassroomDialog from "./EditClassroomDialog";
+import MobileAgendaView from "./MobileAgendaView";
 
 const ROOMS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
 const TIME_SLOTS = [
@@ -232,7 +242,7 @@ export default function WeeklyCalendar({ events: initialEvents, role, showHeader
   const router = useRouter();
   const [events, setEvents] = useState(initialEvents);
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setEvents(initialEvents);
@@ -308,10 +318,10 @@ export default function WeeklyCalendar({ events: initialEvents, role, showHeader
     <Card className="min-w-0">
       {showHeader && (
         <CardHeader>
-          <CardTitle className="text-base md:text-xl">Jadwal Perkuliahan</CardTitle>
+          <CardTitle className={cn(isMobile ? "text-sm" : "text-base md:text-xl")}>Jadwal Perkuliahan</CardTitle>
         </CardHeader>
       )}
-      {legendProdis.length > 0 && (
+      {!isMobile && legendProdis.length > 0 && (
         <div className="flex flex-wrap gap-x-4 gap-y-1 px-6 pb-2">
           {legendProdis.map((prodi) => {
             const color = PRODI_COLORS[prodi] ?? DEFAULT_PRODI_COLOR;
@@ -334,106 +344,109 @@ export default function WeeklyCalendar({ events: initialEvents, role, showHeader
           </div>
         </div>
       )}
-      <CardContent ref={scrollRef} className="px-0 w-full max-w-full overflow-x-auto overflow-y-auto" style={{ maxHeight: showHeader ? "calc(100vh - 130px)" : "calc(100vh - 90px)" }}>
-        <table
-          className="border-collapse"
-          style={{ minWidth: isMobile ? "550px" : "1800px" }}
-        >
-          <thead>
-            <tr>
-              {/* Empty corner cells for HARI/JAM */}
-              <th
-                className="bg-secondary sticky top-0 left-0 z-40"
-                style={{ width: isMobile ? "30px" : "60px", minWidth: isMobile ? "30px" : "60px" }}
-              />
-              <th
-                className="bg-secondary sticky top-0 left-0 z-35"
-                style={{
-                  width: isMobile ? "55px" : "100px",
-                  minWidth: isMobile ? "55px" : "100px",
-                  left: isMobile ? "30px" : "60px",
-                }}
-              />
-              {/* Room number headers */}
-              {ROOMS.map((room) => (
-                <th
-                  key={`header-room-${room}`}
-                  className="bg-secondary sticky top-0 p-1 md:p-2 text-center font-semibold text-[10px] md:text-xs text-foreground z-10"
-                  style={{ width: isMobile ? "40px" : "130px", minWidth: isMobile ? "40px" : "130px" }}
-                >
-                  R. {room}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {DAYS.map((day, dayIdx) => (
-              TIME_SLOTS.map((slot, slotIdx) => {
-                const isFirstSlot = slotIdx === 0;
-                return (
-                  <tr key={`row-${day.key}-${slotIdx}`}>
-                    {/* HARI cell — rowspan on first slot of day */}
-                    {isFirstSlot && (
-                      <td
-                        className="bg-secondary sticky left-0 z-20 p-2 font-bold text-[10px] md:text-xs text-foreground/70 border border-border"
-                        rowSpan={TOTAL_SLOTS}
-                        style={{ width: isMobile ? "30px" : "60px", minWidth: isMobile ? "30px" : "60px", height: `${ROW_HEIGHT * TOTAL_SLOTS}px` }}
+      {isMobile ? (
+        <CardContent className="px-4 py-2">
+          <MobileAgendaView
+            events={events}
+            role={role}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </CardContent>
+      ) : (
+        <CardContent ref={scrollRef} className="px-0 w-full max-w-full overflow-x-auto overflow-y-auto [&_[data-slot='table-container']]:overflow-x-visible" style={{ maxHeight: showHeader ? "calc(100vh - 130px)" : "calc(100vh - 90px)" }}>
+          <Table className="border-collapse" style={{ minWidth: "1800px" }}>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead
+                  className="bg-secondary sticky top-0 left-0 z-40 p-0"
+                  style={{ width: "60px", minWidth: "60px" }}
+                />
+                <TableHead
+                  className="bg-secondary sticky top-0 left-0 z-35 p-0"
+                  style={{
+                    width: "100px",
+                    minWidth: "100px",
+                    left: "60px",
+                  }}
+                />
+                {ROOMS.map((room) => (
+                  <TableHead
+                    key={`header-room-${room}`}
+                    className="bg-secondary sticky top-0 p-2 text-center font-semibold text-xs text-foreground z-10 h-auto"
+                    style={{ width: "130px", minWidth: "130px" }}
+                  >
+                    R. {room}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {DAYS.map((day) => (
+                TIME_SLOTS.map((slot, slotIdx) => {
+                  const isFirstSlot = slotIdx === 0;
+                  return (
+                    <TableRow key={`row-${day.key}-${slotIdx}`} className="hover:bg-transparent border-0">
+                      {isFirstSlot && (
+                        <TableCell
+                          className="bg-secondary sticky left-0 z-20 p-2 font-bold text-xs text-foreground/70 border border-border align-middle"
+                          rowSpan={TOTAL_SLOTS}
+                          style={{ width: "60px", minWidth: "60px", height: `${ROW_HEIGHT * TOTAL_SLOTS}px` }}
+                        >
+                          <span className="[writing-mode:vertical-rl] rotate-180 flex items-center justify-center h-full">{day.name}</span>
+                        </TableCell>
+                      )}
+                      <TableCell
+                        className="bg-background p-2 text-right text-xs text-muted-foreground border border-border align-middle"
+                        style={{
+                          width: "100px",
+                          minWidth: "100px",
+                          height: `${ROW_HEIGHT}px`,
+                          position: "sticky",
+                          left: "60px",
+                          zIndex: 15,
+                        }}
                       >
-                        <span className="rotate-180 [writing-mode:vertical-rl] flex items-center justify-center h-full">{day.name}</span>
-                      </td>
-                    )}
-                    {/* JAM cell */}
-                    <td
-                      className="bg-background p-1 md:p-2 text-right text-[10px] md:text-xs text-muted-foreground border border-border"
-                      style={{
-                        width: isMobile ? "55px" : "100px",
-                        minWidth: isMobile ? "55px" : "100px",
-                        height: `${ROW_HEIGHT}px`,
-                        position: "sticky",
-                        left: isMobile ? "30px" : "60px",
-                        zIndex: 15,
-                      }}
-                    >
-                      {slot.label}
-                    </td>
-                    {/* Room cells */}
-                    {ROOMS.map((room) => {
-                      const cellKey = `${day.key}-${slotIdx}-${room}`;
-                      const ev = cellMap[cellKey];
+                        {slot.label}
+                      </TableCell>
+                      {ROOMS.map((room) => {
+                        const cellKey = `${day.key}-${slotIdx}-${room}`;
+                        const ev = cellMap[cellKey];
 
-                      if (ev) {
+                        if (ev) {
+                          return (
+                            <TableCell
+                              key={cellKey}
+                              className="border border-border p-0 align-middle"
+                              style={{ minWidth: "130px", height: `${ROW_HEIGHT}px` }}
+                            >
+                              <EventItem
+                                event={ev}
+                                role={role}
+                                onOpenChange={setPopoverOpen}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                              />
+                            </TableCell>
+                          );
+                        }
+
                         return (
-                          <td
+                          <TableCell
                             key={cellKey}
-                            className="border border-border p-0"
-                            style={{ minWidth: isMobile ? "40px" : "130px", height: `${ROW_HEIGHT}px` }}
-                          >
-                            <EventItem
-                              event={ev}
-                              role={role}
-                              onOpenChange={setPopoverOpen}
-                              onEdit={handleEdit}
-                              onDelete={handleDelete}
-                            />
-                          </td>
+                            className="bg-background border border-border align-middle"
+                            style={{ minWidth: "130px", height: `${ROW_HEIGHT}px` }}
+                          />
                         );
-                      }
-
-                      return (
-                        <td
-                          key={cellKey}
-                          className="bg-background border border-border"
-                          style={{ minWidth: isMobile ? "40px" : "130px", height: `${ROW_HEIGHT}px` }}
-                        />
-                      );
-                    })}
-                  </tr>
-                );
-              })
-            ))}
-          </tbody>
-        </table>
-      </CardContent>
+                      })}
+                    </TableRow>
+                  );
+                })
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      )}
 
       {selectedEvent && (
         <>
