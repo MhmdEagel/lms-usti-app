@@ -41,7 +41,7 @@ export default async function ClassSettings({
         </CardContent>
       </Card>
 
-      {user.role === "DOSEN" && (
+      {(user.role === "DOSEN" || user.role === "PRODI") && (
         <DangerZone
           classroomId={classroomId}
           classroomName={classDetail!.class_name}

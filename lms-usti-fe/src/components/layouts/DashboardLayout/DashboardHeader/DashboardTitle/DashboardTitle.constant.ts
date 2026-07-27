@@ -74,6 +74,10 @@ export const DASHBOARD_TITLE_PRODI = [
         title: "Dashboard",
     },
     {
+        path: "/prodi/kelas",
+        title: "Kelas",
+    },
+    {
         path: "/prodi/forum",
         title: "Forum",
     },

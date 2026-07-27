@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Camera, Pencil, Loader2 } from "lucide-react";
 import { useProfileForm } from "./useProfileForm";
 import ProfileEdit from "./ProfileEdit/ProfileEdit";
+import CropDialog from "@/components/common/CropDialog/CropDialog";
 
 interface ProfileProps {
   user: {
@@ -29,11 +30,15 @@ export default function Profile({ user }: ProfileProps) {
     isPending,
     isUploadingPicture,
     previewUrl,
+    imageSrc,
+    isCropDialogOpen,
     form,
     handleEdit,
     handleCancel,
     setIsEditing,
     handleUploadPicture,
+    handleCropComplete,
+    handleCropDialogClose,
     fileInputRef,
   } = useProfileForm(user);
 
@@ -146,6 +151,15 @@ export default function Profile({ user }: ProfileProps) {
           </Card>
         )}
       </div>
+
+      {imageSrc && (
+        <CropDialog
+          open={isCropDialogOpen}
+          onOpenChange={handleCropDialogClose}
+          imageSrc={imageSrc}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }

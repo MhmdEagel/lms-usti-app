@@ -22,7 +22,7 @@ dayjs.extend(timezone);
 interface PropTypes {
   classroomId: string;
   assignmentId: string;
-  type: "dosen" | "mahasiswa";
+  type: "dosen" | "mahasiswa" | "prodi";
 }
 export default async function AssignmentDetail(props: PropTypes) {
   const { classroomId, assignmentId, type } = props;
@@ -260,15 +260,17 @@ export default async function AssignmentDetail(props: PropTypes) {
                     </div>
                   </div>
                 )}
-                <div>
-                  <div className="font-bold text-gray-500 text-xs mb-2">
-                    AKSI
+                {type === "dosen" && (
+                  <div>
+                    <div className="font-bold text-gray-500 text-xs mb-2">
+                      AKSI
+                    </div>
+                    <AssignmentAction
+                      assignment={data}
+                      classroomId={classroomId}
+                    />
                   </div>
-                  <AssignmentAction
-                    assignment={data}
-                    classroomId={classroomId}
-                  />
-                </div>
+                )}
               </div>
             </div>
           </Card>

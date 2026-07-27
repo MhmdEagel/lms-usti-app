@@ -9,10 +9,12 @@ export default async function ClassroomList({
   searchParams,
   page = 1,
   limit = 10,
+  view = "grid",
 }: {
   searchParams: { [key: string]: string | undefined };
   page?: number;
   limit?: number;
+  view?: "grid" | "list";
 }) {
   const search = searchParams?.search;
   const prodi = searchParams?.prodi;
@@ -27,15 +29,20 @@ export default async function ClassroomList({
   const pagination: PaginationInfo = res.data?.pagination;
   const classes: IClassroom[] = res.data.data
   if (classes && classes.length > 0) {
+    const containerClass = view === "list"
+      ? "flex flex-col gap-4"
+      : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto";
+
     return (
       <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto">
+      <div className={containerClass}>
         {classes.map((classroom) => (
-          <ClassroomItem
-            type="dosen"
-            key={classroom.id}
-            classroom={classroom}
-          />
+            <ClassroomItem
+              type="dosen"
+              key={classroom.id}
+              classroom={classroom}
+              view={view}
+            />
         ))}
       </div>
       {pagination && (

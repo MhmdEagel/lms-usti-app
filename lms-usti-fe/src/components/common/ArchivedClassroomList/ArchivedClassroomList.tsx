@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Suspense } from "react";
 import { classroomServices } from "@/services/classroom.service";
 import { IClassroom } from "@/types/Classroom";
@@ -99,8 +100,20 @@ async function ArchivedClassroomListContent({
     );
   }
 
+  const imageSrc =
+    type === "mahasiswa"
+      ? "/images/ilustration/empty-class.svg"
+      : "/images/ilustration/empty-class-dosen.svg";
+
   return (
     <div className="flex flex-col items-center justify-center h-[500px] gap-4 select-none">
+      <Image
+        src={imageSrc}
+        alt="Tidak ada kelas"
+        width={200}
+        height={200}
+        priority
+      />
       <div className="text-center">
         <h2 className="text-xl md:text-3xl font-bold text-primary mb-1">
           Tidak ada kelas yang diarsipkan

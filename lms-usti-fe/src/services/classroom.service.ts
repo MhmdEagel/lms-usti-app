@@ -16,9 +16,9 @@ export const classroomServices = {
     instance.post(`${endpoint.CLASSROOM}/create`, payload),
   update: (payload: IUpdateClassroom, classroomId: string) =>
     instance.put(`${endpoint.CLASSROOM}/${classroomId}`, payload),
-  findAllDosenClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string; is_archived?: string; page?: number; limit?: number }) =>
+  findAllDosenClassrooms: (params?: { search?: string; dosen_id?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string; is_archived?: string; page?: number; limit?: number }) =>
     instance.get(`${endpoint.CLASSROOM}/dosen/classrooms`, { params }),
-  findAllMahasiswaClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string; is_archived?: string; page?: number; limit?: number }) =>
+  findAllMahasiswaClassrooms: (params?: { search?: string; dosen_id?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string; is_archived?: string; page?: number; limit?: number }) =>
     instance.get(`${endpoint.CLASSROOM}/mahasiswa/classrooms`, { params }),
   getDetail: (classroomId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}`),
@@ -70,7 +70,7 @@ export const classroomServices = {
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/my-grades`),
   getDosenList: (search?: string) =>
     instance.get<{ meta: { status: number; message: string }; data: IDosenListItem[] }>(endpoint.DOSEN_LIST, { params: { search } }),
-  findAllClassrooms: (params?: { search?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string; is_archived?: string; page?: number; limit?: number }) =>
+  findAllClassrooms: (params?: { search?: string; dosen_id?: string; prodi?: string; term?: string; tahun_ajaran?: string; room_number?: string; is_archived?: string; page?: number; limit?: number }) =>
     instance.get(`${endpoint.CLASSROOM}/prodi/classrooms`, { params }),
   updateSchedule: (classroomId: string, payload: { day: number; class_start: string; class_end: string }) =>
     instance.put(`${endpoint.CLASSROOM}/${classroomId}`, payload),

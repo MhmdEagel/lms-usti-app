@@ -6,19 +6,21 @@ import { classroomServices } from "@/services/classroom.service";
 import { IClassroom } from "@/types/Classroom";
 import { SearchBar } from "@/components/ui/searchfield";
 import { Button } from "@/components/ui/button";
-import { Filter } from "lucide-react";
+import { Filter, LayoutGrid, List } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import FilterSheet from "@/components/common/FilterSheet";
 import ActiveFilterCapsules from "@/components/common/ActiveFilterCapsules";
 import PaginationControls from "@/components/common/PaginationControls/PaginationControls";
 import PaginationNav from "@/components/common/PaginationControls/PaginationNav";
 import ClassroomSkeleton from "@/components/common/ClassroomSkeleton";
+import Link from "next/link";
 
 function ClassroomListSkeleton() {
   return (
     <div className="p-4">
       <div className="mb-4 flex flex-wrap gap-2 sm:gap-4 items-center">
         <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-10" />
         <Skeleton className="h-10 w-10" />
         <Skeleton className="h-10 w-10" />
       </div>
@@ -35,10 +37,12 @@ async function ClassroomList({
   searchParams: params,
   page = 1,
   limit = 10,
+  view = "grid",
 }: {
   searchParams: { [key: string]: string | undefined };
   page?: number;
   limit?: number;
+  view?: "grid" | "list";
 }) {
   const search = params?.search;
   const prodi = params?.prodi;
@@ -54,14 +58,19 @@ async function ClassroomList({
   const classes: IClassroom[] = res.data.data;
 
   if (classes && classes.length > 0) {
+    const containerClass = view === "list"
+      ? "flex flex-col gap-4"
+      : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto";
+
     return (
       <>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto">
+        <div className={containerClass}>
           {classes.map((classroom) => (
             <ClassroomItem
               type="mahasiswa"
               key={classroom.id}
               classroom={classroom}
+              view={view}
             />
           ))}
         </div>
@@ -114,12 +123,40 @@ export default function Classroom({
   page?: number;
   limit?: number;
 }) {
+  const currentView = searchParams?.view === "list" ? "list" : "grid";
+
+  function buildViewUrl(view: string) {
+    const params = new URLSearchParams();
+    Object.entries(searchParams).forEach(([key, val]) => {
+      if (val !== undefined) params.set(key, val);
+    });
+    params.set("view", view);
+    params.set("page", "1");
+    return `?${params.toString()}`;
+  }
+
   return (
     <Suspense fallback={<ClassroomListSkeleton />}>
       <div className="p-4">
         <div className="mb-4 flex flex-wrap gap-2 sm:gap-4 items-center">
           <div className="w-full sm:w-auto sm:flex-1 min-w-0">
             <SearchBar />
+          </div>
+          <div className="flex gap-1 border rounded-lg p-0.5">
+            <Link
+              href={buildViewUrl("grid")}
+              className={`p-2 rounded-md transition-colors ${currentView === "grid" ? "bg-muted" : "hover:bg-muted/50"}`}
+              aria-label="Grid view"
+            >
+              <LayoutGrid className="size-4" />
+            </Link>
+            <Link
+              href={buildViewUrl("list")}
+              className={`p-2 rounded-md transition-colors ${currentView === "list" ? "bg-muted" : "hover:bg-muted/50"}`}
+              aria-label="List view"
+            >
+              <List className="size-4" />
+            </Link>
           </div>
           <FilterSheet>
             <Button className="cursor-pointer" variant={"outline"}>
@@ -130,7 +167,7 @@ export default function Classroom({
           <JoinClassroom />
         </div>
         <ActiveFilterCapsules />
-        <ClassroomList searchParams={searchParams} page={page} limit={limit} />
+        <ClassroomList searchParams={searchParams} page={page} limit={limit} view={currentView} />
       </div>
     </Suspense>
   );

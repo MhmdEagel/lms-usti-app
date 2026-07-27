@@ -11,7 +11,7 @@ export default function AssignmentDetailTabNavbar({
 }: {
   classroomId: string;
   assignmentId: string;
-  type: "dosen" | "mahasiswa";
+  type: "dosen" | "mahasiswa" | "prodi";
 }) {
   const pathname = usePathname();
   const baseUrl = `/${type}/kelas/${classroomId}/tugas/${assignmentId}`;

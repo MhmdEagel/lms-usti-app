@@ -68,6 +68,11 @@ interface IClassroom {
   tahun_ajaran: string;
   is_archived: boolean;
   dosen: User;
+  total_students?: number;
+  meeting_progress?: {
+    current: number;
+    total: number;
+  };
 }
 
 interface IClassroomMembers {

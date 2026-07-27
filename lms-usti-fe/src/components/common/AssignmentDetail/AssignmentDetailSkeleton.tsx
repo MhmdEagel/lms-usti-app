@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface PropTypes {
-  type?: "dosen" | "mahasiswa";
+  type?: "dosen" | "mahasiswa" | "prodi";
 }
 
 export default function AssignmentDetailSkeleton({ type = "dosen" }: PropTypes) {
@@ -23,6 +23,13 @@ export default function AssignmentDetailSkeleton({ type = "dosen" }: PropTypes) 
       {type === "dosen" && (
         <div className="flex gap-2 mb-4">
           <Skeleton className="h-10 w-24 rounded-lg" />
+          <Skeleton className="h-10 w-24 rounded-lg" />
+          <Skeleton className="h-10 w-24 rounded-lg" />
+        </div>
+      )}
+
+      {type === "prodi" && (
+        <div className="flex gap-2 mb-4">
           <Skeleton className="h-10 w-24 rounded-lg" />
           <Skeleton className="h-10 w-24 rounded-lg" />
         </div>

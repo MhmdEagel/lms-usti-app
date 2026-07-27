@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import DosenCombobox from "@/components/views/Dashboard/DashboardProdi/CreateClassroom/DosenCombobox";
 import PROGRAM_STUDI from "@/constants/programStudi.constant";
 
 const SEMESTER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -37,6 +38,9 @@ export default function FilterSheet({
   const currentTerm = searchParams.get("term") || "";
   const currentTahunAjaran = searchParams.get("tahun_ajaran") || "";
   const currentRoomNumber = searchParams.get("room_number") || "";
+  const currentDosenId = searchParams.get("dosen_id") || "";
+
+  const [dosenId, setDosenId] = useState(currentDosenId);
 
   const closeAndNavigate = useCallback(
     (params: URLSearchParams) => {
@@ -77,19 +81,26 @@ export default function FilterSheet({
       } else {
         params.delete("room_number");
       }
+      if (dosenId) {
+        params.set("dosen_id", dosenId);
+      } else {
+        params.delete("dosen_id");
+      }
       params.delete("page");
 
       closeAndNavigate(params);
     },
-    [searchParams, closeAndNavigate],
+    [searchParams, closeAndNavigate, dosenId],
   );
 
   const resetFilters = useCallback(() => {
+    setDosenId("");
     const params = new URLSearchParams(searchParams.toString());
     params.delete("prodi");
     params.delete("term");
     params.delete("tahun_ajaran");
     params.delete("room_number");
+    params.delete("dosen_id");
     params.delete("page");
     closeAndNavigate(params);
   }, [searchParams, closeAndNavigate]);
@@ -101,8 +112,8 @@ export default function FilterSheet({
         <SheetHeader>
           <SheetTitle>Filter Kelas</SheetTitle>
           <SheetDescription>
-            Filter kelas berdasarkan program studi, semester, tahun ajaran, atau
-            ruangan.
+            Filter kelas berdasarkan program studi, semester, tahun ajaran,
+            ruangan, atau dosen.
           </SheetDescription>
         </SheetHeader>
         <form key={String(open)} onSubmit={applyFilters} className="flex flex-col gap-6 p-4 pt-0">
@@ -167,6 +178,11 @@ export default function FilterSheet({
               defaultValue={currentRoomNumber}
               autoComplete="off"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Dosen</Label>
+            <DosenCombobox value={dosenId} onChange={setDosenId} />
           </div>
 
           <div className="flex gap-2 pt-4">
