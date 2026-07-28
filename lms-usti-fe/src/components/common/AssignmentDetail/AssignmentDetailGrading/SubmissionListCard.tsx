@@ -150,13 +150,13 @@ export default function SubmissionListCard({
                 <div
                   key={submission.id}
                   onClick={() => onSelectSubmission(submission)}
-                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                  className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
                     isSelected
                       ? "bg-primary/10 border border-primary/30"
                       : "hover:bg-gray-50 border border-transparent"
                   }`}
                 >
-                  <Avatar className="h-12 w-12 rounded-full">
+                  <Avatar className="h-10 w-10 sm:h-12 sm:w-12 rounded-full shrink-0">
                     <AvatarImage
                       src={submission.mahasiswa.profile}
                       alt={submission.mahasiswa.fullname}
@@ -168,26 +168,26 @@ export default function SubmissionListCard({
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">
-                      {submission.mahasiswa.fullname}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-sm">
+                        {submission.mahasiswa.fullname}
+                      </span>
+                      {submission.score !== null && (
+                        <span className="text-sm font-semibold text-gray-700">
+                          {submission.score}
+                        </span>
+                      )}
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${badge.className}`}
+                      >
+                        {badge.label}
+                      </span>
                     </div>
                     {submitDate && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 mt-0.5">
                         {submitDate.format("DD/MM/YYYY | HH:mm")}
                       </div>
                     )}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {submission.score !== null && (
-                      <span className="text-sm font-semibold text-gray-700">
-                        {submission.score}
-                      </span>
-                    )}
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.className}`}
-                    >
-                      {badge.label}
-                    </span>
                   </div>
                 </div>
               );

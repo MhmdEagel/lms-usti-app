@@ -15,6 +15,7 @@ type ClassroomRepository struct {
 }
 
 type ClassroomRepositoryInterface interface {
+	GetProdiDashboardStats() (data.ProdiDashboardStatsResponse, error)
 	Create(classroom model.Classroom) (model.Classroom, error)
 	FindById(classroomId string) (classroom model.Classroom, err error)
 	FindAll(filter data.ClassroomFilter, pagination data.Pagination) (paginationResult *data.PaginationWithData, err error)
@@ -404,6 +405,28 @@ func (c *ClassroomRepository) Transaction(fn func(repo ClassroomRepositoryInterf
 
 func (c *ClassroomRepository) DB() *gorm.DB {
 	return c.Db
+}
+
+func (c *ClassroomRepository) GetProdiDashboardStats() (data.ProdiDashboardStatsResponse, error) {
+	var stats data.ProdiDashboardStatsResponse
+
+	if err := c.Db.Model(&model.Classroom{}).Where("is_archived = ?", false).Count(&stats.TotalActiveClassrooms).Error; err != nil {
+		return stats, err
+	}
+
+	if err := c.Db.Model(&model.Classroom{}).Where("is_archived = ?", false).Distinct("dosen_id").Count(&stats.TotalDosen).Error; err != nil {
+		return stats, err
+	}
+
+	if err := c.Db.Model(&model.ClassroomMahasiswa{}).
+		Joins("JOIN classrooms ON classrooms.id = classroom_mahasiswas.classroom_id").
+		Where("classrooms.is_archived = ?", false).
+		Distinct("classroom_mahasiswas.user_id").
+		Count(&stats.TotalMahasiswa).Error; err != nil {
+		return stats, err
+	}
+
+	return stats, nil
 }
 
 func (c *ClassroomRepository) CountMahasiswaByClassroomId(classroomId string) (int64, error) {

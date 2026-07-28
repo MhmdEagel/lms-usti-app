@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -206,6 +205,8 @@ func main() {
 		materialRecords := seedMaterials(Db, cls, dosen, meetingRecords)
 		assignmentRecords := seedAssignments(Db, cls, dosen, meetingRecords)
 		seedSubmissions(Db, assignmentRecords, students)
+		seedMaterialComments(Db, materialRecords, dosen, students)
+		seedAssignmentComments(Db, assignmentRecords, dosen, students)
 		totalMeetings += len(meetingRecords)
 		totalMaterials += len(materialRecords)
 		totalAssignments += len(assignmentRecords)
@@ -422,21 +423,11 @@ func seedSubmissions(db *gorm.DB, assignments []model.Assignment, students []mod
 	count := 0
 	for _, a := range assignments {
 		for _, s := range students {
-			statuses := []string{"submitted", "submitted", "graded"}
-			status := statuses[rand.Intn(len(statuses))]
-			submissionDate := time.Now().Add(-time.Duration(rand.Intn(72)) * time.Hour)
-			ns := sql.NullTime{Time: submissionDate, Valid: true}
-
 			sub := model.Submission{
-				Status:         status,
-				SubmissionDate: ns,
+				Status:         "",
+				SubmissionDate: sql.NullTime{Valid: false},
 				StudentId:      s.ID,
 				AssignmentId:   a.ID,
-			}
-
-			if status == "graded" {
-				score := float64(rand.Intn(21) + 75)
-				sub.Score = &score
 			}
 
 			if err := db.Create(&sub).Error; err != nil {
@@ -445,7 +436,7 @@ func seedSubmissions(db *gorm.DB, assignments []model.Assignment, students []mod
 			count++
 		}
 	}
-	fmt.Printf("📬 %d submission\n", count)
+	fmt.Printf("📬 %d submission (belum disubmit)\n", count)
 }
 
 func seedPublicForums(db *gorm.DB, dosen model.User, students []model.User) []model.ForumPost {
@@ -622,4 +613,64 @@ func seedMaterials(db *gorm.DB, classroom model.Classroom, dosen model.User, mee
 	fmt.Printf("📎 %d lampiran materi\n", len(materialAttachments))
 
 	return created
+}
+
+func seedMaterialComments(db *gorm.DB, materials []model.Material, dosen model.User, students []model.User) {
+	if len(materials) == 0 || len(students) == 0 {
+		return
+	}
+	count := 0
+	for _, m := range materials {
+		comments := []model.Comment{
+			{
+				Content:         "Materinya sangat membantu, terima kasih Pak.",
+				CommentableType: "material",
+				CommentableID:   m.ID,
+				CreatedBy:       students[0].ID,
+			},
+			{
+				Content:         "Sama-sama. Silakan dipelajari dan dipraktikkan.",
+				CommentableType: "material",
+				CommentableID:   m.ID,
+				CreatedBy:       dosen.ID,
+			},
+		}
+		for _, c := range comments {
+			if err := db.Create(&c).Error; err != nil {
+				log.Fatalf("Gagal seed komentar materi: %v", err)
+			}
+			count++
+		}
+	}
+	fmt.Printf("💬 %d komentar materi\n", count)
+}
+
+func seedAssignmentComments(db *gorm.DB, assignments []model.Assignment, dosen model.User, students []model.User) {
+	if len(assignments) == 0 || len(students) == 0 {
+		return
+	}
+	count := 0
+	for _, a := range assignments {
+		comments := []model.Comment{
+			{
+				Content:         "Mohon maaf Pak, untuk tugas ini dikumpulkan di mana?",
+				CommentableType: "assignment",
+				CommentableID:   a.ID,
+				CreatedBy:       students[1%len(students)].ID,
+			},
+			{
+				Content:         "Dikumpulkan melalui fitur pengumpulan tugas di halaman tugas ini ya.",
+				CommentableType: "assignment",
+				CommentableID:   a.ID,
+				CreatedBy:       dosen.ID,
+			},
+		}
+		for _, c := range comments {
+			if err := db.Create(&c).Error; err != nil {
+				log.Fatalf("Gagal seed komentar tugas: %v", err)
+			}
+			count++
+		}
+	}
+	fmt.Printf("💬 %d komentar tugas\n", count)
 }

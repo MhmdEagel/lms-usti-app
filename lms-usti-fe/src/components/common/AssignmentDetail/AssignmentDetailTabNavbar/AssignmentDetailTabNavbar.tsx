@@ -35,7 +35,7 @@ export default function AssignmentDetailTabNavbar({
     {
       label: "Penilaian",
       icon: ClipboardList,
-      href: `${baseUrl}/nilai`,
+      href: `${baseUrl}/penilaian`,
       showFor: "dosen",
     },
   ];

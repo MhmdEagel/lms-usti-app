@@ -564,3 +564,15 @@ func (c *ClassroomController) FindClassroomMemberById(ctx *gin.Context) {
 	res := data.NewResponse(http.StatusOK, "success find member by id", member)
 	ctx.JSON(http.StatusOK, res)
 }
+
+func (c *ClassroomController) GetProdiDashboardStats(ctx *gin.Context) {
+	stats, err := c.classroomService.GetProdiDashboardStats()
+	if err != nil {
+		log.Printf("GetProdiDashboardStats: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := data.NewResponse(http.StatusOK, "success", stats)
+	ctx.JSON(http.StatusOK, res)
+}

@@ -175,6 +175,12 @@ type DosenListItem struct {
 	Email    string `json:"email"`
 }
 
+type ProdiDashboardStatsResponse struct {
+	TotalActiveClassrooms int64 `json:"total_active_classrooms"`
+	TotalDosen            int64 `json:"total_dosen"`
+	TotalMahasiswa        int64 `json:"total_mahasiswa"`
+}
+
 type ClassroomGradesResponse struct {
 	Assignments    []ClassroomGradeAssignment `json:"assignments"`
 	Students       []ClassroomGradeStudent    `json:"students"`

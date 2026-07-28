@@ -117,6 +117,7 @@ func InitRouter() *gin.Engine {
 			classroom.GET("/mahasiswa/dashboard-stats", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.GetMahasiswaDashboardStats)
 			classroom.GET("/mahasiswa/classrooms", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.FindAllByMahasiswaId)
 			classroom.GET("/prodi/dosen-list", aclMiddleware.Handle([]string{"PRODI"}), classroomController.GetDosenList)
+			classroom.GET("/prodi/dashboard-stats", authMiddleware.Handle(), aclMiddleware.Handle([]string{"PRODI"}), classroomController.GetProdiDashboardStats)
 			classroom.GET("/prodi/classrooms", aclMiddleware.Handle([]string{"PRODI"}), classroomController.FindAllClassrooms)
 			classroom.POST("/create", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), classroomController.Create)
 			classroom.POST("/join", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.Enroll)

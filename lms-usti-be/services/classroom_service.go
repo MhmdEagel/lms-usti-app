@@ -38,6 +38,7 @@ type ClassroomServiceInterface interface {
 	GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error)
 	GetMahasiswaDashboardStats(mahasiswaId string) (data.MahasiswaDashboardStatsResponse, error)
 	GetDosenList(search string) ([]data.DosenListItem, error)
+	GetProdiDashboardStats() (data.ProdiDashboardStatsResponse, error)
 }
 
 func NewClassroomService(classroomRepository repositories.ClassroomRepositoryInterface,
@@ -523,6 +524,10 @@ func (c *ClassroomService) GetDosenList(search string) ([]data.DosenListItem, er
 
 func (c *ClassroomService) GetDashboardStats(dosenId string) (data.DashboardStatsResponse, error) {
 	return c.classroomRepository.GetDashboardStats(dosenId)
+}
+
+func (c *ClassroomService) GetProdiDashboardStats() (data.ProdiDashboardStatsResponse, error) {
+	return c.classroomRepository.GetProdiDashboardStats()
 }
 
 var jakartaTZ *time.Location

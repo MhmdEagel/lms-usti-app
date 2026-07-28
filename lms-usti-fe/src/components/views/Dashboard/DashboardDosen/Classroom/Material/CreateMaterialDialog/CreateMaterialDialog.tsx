@@ -1,7 +1,7 @@
 "use client";
 
 import { Book, Link, Plus, UploadIcon, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,6 +55,17 @@ export default function CreateMaterialDialog({
   const [previewFile, setPreviewFile] = useState<IAttachment | null>(null);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open === "open") {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   const handleDeleteAttachment = async (item: IAttachment) => {
     if (item.type === "FILE") {
