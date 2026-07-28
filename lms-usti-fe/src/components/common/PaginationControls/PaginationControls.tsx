@@ -32,7 +32,7 @@ export default function PaginationControls({
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-muted-foreground">Baris per halaman</span>
+      <span className="hidden sm:inline text-sm text-muted-foreground">Baris per halaman</span>
       <Select
         value={String(limit)}
         onValueChange={(v) => navigate(1, Number(v))}

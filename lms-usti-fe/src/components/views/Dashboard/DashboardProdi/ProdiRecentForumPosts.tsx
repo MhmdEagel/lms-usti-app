@@ -1,0 +1,94 @@
+import Link from "next/link";
+import { MessageSquare, Pin, ChevronRight } from "lucide-react";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/id";
+import { forumServices } from "@/services/forum.service";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { environtment } from "@/config/environtment";
+
+dayjs.extend(relativeTime);
+dayjs.locale("id");
+
+export default async function ProdiRecentForumPosts() {
+  const res = await forumServices.getPosts();
+  const allPosts = res.data?.data as IForumPost[] | undefined;
+  const twentyFourHoursAgo = dayjs().subtract(24, "hour");
+  const posts = allPosts
+    ? allPosts.filter((post) => dayjs(post.created_at).isAfter(twentyFourHoursAgo))
+    : [];
+
+  return (
+    <Card className="flex flex-col min-h-[300px]">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+          <MessageSquare size={24} />
+          Postingan Forum Terbaru
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex-1 min-h-0">
+        {posts.length === 0 ? (
+          <p className="text-muted-foreground text-sm">Belum ada postingan terbaru.</p>
+        ) : (
+          <div className="overflow-y-auto h-full flex flex-col gap-3 pr-1">
+            {posts.slice(0, 5).map((post) => (
+              <Link key={post.id} href={`/prodi/forum/${post.id}`}>
+                <Card className="hover:bg-muted/50 cursor-pointer">
+                  <CardContent className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="size-10 shrink-0">
+                        <AvatarImage
+                          src={`${environtment.API_URL}/media/profiles/${post.author_profile}`}
+                          alt={post.author_name}
+                        />
+                        <AvatarFallback>
+                          {post.author_name?.charAt(0)?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          {post.is_pinned && (
+                            <Pin size={14} className="shrink-0 fill-primary text-primary" />
+                          )}
+                          <p className="font-medium text-sm truncate">{post.title}</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {post.author_name}
+                        </p>
+                        <div className="flex items-center gap-2 flex-wrap text-xs mt-0.5">
+                          <span
+                            className={
+                              "font-semibold px-1.5 py-0.5 rounded " +
+                              (post.author_role === "DOSEN"
+                                ? "bg-blue-100 text-blue-700"
+                                : post.author_role === "MAHASISWA"
+                                  ? "bg-green-100 text-green-700"
+                                  : post.author_role === "PRODI"
+                                    ? "bg-purple-100 text-purple-700"
+                                    : post.author_role === "ADMIN"
+                                      ? "bg-red-100 text-red-700"
+                                      : "bg-muted text-muted-foreground")
+                            }
+                          >
+                            {post.author_role}
+                          </span>
+                          <span className="text-muted-foreground">{dayjs(post.created_at).fromNow()}</span>
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <MessageSquare size={12} />
+                            {post.comment_count}
+                          </span>
+                        </div>
+                      </div>
+                      <ChevronRight size={20} className="shrink-0 text-muted-foreground" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

@@ -73,7 +73,7 @@ export default function GradingContent({
           onSelectSubmission={setSelectedSubmission}
         />
         {pagination && (
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <PaginationControls
               current={pagination.current}
               limit={pagination.limit}

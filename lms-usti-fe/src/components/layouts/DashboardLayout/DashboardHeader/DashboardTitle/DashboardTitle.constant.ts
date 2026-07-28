@@ -71,7 +71,7 @@ export const DASHBOARD_TITLE_ADMIN = [
 export const DASHBOARD_TITLE_PRODI = [
     {
         path: "/prodi",
-        title: "Dashboard",
+        title: "Beranda",
     },
     {
         path: "/prodi/kelas",

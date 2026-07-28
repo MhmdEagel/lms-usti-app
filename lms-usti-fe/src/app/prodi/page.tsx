@@ -1,3 +1,8 @@
+import ProdiDashboard from "@/components/views/Dashboard/DashboardProdi/ProdiDashboard";
+import { createMetadata } from "@/lib/metadata";
+
+export const generateMetadata = () => createMetadata({ title: "Beranda" });
+
 export default function ProdiDashboardPage() {
-  return <div className="p-4"><h1 className="text-2xl font-bold">Ini halaman Dashboard Prodi</h1></div>;
+  return <ProdiDashboard />;
 }

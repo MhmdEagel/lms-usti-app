@@ -72,6 +72,17 @@ export default function EditMaterialDialog(props: PropTypes) {
   );
 
   useEffect(() => {
+    if (open === "open") {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  useEffect(() => {
     if (material.attachments && material.attachments.length > 0) {
       initializeAttachments(material.attachments, material.meeting_id);
     } else {
