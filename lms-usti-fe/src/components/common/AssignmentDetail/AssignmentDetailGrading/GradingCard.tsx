@@ -34,8 +34,10 @@ export default function GradingCard({
     setScore(selectedSubmission?.score?.toString() ?? "");
   }, [selectedSubmission]);
 
+  const isSubmitted = selectedSubmission?.status === "submitted";
+
   const handleSave = useCallback(async () => {
-    if (!selectedSubmission) return;
+    if (!selectedSubmission || !isSubmitted) return;
 
     const parsed = gradeSchema.safeParse({ score });
     if (!parsed.success) {
@@ -58,7 +60,7 @@ export default function GradingCard({
     } finally {
       setSaving(false);
     }
-  }, [selectedSubmission, feedback, score, classroomId, assignmentId, router]);
+  }, [selectedSubmission, isSubmitted, feedback, score, classroomId, assignmentId, router]);
 
   return (
     <Card>
@@ -70,24 +72,27 @@ export default function GradingCard({
           <div className="text-gray-500 text-center py-8">
             Silahkan pilih mahasiswa
           </div>
+        ) : !isSubmitted ? (
+          <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+            Mahasiswa belum mengirim tugas
+          </div>
         ) : (
           <div>
             <label className="text-sm font-medium block mb-1">Nilai</label>
             <input
-              min={1}
-              max={16}
+              min={0}
+              max={100}
               autoComplete="off"
               type="number"
               placeholder="Tulis nilai"
               inputMode="numeric"
-              pattern="[1-9]{1}"
               value={score}
               onChange={(e) => setScore(e.target.value)}
               className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
         )}
-        {selectedSubmission && (
+        {selectedSubmission && isSubmitted && (
           <>
             <div>
               <label className="text-sm font-medium block mb-1">
@@ -104,7 +109,7 @@ export default function GradingCard({
             <Button
               onClick={handleSave}
               className="w-full"
-              disabled={!selectedSubmission || saving}
+              disabled={saving}
             >
               Simpan
             </Button>

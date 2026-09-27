@@ -48,7 +48,7 @@ export function isValidUrl(str: string): boolean {
       "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // validate port and path
       "(\\?[;&a-z\\d%_.~+=-]*)?" + // validate query string
       "(\\#[-a-z\\d_]*)?$",
-    "i"
+    "i",
   ); // validate fragment locator
   return !!urlPattern.test(str);
 }
@@ -61,16 +61,15 @@ export function getFileName(filename: string): string {
   return filename.split(".")[0];
 }
 
-
 export const parseTime = (time: string) => {
   const [h, m] = time.split(":").map(Number);
   return dayjs().hour(h).minute(m).second(0).millisecond(0).toDate();
 };
 
 export const generateUuid = () => {
-  const id = uuidv4()
-  return id
-}
+  const id = uuidv4();
+  return id;
+};
 
 const VIDEO_EXTENSIONS = ["mp4", "mov", "avi", "webm", "mkv"];
 
@@ -79,9 +78,17 @@ export function isVideoFile(filename: string): boolean {
   return VIDEO_EXTENSIONS.includes(ext);
 }
 
-export type AttachmentCategory = "pdf" | "word" | "presentation" | "video" | "link" | "other";
+export type AttachmentCategory =
+  | "pdf"
+  | "word"
+  | "presentation"
+  | "video"
+  | "link"
+  | "other";
 
-export function getAttachmentCategory(attachment: IAttachment): AttachmentCategory {
+export function getAttachmentCategory(
+  attachment: IAttachment,
+): AttachmentCategory {
   if (attachment.type === "LINK") return "link";
   const ext = getFileExtension(attachment.name).toLowerCase();
   if (ext === "pdf") return "pdf";
@@ -89,4 +96,8 @@ export function getAttachmentCategory(attachment: IAttachment): AttachmentCatego
   if (["pptx", "ppt"].includes(ext)) return "presentation";
   if (isVideoFile(attachment.name)) return "video";
   return "other";
+}
+
+export function isSizeLimit(fileSize: number) {
+  return fileSize >= 1 * 1024 * 1024;
 }

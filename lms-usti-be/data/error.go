@@ -23,6 +23,9 @@ func ErrMeetingMaxReached(err error) *AppError { return NewAppError(400, "maksim
 func ErrDeadlinePassed(err error) *AppError { return NewAppError(400, "Batas pengumpulan tugas telah berlalu", err) }
 func ErrDosenNotFound(err error) *AppError { return NewAppError(404, "dosen tidak ditemukan", err) }
 func ErrScheduleConflict(err error) *AppError { return NewAppError(409, "jadwal bentrok dengan kelas lain di slot yang sama", err) }
+func ErrSubmissionNotFound(err error) *AppError { return NewAppError(404, "submission tidak ditemukan", err) }
+func ErrNotSubmitted(err error) *AppError { return NewAppError(400, "mahasiswa belum mengirim tugas", err) }
+func ErrInvalidScore(err error) *AppError { return NewAppError(400, "nilai harus antara 0 sampai 100", err) }
 
 type AppError struct {
 	Code    int

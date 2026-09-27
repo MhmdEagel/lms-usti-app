@@ -11,6 +11,7 @@ import { newMaterialSchema } from "@/schemas/schemas";
 import { materialServices } from "@/services/material.service";
 import { mediaServices } from "@/services/media.service";
 import { useRouter } from "next/navigation";
+import { isSizeLimit } from "@/lib/utils";
 
 const useCreateMaterialDialog = (defaultMeetingId?: string) => {
   const [open, setOpen] = useState("closed");
@@ -76,6 +77,11 @@ const useCreateMaterialDialog = (defaultMeetingId?: string) => {
 
   const handleUploadFile = async (file: File) => {
     const formData = new FormData();
+
+    if (isSizeLimit(file.size)) {
+      toast.error("File melebihi batas upload. Max 1 MB")
+      return
+    }
     const blob = new Blob([await file.arrayBuffer()], { type: file.type });
     formData.append("file", blob, file.name);
     try {
@@ -90,7 +96,6 @@ const useCreateMaterialDialog = (defaultMeetingId?: string) => {
       setAttachments((prev) => [...prev, newFile]);
       toast.success("File berhasil diupload");
     } catch (e) {
-      const err = e as AxiosError<ErrorResponse>;
       toast.error("File gagal diupload");
     } finally {
       setIsPendingUploadFile(false);

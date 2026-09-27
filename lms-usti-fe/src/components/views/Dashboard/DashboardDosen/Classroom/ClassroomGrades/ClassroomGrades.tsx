@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import type { ClassroomGradesResponse } from "@/types/Classroom";
-import { Book } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { exportToGradesExcel } from "./exportToGradesExcel";
@@ -25,9 +24,8 @@ export default function ClassroomGrades({ data, classroomName }: PropTypes) {
   if (!hasAssignments) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3 text-black">
-        <Book className="size-12" />
         <p className="text-lg font-medium">Belum ada tugas yang dibuat</p>
-        <p className="text-sm">
+        <p className="text-sm text-muted-foreground">
           Nilai akan muncul setelah Anda membuat tugas di kelas ini.
         </p>
       </div>

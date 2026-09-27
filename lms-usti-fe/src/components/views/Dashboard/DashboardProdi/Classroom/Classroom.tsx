@@ -29,25 +29,8 @@ export default function Classroom({
     params.set("page", "1");
     return `?${params.toString()}`;
   }
-
   return (
-    <Suspense
-      fallback={
-        <div className="p-4">
-          <div className="mb-4 flex flex-wrap gap-2 sm:gap-4 items-center">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-10" />
-            <Skeleton className="h-10 w-10" />
-            <Skeleton className="h-10 w-10" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <ClassroomSkeleton key={i} />
-            ))}
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<ClassroomSkeleton />}>
       <div className="p-4">
         <div className="mb-4 flex flex-wrap gap-2 sm:gap-4 items-center">
           <div className="w-full sm:w-auto sm:flex-1 min-w-0">
@@ -77,7 +60,12 @@ export default function Classroom({
           </FilterSheet>
         </div>
         <ActiveFilterCapsules />
-        <ClassroomList searchParams={searchParams} page={page} limit={limit} view={currentView} />
+        <ClassroomList
+          searchParams={searchParams}
+          page={page}
+          limit={limit}
+          view={currentView}
+        />
       </div>
     </Suspense>
   );

@@ -28,6 +28,7 @@ const useLogin = () => {
       const result = await loginUser(data, callbackUrl);
       if (!result.success) {
         setError("root", { message: result.error });
+        console.log(result.error)
       }
     } finally {
       setIsPending(false);

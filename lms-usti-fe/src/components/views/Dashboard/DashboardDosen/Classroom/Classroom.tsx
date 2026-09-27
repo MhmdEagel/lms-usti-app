@@ -9,6 +9,7 @@ import ClassroomSkeleton from "@/components/common/ClassroomSkeleton";
 import FilterSheet from "@/components/common/FilterSheet";
 import ActiveFilterCapsules from "@/components/common/ActiveFilterCapsules";
 import Link from "next/link";
+import ClassroomListSkeleton from "@/components/common/ClassroomListSkeleton/ClassroomListSkeleton";
 
 export default function Classroom({
   searchParams,
@@ -30,23 +31,10 @@ export default function Classroom({
     params.set("page", "1");
     return `?${params.toString()}`;
   }
-
   return (
     <Suspense
       fallback={
-        <div className="p-4">
-          <div className="mb-4 flex flex-wrap gap-2 sm:gap-4 items-center">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-10" />
-            <Skeleton className="h-10 w-10" />
-            <Skeleton className="h-10 w-10" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <ClassroomSkeleton key={i} />
-            ))}
-          </div>
-        </div>
+        <ClassroomListSkeleton />
       }
     >
       <div className="p-4">

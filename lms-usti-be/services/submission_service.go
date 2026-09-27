@@ -1,14 +1,14 @@
 package services
 
 import (
-	// "time"
-
+	"errors"
 	"time"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/lib"
 	"github.com/MhmdEagel/lms-usti-be/model"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
+	"gorm.io/gorm"
 )
 
 type SubmissionService struct {
@@ -184,6 +184,22 @@ func (s *SubmissionService) Submit(submitReq data.SubmitRequest) error {
 func (s *SubmissionService) Grade(classroomId, assignmentId, submissionId string, req data.GradeRequest) error {
 	if _, err := s.assignmentRepository.FindById(assignmentId, classroomId); err != nil {
 		return err
+	}
+	submission, err := s.submissionRepository.FindById(submissionId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return data.ErrSubmissionNotFound(err)
+		}
+		return err
+	}
+	if submission.AssignmentId != assignmentId {
+		return data.ErrSubmissionNotFound(nil)
+	}
+	if submission.Status != "submitted" {
+		return data.ErrNotSubmitted(nil)
+	}
+	if req.Score == nil || *req.Score < 0 || *req.Score > 100 {
+		return data.ErrInvalidScore(nil)
 	}
 	if err := s.submissionRepository.Grade(submissionId, req.Score, req.Feedback); err != nil {
 		return err

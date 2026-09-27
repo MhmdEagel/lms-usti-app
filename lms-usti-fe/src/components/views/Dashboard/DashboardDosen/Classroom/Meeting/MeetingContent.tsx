@@ -16,7 +16,6 @@ export default async function MeetingContent({ classroomId, search }: PropTypes)
   const type = user.role.toLowerCase() as "dosen" | "mahasiswa" | "prodi";
   const res = await meetingServices.getMeetings(classroomId, search);
   const meetings: IMeeting[] = res.data?.data || [];
-
   return (
     <div>
       <div className="flex items-center justify-between mb-4 border-b-1 pb-4">

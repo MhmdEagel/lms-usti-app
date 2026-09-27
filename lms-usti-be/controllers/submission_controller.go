@@ -90,8 +90,7 @@ func (s *SubmissionController) Grade(ctx *gin.Context) {
 	}
 	if err := s.submissionService.Grade(classroomId, assignmentId, submissionId, req); err != nil {
 		log.Printf("Submission Grade: %v", err)
-		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
-		ctx.JSON(http.StatusInternalServerError, res)
+		handleError(ctx, err)
 		return
 	}
 	res := data.NewResponse(http.StatusOK, "successfully grade submission", nil)

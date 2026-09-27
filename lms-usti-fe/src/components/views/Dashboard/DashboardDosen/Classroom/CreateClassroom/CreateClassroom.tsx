@@ -21,7 +21,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-import { Spinner } from "@/components/ui/spinner";
 import { Plus } from "lucide-react";
 import {
   Tooltip,
@@ -53,7 +52,6 @@ export default function CreateClassroom() {
     handleCloseForm,
     setIsOpen,
   } = useCreateClassroom();
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <div className="flex items-center gap-2">
@@ -134,8 +132,8 @@ export default function CreateClassroom() {
                     <FormLabel>Nama Kelas</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Nama Kelas"
                         {...field}
+                        placeholder="Nama Kelas"
                         autoComplete="off"
                       />
                     </FormControl>
