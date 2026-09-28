@@ -1,5 +1,6 @@
 import React from "react";
 import MemberItem from "./MemberItem/MemberItem";
+import BroadcastMessageAction from "./BroadcastMessageAction/BroadcastMessageAction";
 import { getCurrentUser } from "@/lib/auth";
 import { classroomServices } from "@/services/classroom.service";
 import { IClassroomMembers } from "@/types/Classroom";
@@ -38,7 +39,15 @@ export default async function ClassroomMembers({
       </div>
 
       <div className="flex flex-col gap-4">
-        <div className="text-base sm:text-lg font-bold">Mahasiswa</div>
+        <div className="flex items-center justify-between gap-4">
+          <div className="text-base sm:text-lg font-bold">Mahasiswa</div>
+          {user?.role === "DOSEN" && user?.id === members.dosen?.id && (
+            <BroadcastMessageAction
+              classroomId={classroomId}
+              recipientCount={members.mahasiswa?.length ?? 0}
+            />
+          )}
+        </div>
         {members.mahasiswa && members.mahasiswa.length > 0 ? (
           members.mahasiswa?.map((mahasiswa) => (
             <MemberItem

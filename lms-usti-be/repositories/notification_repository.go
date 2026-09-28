@@ -18,6 +18,8 @@ type NotificationRepositoryInterface interface {
 	MarkAsRead(id string, userId string) error
 	MarkAllAsRead(userId string) error
 	FindUserIdsByRoles(roles []string) ([]string, error)
+	DeleteByAssignmentId(assignmentId string) error
+	DeleteByForumPostId(forumPostId string) error
 }
 
 func NewNotificationRepository(Db *gorm.DB) NotificationRepositoryInterface {
@@ -71,4 +73,18 @@ func (n *NotificationRepository) FindUserIdsByRoles(roles []string) ([]string, e
 	var userIds []string
 	err := n.Db.Model(&model.User{}).Where("role IN ?", roles).Pluck("id", &userIds).Error
 	return userIds, err
+}
+
+func (n *NotificationRepository) DeleteByAssignmentId(assignmentId string) error {
+	if assignmentId == "" {
+		return nil
+	}
+	return n.Db.Where("assignment_id = ?", assignmentId).Delete(&model.Notification{}).Error
+}
+
+func (n *NotificationRepository) DeleteByForumPostId(forumPostId string) error {
+	if forumPostId == "" {
+		return nil
+	}
+	return n.Db.Where("forum_post_id = ?", forumPostId).Delete(&model.Notification{}).Error
 }

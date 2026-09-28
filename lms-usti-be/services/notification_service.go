@@ -22,11 +22,14 @@ type NotificationService struct {
 type NotificationServiceInterface interface {
 	NotifyAssignmentCreated(classroomId, assignmentId, assignmentTitle, classroomName string) error
 	NotifySubmissionGraded(studentId, classroomId, assignmentId, assignmentTitle string, score *float64) error
-	NotifyForumPostCreated(forumPostId, title, authorName string) error
+	NotifyForumPostCreated(forumPostId, authorId, title, authorName string) error
+	NotifyClassroomBroadcast(classroomId, classroomName, senderName, title, content string) error
 	FindAll(userId string, pagination data.Pagination) (result *data.PaginationWithData, err error)
 	UnreadCount(userId string) (int64, error)
 	MarkAsRead(id string, userId string) error
 	MarkAllAsRead(userId string) error
+	DeleteByAssignment(assignmentId string) error
+	DeleteByForumPost(forumPostId string) error
 }
 
 func NewNotificationService(
@@ -85,16 +88,41 @@ func (n *NotificationService) NotifySubmissionGraded(studentId, classroomId, ass
 	return n.persistAndPublish([]string{studentId}, notification)
 }
 
-func (n *NotificationService) NotifyForumPostCreated(forumPostId, title, authorName string) error {
-	recipients, err := n.notificationRepository.FindUserIdsByRoles([]string{"DOSEN", "MAHASISWA", "PRODI"})
+func (n *NotificationService) NotifyForumPostCreated(forumPostId, authorId, title, authorName string) error {
+	recipientIds, err := n.notificationRepository.FindUserIdsByRoles([]string{"DOSEN", "MAHASISWA", "PRODI"})
 	if err != nil {
 		return err
+	}
+	recipients := make([]string, 0, len(recipientIds))
+	for _, recipientId := range recipientIds {
+		if recipientId == authorId {
+			continue
+		}
+		recipients = append(recipients, recipientId)
 	}
 	notification := model.Notification{
 		Type:        model.NotificationTypeForumPostCreated,
 		Title:       "Postingan forum baru",
 		Body:        fmt.Sprintf("%s memposting \"%s\" di forum.", authorName, title),
 		ForumPostId: forumPostId,
+	}
+	return n.persistAndPublish(recipients, notification)
+}
+
+func (n *NotificationService) NotifyClassroomBroadcast(classroomId, classroomName, senderName, title, content string) error {
+	members, err := n.classroomRepository.FindAllClassroomMahasiswa(classroomId)
+	if err != nil {
+		return err
+	}
+	recipients := make([]string, 0, len(members))
+	for _, member := range members {
+		recipients = append(recipients, member.UserId)
+	}
+	notification := model.Notification{
+		Type:        model.NotificationTypeClassroomBroadcast,
+		Title:       fmt.Sprintf("Broadcast: %s", title),
+		Body:        fmt.Sprintf("%s mengirim pesan di kelas %s: %s", senderName, classroomName, content),
+		ClassroomId: classroomId,
 	}
 	return n.persistAndPublish(recipients, notification)
 }
@@ -168,6 +196,20 @@ func (n *NotificationService) MarkAsRead(id string, userId string) error {
 
 func (n *NotificationService) MarkAllAsRead(userId string) error {
 	if err := n.notificationRepository.MarkAllAsRead(userId); err != nil {
+		return data.ErrInternalServer(err)
+	}
+	return nil
+}
+
+func (n *NotificationService) DeleteByAssignment(assignmentId string) error {
+	if err := n.notificationRepository.DeleteByAssignmentId(assignmentId); err != nil {
+		return data.ErrInternalServer(err)
+	}
+	return nil
+}
+
+func (n *NotificationService) DeleteByForumPost(forumPostId string) error {
+	if err := n.notificationRepository.DeleteByForumPostId(forumPostId); err != nil {
 		return data.ErrInternalServer(err)
 	}
 	return nil

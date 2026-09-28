@@ -36,7 +36,7 @@ func (f *ForumService) CreatePost(req data.CreateForumPostRequest, userID string
 	}
 	if f.notificationService != nil {
 		notifyAsync(func() error {
-			return f.notificationService.NotifyForumPostCreated(post.ID, req.Title, userFullname)
+			return f.notificationService.NotifyForumPostCreated(post.ID, userID, req.Title, userFullname)
 		})
 	}
 	return nil
@@ -120,10 +120,13 @@ func (f *ForumService) DeletePost(id, userID, userRole string) error {
 		if err := f.forumRepository.DeleteByID(id); err != nil {
 			return data.ErrForumPostNotFound(err)
 		}
-		return nil
-	}
-	if err := f.forumRepository.Delete(id, userID); err != nil {
+	} else if err := f.forumRepository.Delete(id, userID); err != nil {
 		return data.ErrForumPostNotFound(err)
+	}
+	if f.notificationService != nil {
+		notifyAsync(func() error {
+			return f.notificationService.DeleteByForumPost(id)
+		})
 	}
 	return nil
 }

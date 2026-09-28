@@ -8,9 +8,10 @@ import (
 )
 
 const (
-	NotificationTypeAssignmentCreated = "ASSIGNMENT_CREATED"
-	NotificationTypeSubmissionGraded  = "SUBMISSION_GRADED"
-	NotificationTypeForumPostCreated  = "FORUM_POST_CREATED"
+	NotificationTypeAssignmentCreated  = "ASSIGNMENT_CREATED"
+	NotificationTypeSubmissionGraded   = "SUBMISSION_GRADED"
+	NotificationTypeForumPostCreated   = "FORUM_POST_CREATED"
+	NotificationTypeClassroomBroadcast = "CLASSROOM_BROADCAST"
 )
 
 type Notification struct {

@@ -45,6 +45,15 @@ type JoinClassroomRequest struct {
 	ClassCode string `json:"class_code" binding:"required"`
 }
 
+type BroadcastMessageRequest struct {
+	Title   string `json:"title" binding:"required,min=3,max=120"`
+	Content string `json:"content" binding:"required,min=3,max=2000"`
+}
+
+type BroadcastMessageResponse struct {
+	RecipientCount int64 `json:"recipient_count"`
+}
+
 type ClassroomForumPostRequest struct {
 	Title       string `json:"title" binding:"required"`
 	Content     string `json:"content" binding:"required"`
@@ -119,7 +128,7 @@ type ClassroomMembersReponse struct {
 }
 
 type ClassroomMemberDetailResponse struct {
-	ClassName string `json:"class_name"`
+	ClassName string     `json:"class_name"`
 	Member    model.User `json:"member"`
 }
 
@@ -133,9 +142,9 @@ type MahasiswaAssignmentItem struct {
 }
 
 type MahasiswaDashboardStatsResponse struct {
-	TotalClassrooms        int64                      `json:"total_classrooms"`
+	TotalClassrooms         int64                     `json:"total_classrooms"`
 	TotalPendingAssignments int64                     `json:"total_pending_assignments"`
-	UpcomingAssignments    []MahasiswaAssignmentItem `json:"upcoming_assignments"`
+	UpcomingAssignments     []MahasiswaAssignmentItem `json:"upcoming_assignments"`
 }
 
 type ClassroomGradeAssignment struct {
@@ -144,17 +153,17 @@ type ClassroomGradeAssignment struct {
 }
 
 type ClassroomGradeStudent struct {
-	ID       string                     `json:"id"`
-	Fullname string                     `json:"fullname"`
-	Grades   map[string]*float64        `json:"grades"`
+	ID       string              `json:"id"`
+	Fullname string              `json:"fullname"`
+	Grades   map[string]*float64 `json:"grades"`
 }
 
 type StudentGradeAssignment struct {
-	ID       string  `json:"id"`
-	Title    string  `json:"title"`
-	Deadline *string `json:"deadline"`
+	ID       string   `json:"id"`
+	Title    string   `json:"title"`
+	Deadline *string  `json:"deadline"`
 	Score    *float64 `json:"score"`
-	Status   string  `json:"status"`
+	Status   string   `json:"status"`
 }
 
 type StudentGradesResponse struct {

@@ -62,6 +62,7 @@ func InitRouter() *gin.Engine {
 		classroomPolicyRepository := repositories.NewClassroomPolicyRepository(Db)
 		commentRepository := repositories.NewCommentRepository(Db)
 		classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService, classroomPolicyRepository)
+		broadcastService := services.NewBroadcastService(classroomRepository, notificationService)
 
 		forumRepository := repositories.NewForumRepository(Db)
 
@@ -110,6 +111,7 @@ func InitRouter() *gin.Engine {
 		{
 
 			classroomController := controllers.NewClassroomController(classroomService)
+			broadcastController := controllers.NewBroadcastController(broadcastService)
 			classroomForumPostController := controllers.NewClassroomForumPostController(classroomForumPostService)
 			meetingController := controllers.NewMeetingController(meetingService)
 			materialController := controllers.NewMaterialController(materialService)
@@ -136,6 +138,7 @@ func InitRouter() *gin.Engine {
 			classroom.PUT("/:id", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), classroomController.Update)
 			classroom.GET("/:id/grades", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), classroomController.GetGrades)
 			classroom.GET("/:id/my-grades", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.GetMyGrades)
+			classroom.POST("/:id/broadcast", aclMiddleware.Handle([]string{"DOSEN"}), broadcastController.Send)
 
 			classroom.GET("/:id/announcements", classroomForumPostController.FindAll)
 			classroom.GET("/:id/announcements/:announcementId", classroomForumPostController.FindById)

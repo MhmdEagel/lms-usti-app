@@ -1,4 +1,8 @@
-type TNotificationType = "ASSIGNMENT_CREATED" | "SUBMISSION_GRADED" | "FORUM_POST_CREATED";
+type TNotificationType =
+  | "ASSIGNMENT_CREATED"
+  | "SUBMISSION_GRADED"
+  | "FORUM_POST_CREATED"
+  | "CLASSROOM_BROADCAST";
 
 interface INotification {
   id: string;

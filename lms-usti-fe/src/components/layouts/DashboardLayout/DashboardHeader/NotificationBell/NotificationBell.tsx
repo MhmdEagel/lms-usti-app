@@ -5,7 +5,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/id";
 
 import { useRouter, usePathname } from "next/navigation";
-import { Bell, ClipboardCheck, FileText, Inbox, MessagesSquare, type LucideIcon } from "lucide-react";
+import { Bell, ClipboardCheck, FileText, Inbox, Megaphone, MessagesSquare, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ const TYPE_META: Record<TNotificationType, { icon: LucideIcon; label: string }> 
   ASSIGNMENT_CREATED: { icon: FileText, label: "Tugas baru" },
   SUBMISSION_GRADED: { icon: ClipboardCheck, label: "Tugas dinilai" },
   FORUM_POST_CREATED: { icon: MessagesSquare, label: "Forum" },
+  CLASSROOM_BROADCAST: { icon: Megaphone, label: "Broadcast kelas" },
 };
 
 function buildNotificationLink(notification: INotification, pathname: string): string {
@@ -33,6 +34,8 @@ function buildNotificationLink(notification: INotification, pathname: string): s
       return `${prefix}/kelas/${notification.classroom_id}/nilai`;
     case "FORUM_POST_CREATED":
       return `${prefix}/forum/${notification.forum_post_id}`;
+    case "CLASSROOM_BROADCAST":
+      return `${prefix}/kelas/${notification.classroom_id}`;
     default:
       return prefix;
   }

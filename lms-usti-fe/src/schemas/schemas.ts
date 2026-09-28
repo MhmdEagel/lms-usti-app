@@ -140,6 +140,19 @@ const newForumPostSchema = z.object({
     }),
 });
 
+const broadcastMessageSchema = z.object({
+  title: z
+    .string({ required_error: "Judul wajib diisi" })
+    .trim()
+    .min(3, "Judul minimal 3 karakter")
+    .max(120, "Judul maksimal 120 karakter"),
+  content: z
+    .string({ required_error: "Pesan wajib diisi" })
+    .trim()
+    .min(3, "Pesan minimal 3 karakter")
+    .max(2000, "Pesan maksimal 2000 karakter"),
+});
+
 const AttachmentSchema = z.object({
   name: z.string(),
   type: z.enum(["FILE", "LINK"]),
@@ -190,6 +203,7 @@ export {
   joinClassroomSchema,
   newClassroomSchema,
   newForumPostSchema,
+  broadcastMessageSchema,
   editClassroomSchema,
   newMaterialSchema,
 };

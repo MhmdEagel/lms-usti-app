@@ -204,6 +204,7 @@ func TestNotificationForumPostCreated(t *testing.T) {
 	cleanupDatabase(db)
 
 	dosen := seedUser(db, "Dosen Forum", "dosen-forum-notif@test.com", "password123", "DOSEN")
+	dosenLain := seedUser(db, "Dosen Lain Forum", "dosen-lain-forum-notif@test.com", "password123", "DOSEN")
 	mahasiswa := seedUser(db, "Mahasiswa Forum", "mahasiswa-forum-notif@test.com", "password123", "MAHASISWA")
 	prodi := seedUser(db, "Prodi Forum", "prodi-forum-notif@test.com", "password123", "PRODI")
 	admin := seedUser(db, "Admin Forum", "admin-forum-notif@test.com", "password123", "ADMIN")
@@ -214,7 +215,7 @@ func TestNotificationForumPostCreated(t *testing.T) {
 		t.Fatalf("gagal membuat postingan: %d %s", w.Code, w.Body.String())
 	}
 
-	for _, user := range []model.User{dosen, mahasiswa, prodi} {
+	for _, user := range []model.User{dosenLain, mahasiswa, prodi} {
 		notification := waitForNotification(t, db, user.ID, model.NotificationTypeForumPostCreated)
 		if notification.ForumPostId == "" {
 			t.Errorf("forum post id kosong untuk %s", user.Fullname)
@@ -222,6 +223,9 @@ func TestNotificationForumPostCreated(t *testing.T) {
 		if !strings.Contains(notification.Body, "Pengumuman Forum") {
 			t.Errorf("body tidak memuat judul postingan: %s", notification.Body)
 		}
+	}
+	if got := countNotifications(db, dosen.ID, model.NotificationTypeForumPostCreated); got != 0 {
+		t.Errorf("penulis postingan seharusnya tidak dinotifikasi, got %d", got)
 	}
 	if got := countNotifications(db, admin.ID, model.NotificationTypeForumPostCreated); got != 0 {
 		t.Errorf("admin seharusnya tidak dinotifikasi, got %d", got)

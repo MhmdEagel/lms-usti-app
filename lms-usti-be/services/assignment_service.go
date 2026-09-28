@@ -273,6 +273,11 @@ func (a *AssignmentService) Delete(assignmentId, classroomId string) error {
 	if err := a.assignmentRepository.Delete(assignmentId, classroom.ID); err != nil {
 		return data.ErrAssignmentNotFound(err)
 	}
+	if a.notificationService != nil {
+		notifyAsync(func() error {
+			return a.notificationService.DeleteByAssignment(assignmentId)
+		})
+	}
 	return nil
 }
 
