@@ -53,7 +53,7 @@ func setupClassroomForumPostTestRouter(db *gorm.DB) *gin.Engine {
 	submissionService := services.NewSubmissionService(submissionRepo, assignmentRepo, nil)
 	assignmentService := services.NewAssignmentService(assignmentRepo, classroomRepo, submissionService, contentViewRepo, nil)
 	classroomPolicyRepo := repositories.NewClassroomPolicyRepository(db)
-	classroomService := services.NewClassroomService(classroomRepo, userRepo, submissionService, assignmentService, classroomPolicyRepo)
+	classroomService := services.NewClassroomService(classroomRepo, userRepo, submissionService, assignmentService, classroomPolicyRepo, nil)
 	classroomForumPostService := services.NewClassroomForumPostService(classroomForumPostRepo, classroomRepo, commentRepo, classroomPolicyRepo)
 
 	authController := controllers.NewAuthController(authService)

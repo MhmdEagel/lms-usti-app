@@ -1,6 +1,8 @@
 package router
 
 import (
+	"log"
+
 	"github.com/MhmdEagel/lms-usti-be/config"
 	"github.com/MhmdEagel/lms-usti-be/controllers"
 	"github.com/MhmdEagel/lms-usti-be/middleware"
@@ -41,6 +43,7 @@ func InitRouter() *gin.Engine {
 		meetingRepository := repositories.NewMeetingRepository(Db)
 		submissionRepository := repositories.NewSubmissionRepository(Db)
 		contentViewRepository := repositories.NewContentViewRepository(Db)
+		conversationRepository := repositories.NewConversationRepository(Db)
 
 		notificationBroker := sse.NewBroker()
 		notificationRepository := repositories.NewNotificationRepository(Db)
@@ -61,8 +64,22 @@ func InitRouter() *gin.Engine {
 
 		classroomPolicyRepository := repositories.NewClassroomPolicyRepository(Db)
 		commentRepository := repositories.NewCommentRepository(Db)
-		classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService, classroomPolicyRepository)
-		broadcastService := services.NewBroadcastService(classroomRepository, notificationService)
+		classroomChatService := services.NewClassroomChatService(classroomRepository, conversationRepository)
+		if err := classroomChatService.BackfillClassroomGroups(); err != nil {
+			log.Printf("ClassroomChat backfill: %v", err)
+		}
+		classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService, classroomPolicyRepository, classroomChatService)
+
+		messageRepository := repositories.NewMessageRepository(Db)
+		chatService := services.NewChatService(conversationRepository, messageRepository, userRepository)
+
+		hub := websocket.NewHub(chatService)
+		go hub.Run()
+
+		wsHandler := websocket.NewWebSocketHandler(hub)
+		api.GET("/ws/chat", wsHandler.HandleUpgrade)
+
+		broadcastService := services.NewBroadcastService(classroomRepository, classroomChatService, chatService, hub, notificationService)
 
 		forumRepository := repositories.NewForumRepository(Db)
 
@@ -213,16 +230,6 @@ func InitRouter() *gin.Engine {
 			notifications.PATCH("/read-all", notificationController.MarkAllAsRead)
 			notifications.PATCH("/:id/read", notificationController.MarkAsRead)
 		}
-
-		conversationRepository := repositories.NewConversationRepository(Db)
-		messageRepository := repositories.NewMessageRepository(Db)
-		chatService := services.NewChatService(conversationRepository, messageRepository, userRepository)
-
-		hub := websocket.NewHub(chatService)
-		go hub.Run()
-
-		wsHandler := websocket.NewWebSocketHandler(hub)
-		api.GET("/ws/chat", wsHandler.HandleUpgrade)
 
 		chatController := controllers.NewChatController(chatService, hub)
 

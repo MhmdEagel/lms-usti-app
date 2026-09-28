@@ -23,7 +23,7 @@ type NotificationServiceInterface interface {
 	NotifyAssignmentCreated(classroomId, assignmentId, assignmentTitle, classroomName string) error
 	NotifySubmissionGraded(studentId, classroomId, assignmentId, assignmentTitle string, score *float64) error
 	NotifyForumPostCreated(forumPostId, authorId, title, authorName string) error
-	NotifyClassroomBroadcast(classroomId, classroomName, senderName, title, content string) error
+	NotifyClassroomBroadcast(classroomId, classroomName, senderName, title, content, conversationId string) error
 	FindAll(userId string, pagination data.Pagination) (result *data.PaginationWithData, err error)
 	UnreadCount(userId string) (int64, error)
 	MarkAsRead(id string, userId string) error
@@ -109,7 +109,7 @@ func (n *NotificationService) NotifyForumPostCreated(forumPostId, authorId, titl
 	return n.persistAndPublish(recipients, notification)
 }
 
-func (n *NotificationService) NotifyClassroomBroadcast(classroomId, classroomName, senderName, title, content string) error {
+func (n *NotificationService) NotifyClassroomBroadcast(classroomId, classroomName, senderName, title, content, conversationId string) error {
 	members, err := n.classroomRepository.FindAllClassroomMahasiswa(classroomId)
 	if err != nil {
 		return err
@@ -119,10 +119,11 @@ func (n *NotificationService) NotifyClassroomBroadcast(classroomId, classroomNam
 		recipients = append(recipients, member.UserId)
 	}
 	notification := model.Notification{
-		Type:        model.NotificationTypeClassroomBroadcast,
-		Title:       fmt.Sprintf("Broadcast: %s", title),
-		Body:        fmt.Sprintf("%s mengirim pesan di kelas %s: %s", senderName, classroomName, content),
-		ClassroomId: classroomId,
+		Type:           model.NotificationTypeClassroomBroadcast,
+		Title:          fmt.Sprintf("Broadcast: %s", title),
+		Body:           fmt.Sprintf("%s mengirim pesan di kelas %s: %s", senderName, classroomName, content),
+		ClassroomId:    classroomId,
+		ConversationId: conversationId,
 	}
 	return n.persistAndPublish(recipients, notification)
 }
@@ -217,14 +218,15 @@ func (n *NotificationService) DeleteByForumPost(forumPostId string) error {
 
 func toNotificationResponse(notification model.Notification) data.NotificationResponse {
 	return data.NotificationResponse{
-		ID:           notification.ID,
-		Type:         notification.Type,
-		Title:        notification.Title,
-		Body:         notification.Body,
-		ClassroomId:  notification.ClassroomId,
-		AssignmentId: notification.AssignmentId,
-		ForumPostId:  notification.ForumPostId,
-		IsRead:       notification.IsRead,
-		CreatedAt:    notification.CreatedAt,
+		ID:             notification.ID,
+		Type:           notification.Type,
+		Title:          notification.Title,
+		Body:           notification.Body,
+		ClassroomId:    notification.ClassroomId,
+		ConversationId: notification.ConversationId,
+		AssignmentId:   notification.AssignmentId,
+		ForumPostId:    notification.ForumPostId,
+		IsRead:         notification.IsRead,
+		CreatedAt:      notification.CreatedAt,
 	}
 }

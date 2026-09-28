@@ -47,6 +47,9 @@ export default function ChatHeader({ conversation, currentUserId, onBack }: Prop
         {conversation.type === "direct" && otherParticipant && (
           <p className="text-xs text-muted-foreground capitalize">{otherParticipant.user.role.toLowerCase()}</p>
         )}
+        {conversation.type !== "direct" && conversation.classroom_id && (
+          <p className="text-xs text-muted-foreground">Kelas</p>
+        )}
       </div>
     </div>
   )

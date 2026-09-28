@@ -20,6 +20,10 @@ type ConversationRepositoryInterface interface {
 	FindExistingConversation(userID1, userID2 string) (model.Conversation, error)
 	FindParticipantsByConversationID(conversationID string) ([]model.ConversationParticipant, error)
 	UpdateLastMessageAt(conversationID string, t time.Time) error
+	FindByClassroomId(classroomId string) (model.Conversation, error)
+	AddParticipantIfAbsent(participant *model.ConversationParticipant) error
+	RemoveParticipant(conversationID, userID string) error
+	DeleteByClassroomId(classroomId string) error
 }
 
 func NewConversationRepository(Db *gorm.DB) ConversationRepositoryInterface {
@@ -89,4 +93,73 @@ func (r *ConversationRepository) FindParticipantsByConversationID(conversationID
 		Where("conversation_id = ?", conversationID).
 		Find(&participants).Error
 	return participants, err
+}
+
+func (r *ConversationRepository) FindByClassroomId(classroomId string) (model.Conversation, error) {
+	var conversation model.Conversation
+	err := r.Db.
+		Preload("Participants.User").
+		Where("classroom_id = ?", classroomId).
+		First(&conversation).Error
+	return conversation, err
+}
+
+func (r *ConversationRepository) AddParticipantIfAbsent(participant *model.ConversationParticipant) error {
+	var count int64
+	err := r.Db.Model(&model.ConversationParticipant{}).
+		Where("conversation_id = ? AND user_id = ?", participant.ConversationID, participant.UserID).
+		Count(&count).Error
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+	return r.Db.Create(participant).Error
+}
+
+func (r *ConversationRepository) RemoveParticipant(conversationID, userID string) error {
+	return r.Db.
+		Where("conversation_id = ? AND user_id = ?", conversationID, userID).
+		Delete(&model.ConversationParticipant{}).Error
+}
+
+// DeleteByClassroomId removes the classroom group and everything attached to
+// it (participants, messages — including soft-deleted ones — and read
+// receipts) in a single transaction.
+func (r *ConversationRepository) DeleteByClassroomId(classroomId string) error {
+	if classroomId == "" {
+		return nil
+	}
+	return r.Db.Transaction(func(tx *gorm.DB) error {
+		var conversationIDs []string
+		if err := tx.Model(&model.Conversation{}).
+			Where("classroom_id = ?", classroomId).
+			Pluck("id", &conversationIDs).Error; err != nil {
+			return err
+		}
+		if len(conversationIDs) == 0 {
+			return nil
+		}
+
+		messageQuery := tx.Model(&model.Message{}).Select("id").
+			Where("conversation_id IN ?", conversationIDs)
+		if err := tx.Unscoped().
+			Where("message_id IN (?)", messageQuery).
+			Delete(&model.MessageReadBy{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Unscoped().
+			Where("conversation_id IN ?", conversationIDs).
+			Delete(&model.Message{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("conversation_id IN ?", conversationIDs).
+			Delete(&model.ConversationParticipant{}).Error; err != nil {
+			return err
+		}
+		return tx.Unscoped().
+			Where("id IN ?", conversationIDs).
+			Delete(&model.Conversation{}).Error
+	})
 }

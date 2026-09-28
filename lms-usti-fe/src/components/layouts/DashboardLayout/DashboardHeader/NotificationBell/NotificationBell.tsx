@@ -35,6 +35,9 @@ function buildNotificationLink(notification: INotification, pathname: string): s
     case "FORUM_POST_CREATED":
       return `${prefix}/forum/${notification.forum_post_id}`;
     case "CLASSROOM_BROADCAST":
+      if (notification.conversation_id) {
+        return `${prefix}/percakapan?conversationId=${notification.conversation_id}`;
+      }
       return `${prefix}/kelas/${notification.classroom_id}`;
     default:
       return prefix;

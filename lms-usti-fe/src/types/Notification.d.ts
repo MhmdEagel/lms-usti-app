@@ -10,6 +10,7 @@ interface INotification {
   title: string;
   body: string;
   classroom_id: string;
+  conversation_id: string;
   assignment_id: string;
   forum_post_id: string;
   is_read: boolean;

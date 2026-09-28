@@ -2,32 +2,53 @@ package services
 
 import (
 	"errors"
+	"fmt"
+	"log"
 
 	"github.com/MhmdEagel/lms-usti-be/data"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
 	"gorm.io/gorm"
 )
 
+// MessageBroadcaster pushes a chat message to everyone connected to a
+// conversation room over WebSocket. *websocket.Hub implements it.
+type MessageBroadcaster interface {
+	BroadcastToRoom(conversationID string, payload map[string]any)
+}
+
 type BroadcastService struct {
-	classroomRepository repositories.ClassroomRepositoryInterface
-	notificationService NotificationServiceInterface
+	classroomRepository  repositories.ClassroomRepositoryInterface
+	classroomChatService ClassroomChatServiceInterface
+	chatService          ChatServiceInterface
+	broadcaster          MessageBroadcaster
+	notificationService  NotificationServiceInterface
 }
 
 type BroadcastServiceInterface interface {
 	Send(classroomId, senderId, senderName string, request data.BroadcastMessageRequest) (data.BroadcastMessageResponse, error)
 }
 
-func NewBroadcastService(classroomRepository repositories.ClassroomRepositoryInterface, notificationService NotificationServiceInterface) BroadcastServiceInterface {
+func NewBroadcastService(
+	classroomRepository repositories.ClassroomRepositoryInterface,
+	classroomChatService ClassroomChatServiceInterface,
+	chatService ChatServiceInterface,
+	broadcaster MessageBroadcaster,
+	notificationService NotificationServiceInterface,
+) BroadcastServiceInterface {
 	return &BroadcastService{
-		classroomRepository: classroomRepository,
-		notificationService: notificationService,
+		classroomRepository:  classroomRepository,
+		classroomChatService: classroomChatService,
+		chatService:          chatService,
+		broadcaster:          broadcaster,
+		notificationService:  notificationService,
 	}
 }
 
 // Send verifies the sender owns the classroom, validates that there is at
-// least one enrolled student, then fans the message out as an in-app
-// notification. Delivery runs in the background so a failure never fails
-// the request.
+// least one enrolled student, then fans the message out twice: as a message
+// in the classroom group chat and as an in-app notification deep-linking to
+// that group. Delivery runs in the background so a failure never fails the
+// request.
 func (b *BroadcastService) Send(classroomId, senderId, senderName string, request data.BroadcastMessageRequest) (data.BroadcastMessageResponse, error) {
 	classroom, err := b.classroomRepository.FindById(classroomId)
 	if err != nil {
@@ -51,8 +72,33 @@ func (b *BroadcastService) Send(classroomId, senderId, senderName string, reques
 		return data.BroadcastMessageResponse{}, data.ErrBroadcastNoRecipients(nil)
 	}
 
+	// Resolve the classroom group so the broadcast lands in the chat and the
+	// notification can deep-link straight to it.
+	var conversationId string
+	group, err := b.classroomChatService.GetOrCreateGroup(classroomId)
+	if err != nil {
+		log.Printf("Broadcast: gagal menyiapkan group chat kelas: %v", err)
+	} else {
+		conversationId = group.ID
+	}
+
+	chatContent := fmt.Sprintf("%s\n\n%s", request.Title, request.Content)
+
 	notifyAsync(func() error {
-		return b.notificationService.NotifyClassroomBroadcast(classroom.ID, classroom.ClassName, senderName, request.Title, request.Content)
+		// Post to the group first so the message already exists by the time
+		// the recipient opens the notification.
+		if conversationId != "" {
+			message, err := b.chatService.PostMessage(conversationId, senderId, chatContent)
+			if err != nil {
+				log.Printf("Broadcast: gagal posting ke group chat: %v", err)
+			} else if b.broadcaster != nil {
+				b.broadcaster.BroadcastToRoom(conversationId, map[string]any{
+					"type":    "message",
+					"message": message,
+				})
+			}
+		}
+		return b.notificationService.NotifyClassroomBroadcast(classroom.ID, classroom.ClassName, senderName, request.Title, request.Content, conversationId)
 	})
 
 	return data.BroadcastMessageResponse{RecipientCount: int64(len(members))}, nil

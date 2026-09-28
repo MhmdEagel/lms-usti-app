@@ -28,10 +28,15 @@ func setupBroadcastTestRouter(db *gorm.DB) *gin.Engine {
 
 	classroomRepo := repositories.NewClassroomRepository(db)
 	notificationRepo := repositories.NewNotificationRepository(db)
+	conversationRepo := repositories.NewConversationRepository(db)
+	messageRepo := repositories.NewMessageRepository(db)
+	userRepo := repositories.NewUserRepository(db)
 
 	broker := sse.NewBroker()
 	notificationService := services.NewNotificationService(notificationRepo, classroomRepo, broker)
-	broadcastService := services.NewBroadcastService(classroomRepo, notificationService)
+	classroomChatService := services.NewClassroomChatService(classroomRepo, conversationRepo)
+	chatService := services.NewChatService(conversationRepo, messageRepo, userRepo)
+	broadcastService := services.NewBroadcastService(classroomRepo, classroomChatService, chatService, nil, notificationService)
 	broadcastController := controllers.NewBroadcastController(broadcastService)
 
 	api := r.Group("/lms-usti-api")
@@ -46,10 +51,9 @@ func setupBroadcastTestRouter(db *gorm.DB) *gin.Engine {
 }
 
 func TestClassroomBroadcastSendsToEnrolledStudents(t *testing.T) {
-	db := setupTestDB()
-	defer cleanupDatabase(db)
+	db := setupClassroomChatTestDB(t)
+	defer teardownClassroomChatTest(db)
 	r := setupBroadcastTestRouter(db)
-	cleanupDatabase(db)
 
 	dosen := seedUser(db, "Dosen Broadcast", "dosen-broadcast@test.com", "password123", "DOSEN")
 	mahasiswa := seedUser(db, "Mahasiswa Broadcast", "mahasiswa-broadcast@test.com", "password123", "MAHASISWA")
@@ -100,10 +104,9 @@ func TestClassroomBroadcastSendsToEnrolledStudents(t *testing.T) {
 }
 
 func TestClassroomBroadcastForbiddenForNonOwner(t *testing.T) {
-	db := setupTestDB()
-	defer cleanupDatabase(db)
+	db := setupClassroomChatTestDB(t)
+	defer teardownClassroomChatTest(db)
 	r := setupBroadcastTestRouter(db)
-	cleanupDatabase(db)
 
 	dosen := seedUser(db, "Dosen Pemilik", "dosen-pemilik-broadcast@test.com", "password123", "DOSEN")
 	dosenLain := seedUser(db, "Dosen Lain", "dosen-lain-broadcast@test.com", "password123", "DOSEN")
@@ -136,10 +139,9 @@ func TestClassroomBroadcastForbiddenForNonOwner(t *testing.T) {
 }
 
 func TestClassroomBroadcastEmptyAndArchivedClassroom(t *testing.T) {
-	db := setupTestDB()
-	defer cleanupDatabase(db)
+	db := setupClassroomChatTestDB(t)
+	defer teardownClassroomChatTest(db)
 	r := setupBroadcastTestRouter(db)
-	cleanupDatabase(db)
 
 	dosen := seedUser(db, "Dosen Kosong", "dosen-kosong-broadcast@test.com", "password123", "DOSEN")
 	mahasiswa := seedUser(db, "Mahasiswa Arsip", "mahasiswa-arsip-broadcast@test.com", "password123", "MAHASISWA")
@@ -175,6 +177,57 @@ func TestClassroomBroadcastEmptyAndArchivedClassroom(t *testing.T) {
 			return
 		}
 		time.Sleep(25 * time.Millisecond)
+	}
+}
+
+func TestClassroomBroadcastPostsToGroupChat(t *testing.T) {
+	db := setupClassroomChatTestDB(t)
+	defer teardownClassroomChatTest(db)
+	r := setupBroadcastTestRouter(db)
+
+	dosen := seedUser(db, "Dosen Chat Broadcast", "dosen-chatbroadcast@test.com", "password123", "DOSEN")
+	mahasiswa := seedUser(db, "Mahasiswa Chat Broadcast", "mahasiswa-chatbroadcast@test.com", "password123", "MAHASISWA")
+	classroom := seedClassroom(db, dosen.ID, "Kelas Chat Broadcast")
+	seedMahasiswaToClassroom(db, mahasiswa, classroom)
+
+	body := `{"title":"Perubahan Ruang","content":"Kelas dipindah ke ruang 303"}`
+	w := makeRequest(r, "POST", "/lms-usti-api/classroom/"+classroom.ID+"/broadcast", body, generateToken(dosen))
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	notification := waitForNotification(t, db, mahasiswa.ID, model.NotificationTypeClassroomBroadcast)
+	if notification.ConversationId == "" {
+		t.Fatal("notifikasi broadcast seharusnya membawa conversation_id group chat")
+	}
+
+	var group model.Conversation
+	if err := db.Where("classroom_id = ?", classroom.ID).First(&group).Error; err != nil {
+		t.Fatalf("group chat kelas tidak ditemukan: %v", err)
+	}
+	if notification.ConversationId != group.ID {
+		t.Errorf("conversation_id notifikasi salah: %s (expected %s)", notification.ConversationId, group.ID)
+	}
+
+	var message model.Message
+	deadline := time.Now().Add(5 * time.Second)
+	var lastErr error
+	for time.Now().Before(deadline) {
+		lastErr = db.Where("conversation_id = ?", group.ID).First(&message).Error
+		if lastErr == nil {
+			break
+		}
+		time.Sleep(25 * time.Millisecond)
+	}
+	if lastErr != nil {
+		t.Fatalf("broadcast seharusnya diposting sebagai pesan di group chat: %v", lastErr)
+	}
+	if message.SenderID != dosen.ID {
+		t.Errorf("pesan broadcast harus dari dosen pemilik, got %s", message.SenderID)
+	}
+	expected := "Perubahan Ruang\n\nKelas dipindah ke ruang 303"
+	if message.Content != expected {
+		t.Errorf("isi pesan broadcast salah: %q", message.Content)
 	}
 }
 

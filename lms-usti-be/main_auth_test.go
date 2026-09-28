@@ -106,7 +106,7 @@ func setupTestRouter(db *gorm.DB) *gin.Engine {
 	submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository, nil)
 	assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService, contentViewRepository, nil)
 	classroomPolicyRepo := repositories.NewClassroomPolicyRepository(db)
-	classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService, classroomPolicyRepo)
+	classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService, classroomPolicyRepo, nil)
 
 	authController := controllers.NewAuthController(authService)
 	classroomController := controllers.NewClassroomController(classroomService)
