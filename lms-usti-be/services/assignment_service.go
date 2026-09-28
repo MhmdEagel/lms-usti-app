@@ -14,6 +14,7 @@ type AssignmentService struct {
 	classroomRepository   repositories.ClassroomRepositoryInterface
 	submissionService     SubmissionServiceInterface
 	contentViewRepository repositories.ContentViewRepositoryInterface
+	notificationService   NotificationServiceInterface
 }
 
 type AssignmentServiceInterface interface {
@@ -26,15 +27,16 @@ type AssignmentServiceInterface interface {
 	GetViewers(assignmentId, classroomId string) ([]data.ViewerResponse, error)
 }
 
-func NewAssignmentService(assignmentRepository repositories.AssignmentRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, submissionService SubmissionServiceInterface, contentViewRepository repositories.ContentViewRepositoryInterface) AssignmentServiceInterface {
-	return &AssignmentService{assignmentRepository: assignmentRepository, classroomRepository: classroomRepository, submissionService: submissionService, contentViewRepository: contentViewRepository}
+func NewAssignmentService(assignmentRepository repositories.AssignmentRepositoryInterface, classroomRepository repositories.ClassroomRepositoryInterface, submissionService SubmissionServiceInterface, contentViewRepository repositories.ContentViewRepositoryInterface, notificationService NotificationServiceInterface) AssignmentServiceInterface {
+	return &AssignmentService{assignmentRepository: assignmentRepository, classroomRepository: classroomRepository, submissionService: submissionService, contentViewRepository: contentViewRepository, notificationService: notificationService}
 }
 func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) error {
 	classroom, err := a.classroomRepository.FindById(assignmentRequest.ClassroomId)
 	if err != nil {
 		return data.ErrClassroomNotFound(err)
 	}
-		return a.assignmentRepository.Transaction(
+	var createdAssignmentId string
+	err = a.assignmentRepository.Transaction(
 		func(repo repositories.AssignmentRepositoryInterface) error {
 			assignment := &model.Assignment{
 				Title:       assignmentRequest.Title,
@@ -50,6 +52,7 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 			if err := repo.Create(assignment); err != nil {
 				return err
 			}
+			createdAssignmentId = assignment.ID
 			var assignmentAttachments []model.AssignmentAttachment
 			for _, v := range assignmentRequest.Attachments {
 				attType := model.AttachmentType(v.Type)
@@ -101,6 +104,15 @@ func (a *AssignmentService) Create(assignmentRequest data.AssignmentRequest) err
 			}
 			return nil
 		})
+	if err != nil {
+		return err
+	}
+	if a.notificationService != nil && createdAssignmentId != "" {
+		notifyAsync(func() error {
+			return a.notificationService.NotifyAssignmentCreated(classroom.ID, createdAssignmentId, assignmentRequest.Title, classroom.ClassName)
+		})
+	}
+	return nil
 }
 
 func (a *AssignmentService) FindAll(classroomId string, search string, pagination data.Pagination, extras ...string) (paginatedResult *data.PaginationWithData, err error) {
@@ -260,6 +272,11 @@ func (a *AssignmentService) Delete(assignmentId, classroomId string) error {
 	}
 	if err := a.assignmentRepository.Delete(assignmentId, classroom.ID); err != nil {
 		return data.ErrAssignmentNotFound(err)
+	}
+	if a.notificationService != nil {
+		notifyAsync(func() error {
+			return a.notificationService.DeleteByAssignment(assignmentId)
+		})
 	}
 	return nil
 }

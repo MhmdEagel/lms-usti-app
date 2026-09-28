@@ -42,6 +42,11 @@ interface ICreateClassroomForumPost {
   content: string;
 }
 
+interface IBroadcastMessage {
+  title: string;
+  content: string;
+}
+
 interface IClassroomForumPost extends ICreateClassroomForumPost {
   id: string;
   classroom_name: string;
@@ -313,6 +318,7 @@ export type {
 
   ICreateClassroomForumPost,
   IClassroomForumPost,
+  IBroadcastMessage,
 
   IMaterial,
   INewMaterial,

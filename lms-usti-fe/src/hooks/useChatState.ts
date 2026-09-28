@@ -118,6 +118,7 @@ export function useChatState() {
     if (!searchQuery.trim()) return conversations
     const q = searchQuery.toLowerCase()
     return conversations.filter((c) => {
+      if (c.name && c.name.toLowerCase().includes(q)) return true
       return c.participants.some((p) => p.user.fullname.toLowerCase().includes(q))
     })
   }, [conversations, searchQuery])

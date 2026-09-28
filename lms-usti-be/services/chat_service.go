@@ -14,9 +14,9 @@ import (
 const rateLimiterCleanupInterval = 1 * time.Minute
 
 const (
-	maxMessageLength    = 5000
+	maxMessageLength     = 5000
 	maxGroupParticipants = 50
-	rateLimitPerSecond  = 5
+	rateLimitPerSecond   = 5
 )
 
 type userRateLimiter struct {
@@ -25,8 +25,8 @@ type userRateLimiter struct {
 }
 
 type rateBucket struct {
-	count    int
-	resetAt  time.Time
+	count   int
+	resetAt time.Time
 }
 
 func newUserRateLimiter() *userRateLimiter {
@@ -82,6 +82,7 @@ type ChatServiceInterface interface {
 	CreateConversation(creatorID string, req data.CreateConversationRequest) (data.ConversationResponse, error)
 	GetMessagesWithCursor(conversationID, userID, cursor string, limit int) ([]data.MessageResponse, error)
 	SendMessage(conversationID, senderID, content string) (data.MessageResponse, error)
+	PostMessage(conversationID, senderID, content string) (data.MessageResponse, error)
 	MarkAsRead(messageID, userID string) error
 	MarkConversationAsRead(conversationID, userID string) error
 	IsParticipant(conversationID, userID string) (bool, error)
@@ -244,6 +245,16 @@ func (s *ChatService) SendMessage(conversationID, senderID, content string) (dat
 		return data.MessageResponse{}, errors.New("terlalu banyak pesan, silakan coba lagi")
 	}
 
+	return s.PostMessage(conversationID, senderID, content)
+}
+
+// PostMessage writes a message without the per-user rate limit. It is used
+// for system-initiated posts such as the classroom broadcast message.
+func (s *ChatService) PostMessage(conversationID, senderID, content string) (data.MessageResponse, error) {
+	if len(content) > maxMessageLength {
+		return data.MessageResponse{}, errors.New("pesan terlalu panjang, maksimal 5000 karakter")
+	}
+
 	msg := &model.Message{
 		ConversationID: conversationID,
 		SenderID:       senderID,
@@ -326,6 +337,7 @@ func (s *ChatService) conversationToResponse(conv model.Conversation) data.Conve
 		ID:           conv.ID,
 		Name:         conv.Name,
 		Type:         conv.Type,
+		ClassroomId:  conv.ClassroomId,
 		Participants: participants,
 		UpdatedAt:    conv.UpdatedAt.Format(time.RFC3339),
 		CreatedAt:    conv.CreatedAt.Format(time.RFC3339),

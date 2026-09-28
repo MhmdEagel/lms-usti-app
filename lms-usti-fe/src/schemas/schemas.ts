@@ -17,31 +17,42 @@ const loginSchema = z.object({
 const resetSchema = z.object({
   email: z
     .string({ required_error: "Email wajib diisi" })
-    .email("Email tidak sesuai")
-    .regex(
-      /^[a-zA-Z0-9._%+-]+@sar\.ac\.id$/,
-      "Email harus menggunakan domain @sar.ac.id",
-    ),
+    .email("Email tidak sesuai"),
+  // .regex(
+  //   /^[a-zA-Z0-9._%+-]+@sar\.ac\.id$/,
+  //   "Email harus menggunakan domain @sar.ac.id",
+  // ),
 });
 
-const newPasswordSchema = z.object({
-  old_password: z.string({ required_error: "Password lama wajib diisi" }),
-  new_password: z
-    .string({ required_error: "Password baru wajib diisi" })
-    .min(8, "Password minimal 8 karakter")
-    .regex(
-      /^(?=.*[A-Z])(?=.*\d).+$/,
-      "Password harus mengandung minimal satu huruf besar dan satu angka",
-    ),
-  confirmPassword: z.string({
-    required_error: "Konfirmasi password wajib diisi",
-  }),
-});
+const newPasswordSchema = z
+  .object({
+    old_password: z.string({ required_error: "Password lama wajib diisi" }),
+    new_password: z
+      .string({ required_error: "Password baru wajib diisi" })
+      .min(8, "Password minimal 8 karakter")
+      .regex(
+        /^(?=.*[A-Z])(?=.*\d).+$/,
+        "Password harus mengandung minimal satu huruf besar dan satu angka",
+      ),
+    confirmPassword: z.string({
+      required_error: "Konfirmasi password wajib diisi",
+    }),
+  })
+  .refine(
+    (data) => {
+      return data.new_password === data.confirmPassword;
+    },
+    { message: "Password tidak sama", path: ["confirmPassword"] },
+  );
 
 const newClassroomSchema = z
   .object({
-    class_cover: z.string({ required_error: "Cover kelas harus dipilih" }).min(1, "Cover kelas harus dipilih"),
-    class_name: z.string({ required_error: "Nama Kelas wajib diisi" }).min(1, "Nama Kelas wajib diisi"),
+    class_cover: z
+      .string({ required_error: "Cover kelas harus dipilih" })
+      .min(1, "Cover kelas harus dipilih"),
+    class_name: z
+      .string({ required_error: "Nama Kelas wajib diisi" })
+      .min(1, "Nama Kelas wajib diisi"),
     room_number: z
       .string({ required_error: "Ruang wajib diisi" })
       .min(1, "Ruang wajib diisi")
@@ -50,14 +61,25 @@ const newClassroomSchema = z
       .string({ required_error: "Semester wajib diisi" })
       .min(1, "Semester wajib diisi")
       .regex(/^\d+$/, "Semester wajib diisi"),
-    day: z.string({ required_error: "Hari wajib dipilih" }).min(1, "Hari wajib dipilih"),
-    class_start: z.string({ required_error: "Jam mulai kelas wajib diisi" }).min(1, "Jam mulai kelas wajib diisi"),
-    class_end: z.string({ required_error: "Jam selesai kelas wajib diisi" }).min(1, "Jam selesai kelas wajib diisi"),
-    prodi: z.string({ required_error: "Program studi wajib dipilih" }).min(1, "Program studi wajib dipilih"),
+    day: z
+      .string({ required_error: "Hari wajib dipilih" })
+      .min(1, "Hari wajib dipilih"),
+    class_start: z
+      .string({ required_error: "Jam mulai kelas wajib diisi" })
+      .min(1, "Jam mulai kelas wajib diisi"),
+    class_end: z
+      .string({ required_error: "Jam selesai kelas wajib diisi" })
+      .min(1, "Jam selesai kelas wajib diisi"),
+    prodi: z
+      .string({ required_error: "Program studi wajib dipilih" })
+      .min(1, "Program studi wajib dipilih"),
     tahun_ajaran: z
       .string({ required_error: "Tahun ajaran wajib diisi" })
       .min(1, "Tahun ajaran wajib diisi")
-      .regex(/^\d{4}\/\d{4}$/, "Format tahun ajaran tidak sesuai (contoh: 2025/2026)"),
+      .regex(
+        /^\d{4}\/\d{4}$/,
+        "Format tahun ajaran tidak sesuai (contoh: 2025/2026)",
+      ),
   })
   .refine(
     (data) => {
@@ -118,6 +140,19 @@ const newForumPostSchema = z.object({
     }),
 });
 
+const broadcastMessageSchema = z.object({
+  title: z
+    .string({ required_error: "Judul wajib diisi" })
+    .trim()
+    .min(3, "Judul minimal 3 karakter")
+    .max(120, "Judul maksimal 120 karakter"),
+  content: z
+    .string({ required_error: "Pesan wajib diisi" })
+    .trim()
+    .min(3, "Pesan minimal 3 karakter")
+    .max(2000, "Pesan maksimal 2000 karakter"),
+});
+
 const AttachmentSchema = z.object({
   name: z.string(),
   type: z.enum(["FILE", "LINK"]),
@@ -168,6 +203,7 @@ export {
   joinClassroomSchema,
   newClassroomSchema,
   newForumPostSchema,
+  broadcastMessageSchema,
   editClassroomSchema,
   newMaterialSchema,
 };

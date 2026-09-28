@@ -10,5 +10,6 @@ const endpoint = {
     CHAT: "/chat",
     MEETING: "/classroom",
     DOSEN_LIST: "/classroom/prodi/dosen-list",
+    NOTIFICATION: "/notifications",
 }
 export default endpoint

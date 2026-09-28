@@ -29,6 +29,7 @@ const useEditAssignmentDialog = () => {
     defaultValues: {
       attachments: [],
       meeting_id: null,
+      lateSubmission: null,
     },
     resolver: zodResolver(createAssignmentSchema),
   });
@@ -65,7 +66,6 @@ const useEditAssignmentDialog = () => {
     assignmentId: string,
     setOpen: Dispatch<SetStateAction<string>>,
   ) => {
-    console.log(data)
     try {
       setIsPending(true);
       const payload = {
@@ -73,6 +73,7 @@ const useEditAssignmentDialog = () => {
         meeting_id: meetingId || null,
         deadline: hasDeadline ? data.deadline : null,
         instruction: data.instruction || undefined,
+        late_submission: hasDeadline ? (data.lateSubmission ?? "allow") : "allow",
         attachments: trackedAttachments.filter((f) => f.status !== "deleted"),
       };
       await assignmentServices.update(payload, classroomId, assignmentId);

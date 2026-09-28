@@ -4,7 +4,6 @@ import Profile from "./Profile";
 import SettingsSidebar from "./SettingsSidebar/SettingsSidebar";
 import { useProfileContent } from "./useProfileContent";
 import Keamanan from "./Keamanan/Keamanan";
-import Notifikasi from "./Notifikasi/Notifikasi";
 
 export default function ProfileContent({
   user,
@@ -27,8 +26,6 @@ export default function ProfileContent({
         return <Profile user={user} />;
       case "Keamanan":
         return <Keamanan />;
-      case "Notifikasi":
-        return <Notifikasi />;
     }
   };
   return (

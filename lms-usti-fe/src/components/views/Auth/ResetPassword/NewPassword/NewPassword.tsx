@@ -34,7 +34,7 @@ export default function NewPassword() {
         <div
           className={cn(
             "flex max-w-lg flex-col sm:min-w-md lg:min-w-lg",
-            Object.keys(errors).length > 0 ? "gap-4" : "gap-8"
+            Object.keys(errors).length > 0 ? "gap-4" : "gap-8",
           )}
         >
           {errors.root && <ErrorCard>{errors.root.message}</ErrorCard>}
@@ -42,7 +42,9 @@ export default function NewPassword() {
             <h1 className="mb-1 text-xl font-bold text-primary md:text-3xl">
               Reset Password
             </h1>
-            <p className="text-sm text-gray-500">Masukkan password baru anda.</p>
+            <p className="text-sm text-gray-500">
+              Masukkan password baru anda.
+            </p>
           </div>
           <Form {...form}>
             <form
@@ -54,21 +56,21 @@ export default function NewPassword() {
                 name="old_password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Password Lama</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
                           {...field}
                           className="pe-9"
                           value={field.value ?? ""}
-                          type={visibility.password ? "text" : "password"}
+                          type={visibility.old_password ? "text" : "password"}
                         />
                         <button
                           className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10  =focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                           type="button"
-                          onClick={() => toggleVisibility("password")}
+                          onClick={() => toggleVisibility("old_password")}
                         >
-                          {visibility.password ? (
+                          {visibility.old_password ? (
                             <EyeOff
                               size={16}
                               strokeWidth={2}
@@ -89,21 +91,21 @@ export default function NewPassword() {
                 name="new_password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Password Baru</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
                           {...field}
                           className="pe-9"
                           value={field.value ?? ""}
-                          type={visibility.password ? "text" : "password"}
+                          type={visibility.new_password ? "text" : "password"}
                         />
                         <button
                           className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10  =focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                           type="button"
-                          onClick={() => toggleVisibility("password")}
+                          onClick={() => toggleVisibility("new_password")}
                         >
-                          {visibility.password ? (
+                          {visibility.new_password ? (
                             <EyeOff
                               size={16}
                               strokeWidth={2}
@@ -124,7 +126,7 @@ export default function NewPassword() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Konfirmasi Password</FormLabel>
+                    <FormLabel>Konfirmasi Password Baru</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -132,15 +134,15 @@ export default function NewPassword() {
                           className="pe-9"
                           value={field.value ?? ""}
                           type={
-                            visibility.confirmPassword ? "text" : "password"
+                            visibility.confirm_password ? "text" : "password"
                           }
                         />
                         <button
                           className="absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-muted-foreground/80 outline-offset-2 transition-colors hover:text-foreground focus:z-10  =focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                           type="button"
-                          onClick={() => toggleVisibility("confirmPassword")}
+                          onClick={() => toggleVisibility("confirm_password")}
                         >
-                          {visibility.confirmPassword ? (
+                          {visibility.confirm_password ? (
                             <EyeOff
                               size={16}
                               strokeWidth={2}

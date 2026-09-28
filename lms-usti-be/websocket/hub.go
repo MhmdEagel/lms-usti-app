@@ -95,6 +95,17 @@ func (h *Hub) GetRoom(conversationID string) *Room {
 	return h.rooms[conversationID]
 }
 
+// BroadcastToRoom sends a payload to every client currently in the
+// conversation room; a no-op when nobody has the room open. It satisfies
+// services.MessageBroadcaster so services can push chat events without
+// importing this package.
+func (h *Hub) BroadcastToRoom(conversationID string, payload map[string]any) {
+	room := h.GetRoom(conversationID)
+	if room != nil {
+		room.Broadcast(payload)
+	}
+}
+
 func (h *Hub) RegisterClient(client *Client) {
 	h.register <- client
 }

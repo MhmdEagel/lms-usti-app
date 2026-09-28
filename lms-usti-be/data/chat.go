@@ -42,13 +42,14 @@ type MessageResponse struct {
 }
 
 type ConversationResponse struct {
-	ID           string                `json:"id"`
-	Name         string                `json:"name"`
-	Type         string                `json:"type"`
-	Participants []ParticipantResponse `json:"participants"`
-	LastMessage  *MessageResponse      `json:"last_message"`
-	UnreadCount  int64                 `json:"unread_count"`
-	LastMessageAt *string              `json:"last_message_at"`
-	UpdatedAt    string                `json:"updated_at"`
-	CreatedAt    string                `json:"created_at"`
+	ID            string                `json:"id"`
+	Name          string                `json:"name"`
+	Type          string                `json:"type"`
+	ClassroomId   *string               `json:"classroom_id,omitempty"`
+	Participants  []ParticipantResponse `json:"participants"`
+	LastMessage   *MessageResponse      `json:"last_message"`
+	UnreadCount   int64                 `json:"unread_count"`
+	LastMessageAt *string               `json:"last_message_at"`
+	UpdatedAt     string                `json:"updated_at"`
+	CreatedAt     string                `json:"created_at"`
 }

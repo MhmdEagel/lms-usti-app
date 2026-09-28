@@ -12,19 +12,30 @@ const useNewPasswordForm = () => {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [visibility, setVisibility] = useState({
-    password: false,
-    confirmPassword: false,
+    old_password: false,
+    new_password: false,
+    confirm_password: false,
   });
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
-  const toggleVisibility = (identifier: "password" | "confirmPassword") => {
-    if (identifier === "password") {
-      setVisibility({ ...visibility, password: !visibility.password });
+  const toggleVisibility = (
+    identifier: "old_password" | "new_password" | "confirm_password",
+  ) => {
+    if (identifier === "old_password") {
+      setVisibility({
+        ...visibility,
+        old_password: !visibility.old_password,
+      });
+    } else if (identifier === "new_password") {
+      setVisibility({
+        ...visibility,
+        new_password: !visibility.new_password,
+      });
     } else {
       setVisibility({
         ...visibility,
-        confirmPassword: !visibility.confirmPassword,
+        confirm_password: !visibility.confirm_password,
       });
     }
   };
