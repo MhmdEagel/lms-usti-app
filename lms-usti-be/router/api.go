@@ -6,6 +6,7 @@ import (
 	"github.com/MhmdEagel/lms-usti-be/middleware"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
 	"github.com/MhmdEagel/lms-usti-be/services"
+	"github.com/MhmdEagel/lms-usti-be/sse"
 	"github.com/MhmdEagel/lms-usti-be/websocket"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -41,6 +42,10 @@ func InitRouter() *gin.Engine {
 		submissionRepository := repositories.NewSubmissionRepository(Db)
 		contentViewRepository := repositories.NewContentViewRepository(Db)
 
+		notificationBroker := sse.NewBroker()
+		notificationRepository := repositories.NewNotificationRepository(Db)
+		notificationService := services.NewNotificationService(notificationRepository, classroomRepository, notificationBroker)
+
 		mediaService := services.NewMediaService()
 
 		authService := services.NewAuthService(userRepository, verificationRepository, mediaService)
@@ -50,9 +55,9 @@ func InitRouter() *gin.Engine {
 
 		adminService := services.NewAdminService(userRepository, verificationRepository, auditService)
 
-		submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository)
+		submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository, notificationService)
 
-		assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService, contentViewRepository)
+		assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService, contentViewRepository, notificationService)
 
 		classroomPolicyRepository := repositories.NewClassroomPolicyRepository(Db)
 		commentRepository := repositories.NewCommentRepository(Db)
@@ -179,7 +184,7 @@ func InitRouter() *gin.Engine {
 			classroom.GET("/:id/policies", classroomPolicyController.FindByClassroomId)
 			classroom.PUT("/:id/policies", aclMiddleware.Handle([]string{"DOSEN"}), classroomPolicyController.Update)
 		}
-		forumService := services.NewForumService(forumRepository, commentRepository)
+		forumService := services.NewForumService(forumRepository, commentRepository, notificationService)
 		forumController := controllers.NewForumController(forumService)
 
 		forum := api.Group("/forum")
@@ -193,6 +198,17 @@ func InitRouter() *gin.Engine {
 			forum.GET("/posts/:postId/comments", commentController.FindAll)
 			forum.POST("/posts/:postId/comments", commentController.Create)
 			forum.DELETE("/posts/:postId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA", "PRODI"}), commentController.Delete)
+		}
+
+		notificationController := controllers.NewNotificationController(notificationService, notificationBroker)
+		notifications := api.Group("/notifications")
+		notifications.Use(authMiddleware.Handle())
+		{
+			notifications.GET("", notificationController.FindAll)
+			notifications.GET("/unread-count", notificationController.UnreadCount)
+			notifications.GET("/stream", notificationController.Stream)
+			notifications.PATCH("/read-all", notificationController.MarkAllAsRead)
+			notifications.PATCH("/:id/read", notificationController.MarkAsRead)
 		}
 
 		conversationRepository := repositories.NewConversationRepository(Db)

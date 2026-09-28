@@ -8,10 +8,6 @@ const SIDEBAR_ITEMS = [
     lable: "Keamanan",
     description: "Pengaturan kata sandi dan keamanan",
   },
-  {
-    lable: "Notifikasi",
-    description: "Pengaturan notifikasi akun",
-  },
 ];
 export default function SettingsSidebar({isActive, handleActiveBar} : {isActive: string; handleActiveBar: (identifier: string) => void}) {
   return (

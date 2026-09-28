@@ -32,7 +32,7 @@ func (f *ForumController) CreatePost(ctx *gin.Context) {
 		handleError(ctx, data.ErrInternalServer(nil))
 		return
 	}
-	if err := f.forumService.CreatePost(req, user.ID); err != nil {
+	if err := f.forumService.CreatePost(req, user.ID, user.Fullname); err != nil {
 		handleError(ctx, err)
 		return
 	}

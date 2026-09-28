@@ -9,29 +9,35 @@ import (
 )
 
 type ForumService struct {
-	forumRepository   repositories.ForumRepositoryInterface
-	commentRepository repositories.CommentRepositoryInterface
+	forumRepository     repositories.ForumRepositoryInterface
+	commentRepository   repositories.CommentRepositoryInterface
+	notificationService NotificationServiceInterface
 }
 
 type ForumServiceInterface interface {
-	CreatePost(req data.CreateForumPostRequest, userID string) error
+	CreatePost(req data.CreateForumPostRequest, userID string, userFullname string) error
 	FindAllPosts() ([]data.ForumPostResponse, error)
 	FindPostById(id string) (data.ForumPostDetailResponse, error)
 	DeletePost(id string, userID string, userRole string) error
 }
 
-func NewForumService(forumRepository repositories.ForumRepositoryInterface, commentRepository repositories.CommentRepositoryInterface) ForumServiceInterface {
-	return &ForumService{forumRepository: forumRepository, commentRepository: commentRepository}
+func NewForumService(forumRepository repositories.ForumRepositoryInterface, commentRepository repositories.CommentRepositoryInterface, notificationService NotificationServiceInterface) ForumServiceInterface {
+	return &ForumService{forumRepository: forumRepository, commentRepository: commentRepository, notificationService: notificationService}
 }
 
-func (f *ForumService) CreatePost(req data.CreateForumPostRequest, userID string) error {
-	post := model.ForumPost{
+func (f *ForumService) CreatePost(req data.CreateForumPostRequest, userID string, userFullname string) error {
+	post := &model.ForumPost{
 		Title:     req.Title,
 		Content:   req.Content,
 		CreatedBy: userID,
 	}
 	if err := f.forumRepository.Create(post); err != nil {
 		return data.ErrInternalServer(err)
+	}
+	if f.notificationService != nil {
+		notifyAsync(func() error {
+			return f.notificationService.NotifyForumPostCreated(post.ID, req.Title, userFullname)
+		})
 	}
 	return nil
 }

@@ -10,7 +10,7 @@ type ForumRepository struct {
 }
 
 type ForumRepositoryInterface interface {
-	Create(post model.ForumPost) error
+	Create(post *model.ForumPost) error
 	FindAll() ([]model.ForumPost, error)
 	FindById(id string) (model.ForumPost, error)
 	Delete(id string, userID string) error
@@ -21,8 +21,8 @@ func NewForumRepository(Db *gorm.DB) ForumRepositoryInterface {
 	return &ForumRepository{Db: Db}
 }
 
-func (f *ForumRepository) Create(post model.ForumPost) error {
-	result := f.Db.Create(&post)
+func (f *ForumRepository) Create(post *model.ForumPost) error {
+	result := f.Db.Create(post)
 	if result.Error != nil {
 		return result.Error
 	}

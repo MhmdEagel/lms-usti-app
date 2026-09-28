@@ -123,8 +123,7 @@ func (s *SubmissionController) Submit(ctx *gin.Context) {
 	err := s.submissionService.Submit(req)
 	if err != nil {
 		log.Printf("Submission Submit: %v", err)
-		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
-		ctx.JSON(http.StatusInternalServerError, res)
+		handleError(ctx, err)
 		return
 	}
 	res := data.NewResponse(http.StatusOK, "successfully submit assignment", nil)

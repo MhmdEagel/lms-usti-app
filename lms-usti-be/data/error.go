@@ -1,6 +1,7 @@
 package data
 
 func ErrInvalidCredentials(err error) *AppError { return NewAppError(401, "email atau password salah", err) }
+func ErrInvalidPassword(err error) *AppError { return NewAppError(401, "password salah", err) }
 func ErrEmailAlreadyExist(err error) *AppError  { return NewAppError(409, "email sudah terdaftar", err) }
 func ErrEmailNotFound(err error) *AppError      { return NewAppError(404, "email tidak ditemukan", err) }
 func ErrAccountNotVerified(err error) *AppError { return NewAppError(403, "akun belum diverifikasi", err) }
@@ -26,6 +27,7 @@ func ErrScheduleConflict(err error) *AppError { return NewAppError(409, "jadwal 
 func ErrSubmissionNotFound(err error) *AppError { return NewAppError(404, "submission tidak ditemukan", err) }
 func ErrNotSubmitted(err error) *AppError { return NewAppError(400, "mahasiswa belum mengirim tugas", err) }
 func ErrInvalidScore(err error) *AppError { return NewAppError(400, "nilai harus antara 0 sampai 100", err) }
+func ErrNotificationNotFound(err error) *AppError { return NewAppError(404, "notifikasi tidak ditemukan", err) }
 
 type AppError struct {
 	Code    int

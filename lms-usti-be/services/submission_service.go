@@ -14,6 +14,7 @@ import (
 type SubmissionService struct {
 	submissionRepository repositories.SubmissionRepositoryInterface
 	assignmentRepository repositories.AssignmentRepositoryInterface
+	notificationService  NotificationServiceInterface
 }
 type SubmissionServiceInterface interface {
 	Create(submissionReq []data.SubmissionRequest) error
@@ -29,8 +30,8 @@ type SubmissionServiceInterface interface {
 	GetStudentGrades(classroomId string, studentId string) ([]model.Assignment, []model.Submission, error)
 }
 
-func NewSubmissionService(submissionRepository repositories.SubmissionRepositoryInterface, assignmentRepository repositories.AssignmentRepositoryInterface) SubmissionServiceInterface {
-	return &SubmissionService{submissionRepository: submissionRepository, assignmentRepository: assignmentRepository}
+func NewSubmissionService(submissionRepository repositories.SubmissionRepositoryInterface, assignmentRepository repositories.AssignmentRepositoryInterface, notificationService NotificationServiceInterface) SubmissionServiceInterface {
+	return &SubmissionService{submissionRepository: submissionRepository, assignmentRepository: assignmentRepository, notificationService: notificationService}
 }
 func (s *SubmissionService) Create(submissionReq []data.SubmissionRequest) error {
 	var submissions []model.Submission
@@ -182,7 +183,8 @@ func (s *SubmissionService) Submit(submitReq data.SubmitRequest) error {
 }
 
 func (s *SubmissionService) Grade(classroomId, assignmentId, submissionId string, req data.GradeRequest) error {
-	if _, err := s.assignmentRepository.FindById(assignmentId, classroomId); err != nil {
+	assignment, err := s.assignmentRepository.FindById(assignmentId, classroomId)
+	if err != nil {
 		return err
 	}
 	submission, err := s.submissionRepository.FindById(submissionId)
@@ -203,6 +205,11 @@ func (s *SubmissionService) Grade(classroomId, assignmentId, submissionId string
 	}
 	if err := s.submissionRepository.Grade(submissionId, req.Score, req.Feedback); err != nil {
 		return err
+	}
+	if s.notificationService != nil {
+		notifyAsync(func() error {
+			return s.notificationService.NotifySubmissionGraded(submission.StudentId, classroomId, assignmentId, assignment.Title, req.Score)
+		})
 	}
 	return nil
 }

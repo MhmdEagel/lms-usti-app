@@ -58,7 +58,7 @@ func setupTestDB() *gorm.DB {
 	if err != nil {
 		panic("failed to connect to test database: " + err.Error())
 	}
-	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.ClassroomPolicy{}, &model.ClassroomForumPost{}, &model.Meeting{}, &model.Material{}, &model.MaterialAttachment{}, &model.Assignment{}, &model.AssignmentAttachment{}, &model.Submission{}, &model.SubmissionAttachment{}, &model.AuditLogs{}, &model.ContentView{})
+	db.AutoMigrate(&model.User{}, &model.VerificationToken{}, &model.Classroom{}, &model.ClassroomPolicy{}, &model.ClassroomForumPost{}, &model.Meeting{}, &model.Material{}, &model.MaterialAttachment{}, &model.Assignment{}, &model.AssignmentAttachment{}, &model.Submission{}, &model.SubmissionAttachment{}, &model.AuditLogs{}, &model.ContentView{}, &model.ForumPost{}, &model.Comment{}, &model.Notification{})
 	return db
 }
 
@@ -69,6 +69,9 @@ func cleanupDatabase(db *gorm.DB) {
 	db.Exec("DELETE FROM assignment_attachments")
 	db.Exec("DELETE FROM assignment_rubrics")
 	db.Exec("DELETE FROM content_views")
+	db.Exec("DELETE FROM notifications")
+	db.Exec("DELETE FROM comments")
+	db.Exec("DELETE FROM forum_posts")
 	db.Exec("DELETE FROM submission_files")
 	db.Exec("DELETE FROM submission_links")
 	db.Exec("DELETE FROM submissions")
@@ -100,8 +103,8 @@ func setupTestRouter(db *gorm.DB) *gin.Engine {
 
 	mediaService := services.NewMediaService()
 	authService := services.NewAuthService(userRepository, verificationRepository, mediaService)
-	submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository)
-	assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService, contentViewRepository)
+	submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository, nil)
+	assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService, contentViewRepository, nil)
 	classroomPolicyRepo := repositories.NewClassroomPolicyRepository(db)
 	classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService, classroomPolicyRepo)
 

@@ -36,14 +36,15 @@ func setupAssignmentTestRouter(db *gorm.DB) *gin.Engine {
 
 	mediaService := services.NewMediaService()
 	authService := services.NewAuthService(userRepo, verificationRepo, mediaService)
-	submissionService := services.NewSubmissionService(submissionRepo, assignmentRepo)
-	assignmentService := services.NewAssignmentService(assignmentRepo, classroomRepo, submissionService, contentViewRepo)
+	submissionService := services.NewSubmissionService(submissionRepo, assignmentRepo, nil)
+	assignmentService := services.NewAssignmentService(assignmentRepo, classroomRepo, submissionService, contentViewRepo, nil)
 	classroomPolicyRepo := repositories.NewClassroomPolicyRepository(db)
 	classroomService := services.NewClassroomService(classroomRepo, userRepo, submissionService, assignmentService, classroomPolicyRepo)
 
 	authController := controllers.NewAuthController(authService)
 	classroomController := controllers.NewClassroomController(classroomService)
 	assignmentController := controllers.NewAssignmentController(assignmentService)
+	submissionController := controllers.NewSubmissionController(submissionService)
 	mediaController := controllers.NewMediaController(mediaService)
 
 	api := r.Group("/lms-usti-api")
@@ -67,6 +68,7 @@ func setupAssignmentTestRouter(db *gorm.DB) *gin.Engine {
 			classroom.POST("/:id/assignments", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Create)
 			classroom.PUT("/:id/assignments/:assignmentId", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Update)
 			classroom.DELETE("/:id/assignments/:assignmentId", aclMiddleware.Handle([]string{"DOSEN"}), assignmentController.Delete)
+			classroom.POST("/:id/assignments/:assignmentId/submissions", aclMiddleware.Handle([]string{"MAHASISWA"}), submissionController.Submit)
 		}
 		media := api.Group("/media")
 		{
@@ -579,6 +581,56 @@ func TestAssignmentUpdate(t *testing.T) {
 		}
 		if res.Meta.Message != "assignment berhasil diperbarui" {
 			t.Errorf("expected 'assignment successfully updated', got '%s'", res.Meta.Message)
+		}
+	})
+
+	t.Run("Update late_submission", func(t *testing.T) {
+		cleanupDatabase(db)
+		dosen := seedUser(db, "Dosen Test", "dosen@test.com", "password123", "DOSEN")
+		dosenToken := generateToken(dosen)
+		classroom := seedClassroom(db, dosen.ID, "Matematika Dasar")
+
+		body := createAssignmentJSON("Tugas Izin", deadline, "Kerjakan", nil, nil)
+		w := makeRequest(r, "POST", "/lms-usti-api/classroom/"+classroom.ID+"/assignments", body, dosenToken)
+		if w.Code != http.StatusOK {
+			t.Fatalf("seed assignment failed: %s", string(w.Body.Bytes()))
+		}
+
+		w = makeRequest(r, "GET", "/lms-usti-api/classroom/"+classroom.ID+"/assignments", "", dosenToken)
+		var listRes struct {
+			Data []struct {
+				ID string `json:"id"`
+			} `json:"data"`
+		}
+		json.Unmarshal(w.Body.Bytes(), &listRes)
+		if len(listRes.Data) == 0 {
+			t.Fatal("no assignments found")
+		}
+		assignmentId := listRes.Data[0].ID
+
+		updateReq := map[string]any{
+			"title":           "Tugas Izin",
+			"deadline":        deadline.Format(time.RFC3339),
+			"instruction":     "Kerjakan",
+			"rubrics":         []data.AssignmentRubricRequest{},
+			"attachments":     []data.AttachmentRequest{},
+			"late_submission": "not_allowed",
+		}
+		updateBody, _ := json.Marshal(updateReq)
+		w = makeRequest(r, "PUT", "/lms-usti-api/classroom/"+classroom.ID+"/assignments/"+assignmentId, string(updateBody), dosenToken)
+		if w.Code != http.StatusOK {
+			t.Fatalf("update failed: %d: %s", w.Code, string(w.Body.Bytes()))
+		}
+
+		w = makeRequest(r, "GET", "/lms-usti-api/classroom/"+classroom.ID+"/assignments/"+assignmentId, "", dosenToken)
+		var detail struct {
+			Data struct {
+				LateSubmission string `json:"late_submission"`
+			} `json:"data"`
+		}
+		json.Unmarshal(w.Body.Bytes(), &detail)
+		if detail.Data.LateSubmission != "not_allowed" {
+			t.Errorf("expected late_submission 'not_allowed', got '%s' (body: %s)", detail.Data.LateSubmission, string(w.Body.Bytes()))
 		}
 	})
 
