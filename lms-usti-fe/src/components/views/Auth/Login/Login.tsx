@@ -142,15 +142,15 @@ export default function Login() {
               <span>: mahasiswausti123</span>
             </div>
             <div className="text-xs">
-              <span>john.marston@lms-usti.ac.id</span>
+              <span>john.marston@yopmail.com</span>
               <span>: mahasiswausti123</span>
             </div>
             <div className="text-xs">
-              <span>abigail.roberts@lms-usti.ac.id</span>
+              <span>abigail.roberts@yopmail.com</span>
               <span>: mahasiswausti123</span>
             </div>
             <div className="text-xs">
-              <span>charles.smith@lms-usti.ac.id</span>
+              <span>charles.smith@yopmail.com</span>
               <span>: mahasiswausti123</span>
             </div>
           </div>
