@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AddLinkDialog from "@/components/common/AddLinkDialog/AddLinkDialog";
 import FileItem from "@/components/common/FileItem/FileItem";
 import LinkItem from "@/components/common/LinkItem/LinkItem";
@@ -74,6 +75,7 @@ export default function EditAssignmentDialog(props: PropTypes) {
   );
 
   useEffect(() => {
+    if (open !== "open") return;
     if (assignment.attachments && assignment.attachments.length > 0) {
       initializeAttachments(assignment.attachments, assignment.meeting_id);
     } else {
@@ -82,8 +84,16 @@ export default function EditAssignmentDialog(props: PropTypes) {
     if (assignment.deadline && !assignment.deadline.startsWith("0001")) {
       setHasDeadline(true);
       assignmentForm.setValue("deadline", assignment.deadline);
+      assignmentForm.setValue(
+        "lateSubmission",
+        assignment.late_submission === "not_allowed" ? "not_allowed" : "allow",
+      );
+    } else {
+      setHasDeadline(false);
+      assignmentForm.setValue("deadline", null);
+      assignmentForm.setValue("lateSubmission", null);
     }
-  }, [assignment]);
+  }, [assignment, open]);
 
   const currentAttachments = trackedAttachments.filter(
     (f) => f.status !== "deleted",
@@ -220,6 +230,9 @@ export default function EditAssignmentDialog(props: PropTypes) {
                     onCheckedChange={(checked) => {
                       if (!checked) {
                         assignmentForm.setValue("deadline", null);
+                        assignmentForm.setValue("lateSubmission", null);
+                      } else {
+                        assignmentForm.setValue("lateSubmission", "allow");
                       }
                       setHasDeadline(checked);
                     }}
@@ -236,6 +249,29 @@ export default function EditAssignmentDialog(props: PropTypes) {
                             value={field.value ? field.value : ""}
                             onChange={field.onChange}
                           />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {hasDeadline && (
+                  <FormField
+                    control={assignmentForm.control}
+                    name="lateSubmission"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Izin Pengumpulan Setelah Deadline</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value ?? "allow"}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih izin..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="allow">Diizinkan</SelectItem>
+                              <SelectItem value="not_allowed">Tidak diizinkan</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </FormControl>
                         <FormMessage />
                       </FormItem>

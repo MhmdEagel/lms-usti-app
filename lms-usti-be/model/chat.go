@@ -11,6 +11,7 @@ type Conversation struct {
 	ID            string                    `json:"id" gorm:"primary_key;not null"`
 	Name          string                    `json:"name" gorm:"default:''"`
 	Type          string                    `json:"type" gorm:"type:varchar(10);default:'direct'"`
+	ClassroomId   *string                   `json:"classroom_id,omitempty" gorm:"uniqueIndex:idx_conversations_classroom"`
 	LastMessageAt *time.Time                `json:"last_message_at"`
 	CreatedAt     time.Time                 `json:"created_at"`
 	UpdatedAt     time.Time                 `json:"updated_at"`

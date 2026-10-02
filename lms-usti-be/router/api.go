@@ -1,11 +1,14 @@
 package router
 
 import (
+	"log"
+
 	"github.com/MhmdEagel/lms-usti-be/config"
 	"github.com/MhmdEagel/lms-usti-be/controllers"
 	"github.com/MhmdEagel/lms-usti-be/middleware"
 	"github.com/MhmdEagel/lms-usti-be/repositories"
 	"github.com/MhmdEagel/lms-usti-be/services"
+	"github.com/MhmdEagel/lms-usti-be/sse"
 	"github.com/MhmdEagel/lms-usti-be/websocket"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -40,6 +43,11 @@ func InitRouter() *gin.Engine {
 		meetingRepository := repositories.NewMeetingRepository(Db)
 		submissionRepository := repositories.NewSubmissionRepository(Db)
 		contentViewRepository := repositories.NewContentViewRepository(Db)
+		conversationRepository := repositories.NewConversationRepository(Db)
+
+		notificationBroker := sse.NewBroker()
+		notificationRepository := repositories.NewNotificationRepository(Db)
+		notificationService := services.NewNotificationService(notificationRepository, classroomRepository, notificationBroker)
 
 		mediaService := services.NewMediaService()
 
@@ -50,13 +58,28 @@ func InitRouter() *gin.Engine {
 
 		adminService := services.NewAdminService(userRepository, verificationRepository, auditService)
 
-		submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository)
+		submissionService := services.NewSubmissionService(submissionRepository, assignmentRepository, notificationService)
 
-		assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService, contentViewRepository)
+		assignmentService := services.NewAssignmentService(assignmentRepository, classroomRepository, submissionService, contentViewRepository, notificationService)
 
 		classroomPolicyRepository := repositories.NewClassroomPolicyRepository(Db)
 		commentRepository := repositories.NewCommentRepository(Db)
-		classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService, classroomPolicyRepository)
+		classroomChatService := services.NewClassroomChatService(classroomRepository, conversationRepository)
+		if err := classroomChatService.BackfillClassroomGroups(); err != nil {
+			log.Printf("ClassroomChat backfill: %v", err)
+		}
+		classroomService := services.NewClassroomService(classroomRepository, userRepository, submissionService, assignmentService, classroomPolicyRepository, classroomChatService)
+
+		messageRepository := repositories.NewMessageRepository(Db)
+		chatService := services.NewChatService(conversationRepository, messageRepository, userRepository)
+
+		hub := websocket.NewHub(chatService)
+		go hub.Run()
+
+		wsHandler := websocket.NewWebSocketHandler(hub)
+		api.GET("/ws/chat", wsHandler.HandleUpgrade)
+
+		broadcastService := services.NewBroadcastService(classroomRepository, classroomChatService, chatService, hub, notificationService)
 
 		forumRepository := repositories.NewForumRepository(Db)
 
@@ -105,6 +128,7 @@ func InitRouter() *gin.Engine {
 		{
 
 			classroomController := controllers.NewClassroomController(classroomService)
+			broadcastController := controllers.NewBroadcastController(broadcastService)
 			classroomForumPostController := controllers.NewClassroomForumPostController(classroomForumPostService)
 			meetingController := controllers.NewMeetingController(meetingService)
 			materialController := controllers.NewMaterialController(materialService)
@@ -131,6 +155,7 @@ func InitRouter() *gin.Engine {
 			classroom.PUT("/:id", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), classroomController.Update)
 			classroom.GET("/:id/grades", aclMiddleware.Handle([]string{"DOSEN", "PRODI"}), classroomController.GetGrades)
 			classroom.GET("/:id/my-grades", aclMiddleware.Handle([]string{"MAHASISWA"}), classroomController.GetMyGrades)
+			classroom.POST("/:id/broadcast", aclMiddleware.Handle([]string{"DOSEN"}), broadcastController.Send)
 
 			classroom.GET("/:id/announcements", classroomForumPostController.FindAll)
 			classroom.GET("/:id/announcements/:announcementId", classroomForumPostController.FindById)
@@ -179,7 +204,7 @@ func InitRouter() *gin.Engine {
 			classroom.GET("/:id/policies", classroomPolicyController.FindByClassroomId)
 			classroom.PUT("/:id/policies", aclMiddleware.Handle([]string{"DOSEN"}), classroomPolicyController.Update)
 		}
-		forumService := services.NewForumService(forumRepository, commentRepository)
+		forumService := services.NewForumService(forumRepository, commentRepository, notificationService)
 		forumController := controllers.NewForumController(forumService)
 
 		forum := api.Group("/forum")
@@ -195,15 +220,16 @@ func InitRouter() *gin.Engine {
 			forum.DELETE("/posts/:postId/comments/:commentId", aclMiddleware.Handle([]string{"DOSEN", "MAHASISWA", "PRODI"}), commentController.Delete)
 		}
 
-		conversationRepository := repositories.NewConversationRepository(Db)
-		messageRepository := repositories.NewMessageRepository(Db)
-		chatService := services.NewChatService(conversationRepository, messageRepository, userRepository)
-
-		hub := websocket.NewHub(chatService)
-		go hub.Run()
-
-		wsHandler := websocket.NewWebSocketHandler(hub)
-		api.GET("/ws/chat", wsHandler.HandleUpgrade)
+		notificationController := controllers.NewNotificationController(notificationService, notificationBroker)
+		notifications := api.Group("/notifications")
+		notifications.Use(authMiddleware.Handle())
+		{
+			notifications.GET("", notificationController.FindAll)
+			notifications.GET("/unread-count", notificationController.UnreadCount)
+			notifications.GET("/stream", notificationController.Stream)
+			notifications.PATCH("/read-all", notificationController.MarkAllAsRead)
+			notifications.PATCH("/:id/read", notificationController.MarkAsRead)
+		}
 
 		chatController := controllers.NewChatController(chatService, hub)
 

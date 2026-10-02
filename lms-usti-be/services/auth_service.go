@@ -20,6 +20,7 @@ type AuthService struct {
 func NewAuthService(userRepository repositories.UserRepositoryInterface, verificationRepository repositories.VerificationRepositoryInterface, mediaService MediaServiceInterface) AuthServiceInterface {
 	return &AuthService{userRepository: userRepository, verificationRepository: verificationRepository, mediaService: mediaService}
 }
+
 type AuthServiceInterface interface {
 	Login(loginRequest data.LoginRequest) (loginResponse data.LoginResponse, err error)
 	SendVerificationEmail(req data.SendVerificationRequest) error
@@ -29,6 +30,7 @@ type AuthServiceInterface interface {
 	SendOTP(userID string, req data.SendOTPRequest) error
 	VerifyOTPAndChangePassword(userID string, req data.VerifyOTPRequest) error
 }
+
 func (a *AuthService) Login(loginRequest data.LoginRequest) (loginResponse data.LoginResponse, err error) {
 	user, err := a.userRepository.FindByEmail(loginRequest.Email)
 	if err != nil {
@@ -96,7 +98,7 @@ func (a *AuthService) GetUserById(userID string) (*data.MeResponse, error) {
 		return nil, err
 	}
 	return &data.MeResponse{
-		ID:   user.ID,
+		ID:       user.ID,
 		Email:    user.Email,
 		Role:     user.Role,
 		Fullname: user.Fullname,
@@ -139,7 +141,7 @@ func (a *AuthService) SendOTP(userID string, req data.SendOTPRequest) error {
 	}
 	if !lib.IsPasswordMatch(user.Password, req.OldPassword) {
 		log.Printf("SendOTP: password mismatch for userId %s", userID)
-		return data.ErrInvalidCredentials(nil)
+		return data.ErrInvalidPassword(nil)
 	}
 	otp := lib.GenerateOTP()
 	token := model.VerificationToken{

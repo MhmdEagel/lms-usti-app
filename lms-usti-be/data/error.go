@@ -1,31 +1,75 @@
 package data
 
-func ErrInvalidCredentials(err error) *AppError { return NewAppError(401, "email atau password salah", err) }
-func ErrEmailAlreadyExist(err error) *AppError  { return NewAppError(409, "email sudah terdaftar", err) }
-func ErrEmailNotFound(err error) *AppError      { return NewAppError(404, "email tidak ditemukan", err) }
-func ErrAccountNotVerified(err error) *AppError { return NewAppError(403, "akun belum diverifikasi", err) }
-func ErrInvalidToken(err error) *AppError       { return NewAppError(400, "token tidak valid", err) }
-func ErrTokenExpired(err error) *AppError       { return NewAppError(400, "token sudah kedaluwarsa", err) }
+func ErrInvalidCredentials(err error) *AppError {
+	return NewAppError(401, "email atau password salah", err)
+}
+func ErrInvalidPassword(err error) *AppError   { return NewAppError(401, "password salah", err) }
+func ErrEmailAlreadyExist(err error) *AppError { return NewAppError(409, "email sudah terdaftar", err) }
+func ErrEmailNotFound(err error) *AppError     { return NewAppError(404, "email tidak ditemukan", err) }
+func ErrAccountNotVerified(err error) *AppError {
+	return NewAppError(403, "akun belum diverifikasi", err)
+}
+func ErrInvalidToken(err error) *AppError      { return NewAppError(400, "token tidak valid", err) }
+func ErrTokenExpired(err error) *AppError      { return NewAppError(400, "token sudah kedaluwarsa", err) }
 func ErrClassroomNotFound(err error) *AppError { return NewAppError(404, "kelas tidak ditemukan", err) }
-func ErrAlreadyEnrolled(err error) *AppError   { return NewAppError(409, "sudah bergabung di kelas ini", err) }
-func ErrAssignmentNotFound(err error) *AppError  { return NewAppError(404, "assignment tidak ditemukan", err) }
-func ErrMaterialNotFound(err error) *AppError      { return NewAppError(404, "material tidak ditemukan", err) }
-func ErrClassroomForumPostNotFound(err error) *AppError  { return NewAppError(404, "postingan forum tidak ditemukan", err) }
-func ErrInternalServer(err error) *AppError      { return NewAppError(500, "terjadi kesalahan", err) }
-func ErrBadRequest(err error) *AppError           { return NewAppError(400, "invalid request", err) }
-func ErrCommentNotFound(err error) *AppError      { return NewAppError(404, "komentar tidak ditemukan", err) }
-func ErrForumPostNotFound(err error) *AppError    { return NewAppError(404, "postingan forum tidak ditemukan", err) }
-func ErrUnauthorized(err error) *AppError         { return NewAppError(401, "tidak memiliki akses", err) }
-func ErrForumPermissionDenied(err error) *AppError { return NewAppError(403, "tidak memiliki izin membuat postingan forum", err) }
-func ErrClassroomArchived(err error) *AppError { return NewAppError(400, "kelas sudah diarsipkan", err) }
-func ErrMeetingNotFound(err error) *AppError { return NewAppError(404, "pertemuan tidak ditemukan", err) }
-func ErrMeetingMaxReached(err error) *AppError { return NewAppError(400, "maksimal 16 pertemuan per kelas", err) }
-func ErrDeadlinePassed(err error) *AppError { return NewAppError(400, "Batas pengumpulan tugas telah berlalu", err) }
+func ErrAlreadyEnrolled(err error) *AppError {
+	return NewAppError(409, "sudah bergabung di kelas ini", err)
+}
+func ErrAssignmentNotFound(err error) *AppError {
+	return NewAppError(404, "assignment tidak ditemukan", err)
+}
+func ErrMaterialNotFound(err error) *AppError {
+	return NewAppError(404, "material tidak ditemukan", err)
+}
+func ErrClassroomForumPostNotFound(err error) *AppError {
+	return NewAppError(404, "postingan forum tidak ditemukan", err)
+}
+func ErrInternalServer(err error) *AppError { return NewAppError(500, "terjadi kesalahan", err) }
+func ErrBadRequest(err error) *AppError     { return NewAppError(400, "invalid request", err) }
+func ErrCommentNotFound(err error) *AppError {
+	return NewAppError(404, "komentar tidak ditemukan", err)
+}
+func ErrForumPostNotFound(err error) *AppError {
+	return NewAppError(404, "postingan forum tidak ditemukan", err)
+}
+func ErrUnauthorized(err error) *AppError { return NewAppError(401, "tidak memiliki akses", err) }
+func ErrForumPermissionDenied(err error) *AppError {
+	return NewAppError(403, "tidak memiliki izin membuat postingan forum", err)
+}
+func ErrClassroomArchived(err error) *AppError {
+	return NewAppError(400, "kelas sudah diarsipkan", err)
+}
+func ErrMeetingNotFound(err error) *AppError {
+	return NewAppError(404, "pertemuan tidak ditemukan", err)
+}
+func ErrMeetingMaxReached(err error) *AppError {
+	return NewAppError(400, "maksimal 16 pertemuan per kelas", err)
+}
+func ErrDeadlinePassed(err error) *AppError {
+	return NewAppError(400, "Batas pengumpulan tugas telah berlalu", err)
+}
 func ErrDosenNotFound(err error) *AppError { return NewAppError(404, "dosen tidak ditemukan", err) }
-func ErrScheduleConflict(err error) *AppError { return NewAppError(409, "jadwal bentrok dengan kelas lain di slot yang sama", err) }
-func ErrSubmissionNotFound(err error) *AppError { return NewAppError(404, "submission tidak ditemukan", err) }
-func ErrNotSubmitted(err error) *AppError { return NewAppError(400, "mahasiswa belum mengirim tugas", err) }
-func ErrInvalidScore(err error) *AppError { return NewAppError(400, "nilai harus antara 0 sampai 100", err) }
+func ErrScheduleConflict(err error) *AppError {
+	return NewAppError(409, "jadwal bentrok dengan kelas lain di slot yang sama", err)
+}
+func ErrSubmissionNotFound(err error) *AppError {
+	return NewAppError(404, "submission tidak ditemukan", err)
+}
+func ErrNotSubmitted(err error) *AppError {
+	return NewAppError(400, "mahasiswa belum mengirim tugas", err)
+}
+func ErrInvalidScore(err error) *AppError {
+	return NewAppError(400, "nilai harus antara 0 sampai 100", err)
+}
+func ErrNotificationNotFound(err error) *AppError {
+	return NewAppError(404, "notifikasi tidak ditemukan", err)
+}
+func ErrBroadcastForbidden(err error) *AppError {
+	return NewAppError(403, "anda bukan pemilik kelas ini", err)
+}
+func ErrBroadcastNoRecipients(err error) *AppError {
+	return NewAppError(400, "belum ada mahasiswa yang bergabung di kelas ini", err)
+}
 
 type AppError struct {
 	Code    int

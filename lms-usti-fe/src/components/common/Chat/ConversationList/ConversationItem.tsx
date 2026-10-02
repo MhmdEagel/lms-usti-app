@@ -48,6 +48,12 @@ function ConversationItem({ conversation, isActive, currentUserId, onClick }: Pr
     return d.toLocaleDateString("id-ID", { day: "numeric", month: "short" })
   }, [conversation.last_message_at])
 
+  const subtitle = conversation.type === "direct"
+    ? role
+    : conversation.classroom_id
+      ? "Kelas"
+      : ""
+
   const lastMessageText = conversation.last_message?.content
     ? conversation.last_message.content.length > 40
       ? conversation.last_message.content.slice(0, 40) + "..."
@@ -72,7 +78,7 @@ function ConversationItem({ conversation, isActive, currentUserId, onClick }: Pr
         </div>
         <div className="flex items-center justify-between gap-2 mt-0.5">
           <span className="text-xs text-muted-foreground truncate max-w-[100px]">
-            {lastMessageText || (conversation.type === "direct" ? role : "")}
+            {lastMessageText || subtitle}
           </span>
           {conversation.unread_count > 0 && (
             <span className="shrink-0 bg-primary text-primary-foreground text-[10px] font-medium px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-tight">

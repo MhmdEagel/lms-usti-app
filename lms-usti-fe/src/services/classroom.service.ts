@@ -1,6 +1,7 @@
 import instance from "@/lib/axios";
 import endpoint from "./endpoint.constant";
 import type {
+  IBroadcastMessage,
   IClassroomPolicies,
   ICreateClassroomForumPost,
   ICreateClassroom,
@@ -46,6 +47,8 @@ export const classroomServices = {
     ),
   getMembers: (classroomId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/members`),
+  broadcastMessage: (classroomId: string, payload: IBroadcastMessage) =>
+    instance.post(`${endpoint.CLASSROOM}/${classroomId}/broadcast`, payload),
   getMemberDetail: (classroomId: string, memberId: string) =>
     instance.get(`${endpoint.CLASSROOM}/${classroomId}/members/${memberId}`),
   removeMember: (classroomId: string, memberId: string) =>

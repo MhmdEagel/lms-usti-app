@@ -17,6 +17,7 @@ type ClassroomService struct {
 	submissionService         SubmissionServiceInterface
 	assignmentService         AssignmentServiceInterface
 	classroomPolicyRepository repositories.ClassroomPolicyRepositoryInterface
+	classroomChatService      ClassroomChatServiceInterface
 }
 
 type ClassroomServiceInterface interface {
@@ -42,8 +43,8 @@ type ClassroomServiceInterface interface {
 }
 
 func NewClassroomService(classroomRepository repositories.ClassroomRepositoryInterface,
-	userRepository repositories.UserRepositoryInterface, submissionService SubmissionServiceInterface, assignmentService AssignmentServiceInterface, classroomPolicyRepository repositories.ClassroomPolicyRepositoryInterface) ClassroomServiceInterface {
-	return &ClassroomService{classroomRepository: classroomRepository, userRepository: userRepository, submissionService: submissionService, assignmentService: assignmentService, classroomPolicyRepository: classroomPolicyRepository}
+	userRepository repositories.UserRepositoryInterface, submissionService SubmissionServiceInterface, assignmentService AssignmentServiceInterface, classroomPolicyRepository repositories.ClassroomPolicyRepositoryInterface, classroomChatService ClassroomChatServiceInterface) ClassroomServiceInterface {
+	return &ClassroomService{classroomRepository: classroomRepository, userRepository: userRepository, submissionService: submissionService, assignmentService: assignmentService, classroomPolicyRepository: classroomPolicyRepository, classroomChatService: classroomChatService}
 }
 
 func (c *ClassroomService) Create(classroomRequest data.CreateClassroomRequest) error {
@@ -54,7 +55,8 @@ func (c *ClassroomService) Create(classroomRequest data.CreateClassroomRequest) 
 	if dosen.Role != "DOSEN" {
 		return data.ErrDosenNotFound(nil)
 	}
-	return c.classroomRepository.Transaction(func(repo repositories.ClassroomRepositoryInterface) error {
+	var createdClassroomId string
+	err = c.classroomRepository.Transaction(func(repo repositories.ClassroomRepositoryInterface) error {
 		overlapping, err := repo.FindOverlapping(classroomRequest.Day, classroomRequest.ClassStart, classroomRequest.ClassEnd, classroomRequest.RoomNumber, "")
 		if err != nil {
 			return err
@@ -82,6 +84,7 @@ func (c *ClassroomService) Create(classroomRequest data.CreateClassroomRequest) 
 		if err != nil {
 			return err
 		}
+		createdClassroomId = created.ID
 		policy := model.ClassroomPolicy{
 			ClassroomID:       created.ID,
 			ForumPermission:   model.ForumPermissionComment,
@@ -89,6 +92,15 @@ func (c *ClassroomService) Create(classroomRequest data.CreateClassroomRequest) 
 		}
 		return repo.DB().Create(&policy).Error
 	})
+	if err != nil {
+		return err
+	}
+	if c.classroomChatService != nil && createdClassroomId != "" {
+		if chatErr := c.classroomChatService.EnsureClassroomGroup(createdClassroomId); chatErr != nil {
+			log.Printf("Classroom Create: gagal membuat group chat: %v", chatErr)
+		}
+	}
+	return nil
 }
 
 func (c *ClassroomService) FindAll(filter data.ClassroomFilter, pagination data.Pagination) (paginationResult data.PaginationWithData, err error) {
@@ -303,6 +315,11 @@ func (c *ClassroomService) EnrollMahasiswa(joinClassroomRequest data.JoinClassro
 	if err := c.classroomRepository.Enroll(classroomMahasiswa); err != nil {
 		return err
 	}
+	if c.classroomChatService != nil {
+		if chatErr := c.classroomChatService.AddMember(classroom.ID, mahasiswaId); chatErr != nil {
+			log.Printf("EnrollMahasiswa: gagal menambahkan ke group chat: %v", chatErr)
+		}
+	}
 	return nil
 }
 func (c *ClassroomService) RemoveMember(classroomId, memberId string) error {
@@ -314,6 +331,11 @@ func (c *ClassroomService) RemoveMember(classroomId, memberId string) error {
 	}
 	if err := c.classroomRepository.RemoveMember(classroomId, memberId); err != nil {
 		return err
+	}
+	if c.classroomChatService != nil {
+		if chatErr := c.classroomChatService.RemoveMember(classroomId, memberId); chatErr != nil {
+			log.Printf("RemoveMember: gagal mengeluarkan dari group chat: %v", chatErr)
+		}
 	}
 	return nil
 }
@@ -369,7 +391,15 @@ func (c *ClassroomService) Update(classroomUpdateRequest data.UpdateClassroomReq
 }
 
 func (c *ClassroomService) Delete(classroomId string, userID string, userRole string) error {
-	return c.classroomRepository.Delete(classroomId, userID, userRole)
+	if err := c.classroomRepository.Delete(classroomId, userID, userRole); err != nil {
+		return err
+	}
+	if c.classroomChatService != nil {
+		if chatErr := c.classroomChatService.DeleteForClassroom(classroomId); chatErr != nil {
+			log.Printf("Classroom Delete: gagal menghapus group chat: %v", chatErr)
+		}
+	}
+	return nil
 }
 
 func (c *ClassroomService) Archive(classroomId string, userID string) error {

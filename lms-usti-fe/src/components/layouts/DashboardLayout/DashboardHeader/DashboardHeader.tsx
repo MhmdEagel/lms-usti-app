@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import DashboardTitle from "./DashboardTitle/DashboardTitle";
+import NotificationBell from "./NotificationBell/NotificationBell";
 
 
 
@@ -15,6 +16,9 @@ export default function DashboardHeader() {
           className="mr-2 data-[orientation=vertical]:h-4"
         />
         <DashboardTitle  />
+        <div className="ml-auto flex items-center gap-1">
+          <NotificationBell />
+        </div>
       </div>
     </header>
   );
