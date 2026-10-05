@@ -74,8 +74,8 @@ func (c *ClassroomService) Create(classroomRequest data.CreateClassroomRequest) 
 			Term:        classroomRequest.Term,
 			RoomNumber:  classroomRequest.RoomNumber,
 			Day:         classroomRequest.Day,
-			ClassStart:  inJakarta(classroomRequest.ClassStart),
-			ClassEnd:    inJakarta(classroomRequest.ClassEnd),
+			ClassStart:  classroomRequest.ClassStart,
+			ClassEnd:    classroomRequest.ClassEnd,
 			Prodi:       classroomRequest.Prodi,
 			TahunAjaran: classroomRequest.TahunAjaran,
 			DosenId:     classroomRequest.DosenId,
@@ -121,8 +121,8 @@ func (c *ClassroomService) FindAll(filter data.ClassroomFilter, pagination data.
 			Term:        v.Term,
 			RoomNumber:  v.RoomNumber,
 			Day:         v.Day,
-			ClassStart:  inJakarta(v.ClassStart),
-			ClassEnd:    inJakarta(v.ClassEnd),
+			ClassStart:  v.ClassStart,
+			ClassEnd:    v.ClassEnd,
 			Prodi:       v.Prodi,
 			TahunAjaran: v.TahunAjaran,
 			IsArchived:  v.IsArchived,
@@ -158,8 +158,8 @@ func (c *ClassroomService) FindAllByDosenId(dosenId string, filter data.Classroo
 			Term:        v.Term,
 			RoomNumber:  v.RoomNumber,
 			Day:         v.Day,
-			ClassStart:  inJakarta(v.ClassStart),
-			ClassEnd:    inJakarta(v.ClassEnd),
+			ClassStart:  v.ClassStart,
+			ClassEnd:    v.ClassEnd,
 			Prodi:       v.Prodi,
 			TahunAjaran: v.TahunAjaran,
 			IsArchived:  v.IsArchived,
@@ -194,8 +194,8 @@ func (c *ClassroomService) FindAllByMahasiswaId(mahasiswaId string, filter data.
 			Term:        v.Term,
 			RoomNumber:  v.RoomNumber,
 			Day:         v.Day,
-			ClassStart:  inJakarta(v.ClassStart),
-			ClassEnd:    inJakarta(v.ClassEnd),
+			ClassStart:  v.ClassStart,
+			ClassEnd:    v.ClassEnd,
 			Prodi:       v.Prodi,
 			TahunAjaran: v.TahunAjaran,
 			Dosen:       v.Dosen,
@@ -225,8 +225,8 @@ func (c *ClassroomService) FindById(classroomId string) (classroom data.Classroo
 		Term:        classroomData.Term,
 		RoomNumber:  classroomData.RoomNumber,
 		Day:         classroomData.Day,
-		ClassStart:  inJakarta(classroomData.ClassStart),
-		ClassEnd:    inJakarta(classroomData.ClassEnd),
+		ClassStart:  classroomData.ClassStart,
+		ClassEnd:    classroomData.ClassEnd,
 		Prodi:       classroomData.Prodi,
 		TahunAjaran: classroomData.TahunAjaran,
 		IsArchived:  classroomData.IsArchived,
@@ -361,10 +361,10 @@ func (c *ClassroomService) Update(classroomUpdateRequest data.UpdateClassroomReq
 		classroom.Day = *classroomUpdateRequest.Day
 	}
 	if classroomUpdateRequest.ClassStart != nil {
-		classroom.ClassStart = inJakarta(*classroomUpdateRequest.ClassStart)
+		classroom.ClassStart = *classroomUpdateRequest.ClassStart
 	}
 	if classroomUpdateRequest.ClassEnd != nil {
-		classroom.ClassEnd = inJakarta(*classroomUpdateRequest.ClassEnd)
+		classroom.ClassEnd = *classroomUpdateRequest.ClassEnd
 	}
 	if classroomUpdateRequest.Prodi != nil {
 		classroom.Prodi = *classroomUpdateRequest.Prodi
@@ -565,13 +565,9 @@ var jakartaTZ *time.Location
 func init() {
 	loc, err := time.LoadLocation("Asia/Jakarta")
 	if err != nil {
-		loc = time.FixedZone("WIB", 7*60*60)
+		loc = time.UTC
 	}
 	jakartaTZ = loc
-}
-
-func inJakarta(t time.Time) time.Time {
-	return t.In(jakartaTZ)
 }
 
 func errScheduleConflictMsg(conflict model.Classroom) string {

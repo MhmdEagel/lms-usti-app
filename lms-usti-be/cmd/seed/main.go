@@ -334,13 +334,9 @@ func seedClassrooms(db *gorm.DB, dosen model.User) []model.Classroom {
 		endHour, _ := strconv.Atoi(endParts[0])
 		endMin, _ := strconv.Atoi(endParts[1])
 
-		classTZ, err := time.LoadLocation("Asia/Jakarta")
-		if err != nil {
-			classTZ = time.FixedZone("WIB", 7*60*60)
-		}
-		baseDate := time.Date(2026, 8, 1, 0, 0, 0, 0, classTZ)
-		start := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), startHour, startMin, 0, 0, classTZ)
-		end := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), endHour, endMin, 0, 0, classTZ)
+		baseDate := time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC)
+		start := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), startHour, startMin, 0, 0, time.UTC)
+		end := time.Date(baseDate.Year(), baseDate.Month(), baseDate.Day(), endHour, endMin, 0, 0, time.UTC)
 
 		classroom := model.Classroom{
 			ClassCover:  "basic",
