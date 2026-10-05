@@ -28,8 +28,10 @@ export function getDayName(day: number) {
   return dayObj?.name;
 }
 
+export const APP_TIMEZONE = "Asia/Jakarta";
+
 export function getTimeString(time: string | Date) {
-  const result = dayjs(time).format("HH:mm");
+  const result = dayjs(time).tz(APP_TIMEZONE).format("HH:mm");
   return result;
 }
 
@@ -37,7 +39,9 @@ export function toISOTime(time?: string | null) {
   if (!time || !/^\d{2}:\d{2}$/.test(time)) {
     return time ?? null;
   }
-  return dayjs.tz(`2010-10-10 ${time}`, "Asia/Jakarta").toISOString();
+  return dayjs.tz(`2010-10-10 ${time}`, APP_TIMEZONE).format(
+    "YYYY-MM-DDTHH:mm:ssZ",
+  );
 }
 
 export function isValidUrl(str: string): boolean {
