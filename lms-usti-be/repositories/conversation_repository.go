@@ -21,6 +21,7 @@ type ConversationRepositoryInterface interface {
 	FindParticipantsByConversationID(conversationID string) ([]model.ConversationParticipant, error)
 	UpdateLastMessageAt(conversationID string, t time.Time) error
 	FindByClassroomId(classroomId string) (model.Conversation, error)
+	FindArchivedClassroomConversationIDs(conversationIDs []string) ([]string, error)
 	AddParticipantIfAbsent(participant *model.ConversationParticipant) error
 	RemoveParticipant(conversationID, userID string) error
 	DeleteByClassroomId(classroomId string) error
@@ -93,6 +94,24 @@ func (r *ConversationRepository) FindParticipantsByConversationID(conversationID
 		Where("conversation_id = ?", conversationID).
 		Find(&participants).Error
 	return participants, err
+}
+
+func (r *ConversationRepository) FindArchivedClassroomConversationIDs(conversationIDs []string) ([]string, error) {
+	if len(conversationIDs) == 0 {
+		return []string{}, nil
+	}
+
+	var archivedIDs []string
+	err := r.Db.Model(&model.Conversation{}).
+		Select("conversations.id").
+		Joins("JOIN classrooms ON classrooms.id = conversations.classroom_id").
+		Where("conversations.id IN ?", conversationIDs).
+		Where("classrooms.is_archived = ?", true).
+		Pluck("conversations.id", &archivedIDs).Error
+	if err != nil {
+		return nil, err
+	}
+	return archivedIDs, nil
 }
 
 func (r *ConversationRepository) FindByClassroomId(classroomId string) (model.Conversation, error) {

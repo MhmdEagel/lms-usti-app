@@ -33,12 +33,19 @@ export default async function Material({
 
   return (
     <>
-      {showHeader && <MaterialHeader />}
+      {showHeader && (
+        <MaterialHeader
+          action={
+            !readOnly && user?.role === "DOSEN" ? (
+              <CreateMaterialDialog classroomId={classroomId} />
+            ) : null
+          }
+        />
+      )}
       <div className="mt-4 flex flex-wrap gap-2 items-center">
         <div className="w-full sm:w-auto sm:flex-1">
           <SearchBar placeholder="Cari materi..." />
         </div>
-        {!readOnly && user?.role === "DOSEN" ? <CreateMaterialDialog classroomId={classroomId} /> : null}
       </div>
       <div className="mt-4 flex flex-col gap-4">
         {listMateri && listMateri.length > 0 ? (

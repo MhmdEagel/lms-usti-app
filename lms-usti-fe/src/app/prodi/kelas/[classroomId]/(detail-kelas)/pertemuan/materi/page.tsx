@@ -18,12 +18,12 @@ export default async function ProdiPertemuanMateriPage({
 
   return (
     <div>
+      <MeetingTabNavigation classroomId={classroomId} type="prodi" />
       <div className="flex items-center justify-between mb-4 border-b-1 pb-4">
         <div>
           <h2 className="text-lg font-semibold">Pertemuan</h2>
         </div>
       </div>
-      <MeetingTabNavigation classroomId={classroomId} type="prodi" />
       <Suspense fallback={<MaterialSkeleton />}>
         <Material classroomId={classroomId} type="prodi" page={page} limit={limit} search={search} showHeader={false} readOnly />
       </Suspense>

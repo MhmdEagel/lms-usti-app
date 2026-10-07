@@ -18,11 +18,11 @@ export default async function MahasiswaPertemuanMateriPage({
 
   return (
     <div>
+      <MeetingTabNavigation classroomId={classroomId} type="mahasiswa" />
       <div className="mb-4">
         <h2 className="text-lg font-semibold">Pertemuan</h2>
         <div className="border-b mt-1" />
       </div>
-      <MeetingTabNavigation classroomId={classroomId} type="mahasiswa" />
       <Suspense fallback={<MaterialSkeleton />}>
         <Material classroomId={classroomId} page={page} limit={limit} search={search} showHeader={false} />
       </Suspense>

@@ -54,6 +54,8 @@ function ConversationItem({ conversation, isActive, currentUserId, onClick }: Pr
       ? "Kelas"
       : ""
 
+  const isArchived = !!conversation.classroom_id && !!conversation.classroom_archived
+
   const lastMessageText = conversation.last_message?.content
     ? conversation.last_message.content.length > 40
       ? conversation.last_message.content.slice(0, 40) + "..."
@@ -73,7 +75,14 @@ function ConversationItem({ conversation, isActive, currentUserId, onClick }: Pr
       </Avatar>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-sm font-medium truncate">{displayName}</span>
+          <span className="flex items-center gap-1.5 min-w-0">
+            <span className="text-sm font-medium truncate">{displayName}</span>
+            {isArchived && (
+              <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide bg-muted text-muted-foreground border border-border px-1.5 py-0.5 rounded">
+                Arsip
+              </span>
+            )}
+          </span>
           <span className="text-xs text-muted-foreground shrink-0">{lastTime}</span>
         </div>
         <div className="flex items-center justify-between gap-2 mt-0.5">

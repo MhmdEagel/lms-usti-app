@@ -32,12 +32,19 @@ export default async function Assignment({
 
   return (
     <>
-      {showHeader && <AssignmentHeader />}
+      {showHeader && (
+        <AssignmentHeader
+          action={
+            !readOnly && user?.role === "DOSEN" ? (
+              <CreateAssignmentDialog classroomId={classroomId} />
+            ) : null
+          }
+        />
+      )}
       <div className="mt-4 flex flex-wrap gap-2 items-center">
         <div className="w-full sm:w-auto sm:flex-1">
           <SearchBar placeholder="Cari tugas..." />
         </div>
-        {!readOnly && user?.role === "DOSEN" ? <CreateAssignmentDialog classroomId={classroomId} /> : null}
       </div>
       <div className="mt-4 flex flex-col gap-4">
         {listAssignment && listAssignment.length > 0 ? (

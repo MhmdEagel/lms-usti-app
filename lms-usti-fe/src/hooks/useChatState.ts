@@ -5,6 +5,21 @@ interface TypingUser {
   fullname: string
 }
 
+export type ConversationTab = "group" | "single" | "archived"
+
+export function isArchivedConversation(conversation: IChatConversation) {
+  return !!conversation.classroom_id && !!conversation.classroom_archived
+}
+
+export function conversationTabOf(conversation: IChatConversation): ConversationTab {
+  if (isArchivedConversation(conversation)) return "archived"
+  return conversation.type === "direct" ? "single" : "group"
+}
+
+function matchesConversationTab(conversation: IChatConversation, tab: ConversationTab) {
+  return conversationTabOf(conversation) === tab
+}
+
 export function useChatState() {
   const [conversations, setConversations] = useState<IChatConversation[]>([])
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
@@ -12,6 +27,7 @@ export function useChatState() {
   const [isLoadingConversations, setIsLoadingConversations] = useState(true)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [conversationTab, setConversationTab] = useState<ConversationTab>("group")
   const [typingUsers, setTypingUsers] = useState<Record<string, TypingUser[]>>({})
   const [hasMoreMessages, setHasMoreMessages] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -115,13 +131,14 @@ export function useChatState() {
   }, [])
 
   const filteredConversations = useMemo(() => {
-    if (!searchQuery.trim()) return conversations
+    const tabFiltered = conversations.filter((c) => matchesConversationTab(c, conversationTab))
+    if (!searchQuery.trim()) return tabFiltered
     const q = searchQuery.toLowerCase()
-    return conversations.filter((c) => {
+    return tabFiltered.filter((c) => {
       if (c.name && c.name.toLowerCase().includes(q)) return true
       return c.participants.some((p) => p.user.fullname.toLowerCase().includes(q))
     })
-  }, [conversations, searchQuery])
+  }, [conversations, searchQuery, conversationTab])
 
   const selectedConversation = useMemo(() => {
     if (!selectedConversationId) return null
@@ -146,6 +163,8 @@ export function useChatState() {
     isLoadingMore,
     hasMoreMessages,
     searchQuery,
+    conversationTab,
+    setConversationTab,
     typingUsers,
     cursorRef,
     initialFetchDone,

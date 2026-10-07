@@ -74,7 +74,7 @@ export default function MessageInput({ conversationId, onSend, onTyping, onStopT
   )
 
   return (
-    <div className="border-t border-border p-3 bg-background">
+    <div className="border-t border-border p-3 bg-background shrink-0">
       <div className="flex items-end gap-2 bg-muted/50 rounded-xl px-3 py-2 border border-border">
         <textarea
           ref={textareaRef}

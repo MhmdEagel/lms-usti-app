@@ -18,6 +18,8 @@ export default async function MeetingContent({ classroomId, search }: PropTypes)
   const meetings: IMeeting[] = res.data?.data || [];
   return (
     <div>
+
+      <MeetingTabNavigation classroomId={classroomId} type={type} />
       <div className="flex items-center justify-between mb-4 border-b-1 pb-4">
         <div>
           <h2 className="text-lg font-semibold">Perkuliahan</h2>
@@ -26,9 +28,6 @@ export default async function MeetingContent({ classroomId, search }: PropTypes)
           <CreateMeetingDialog classroomId={classroomId} />
         )}
       </div>
-
-      <MeetingTabNavigation classroomId={classroomId} type={type} />
-
       <div className="mt-2">
         <SearchBar placeholder="Cari topik, materi, atau tugas...." />
       </div>

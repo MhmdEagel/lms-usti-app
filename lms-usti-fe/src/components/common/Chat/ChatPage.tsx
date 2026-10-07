@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useReducer, useRef } from "react"
 import { toast } from "sonner"
 import { useChatWebSocket } from "@/hooks/useChatWebSocket"
-import { useChatState } from "@/hooks/useChatState"
+import { useChatState, conversationTabOf } from "@/hooks/useChatState"
 import { chatServices } from "@/services/chat.service"
 import { useIsMobile } from "@/hooks/use-mobile"
 import ConversationList from "@/components/common/Chat/ConversationList/ConversationList"
 import ChatArea from "@/components/common/Chat/ChatArea/ChatArea"
-import { Loader2 } from "lucide-react"
 
 interface PropTypes {
   user: { id: string; fullname: string; email: string; role: string; profile?: string }
@@ -108,6 +107,10 @@ export default function ChatPage({ user, token, initialConversationId }: PropTyp
     (id: string) => {
       const state = chatRef.current
       state.selectConversation(id)
+      const conv = state.conversations.find((c) => c.id === id)
+      if (conv) {
+        state.setConversationTab(conversationTabOf(conv))
+      }
       state.setIsLoadingMessages(true)
       ws.joinRoom(id)
       state.markConversationRead(id)
@@ -196,8 +199,8 @@ export default function ChatPage({ user, token, initialConversationId }: PropTyp
   }, [initialConversationId, chatState.conversations, handleSelectConversation])
 
   return (
-    <div className="flex flex-1 min-h-0 max-h-full border-border border rounded-lg">
-      <div className={`${isMobile && showMobileChat ? "hidden" : "flex"} w-full md:w-[30%] md:flex flex-col min-h-0 border-r border-border max-h-full self-start sticky top-0`}>
+    <div className="flex w-full h-[calc(100dvh-var(--header-height))] md:h-[calc(100dvh-var(--header-height)-1rem)] max-h-full min-h-0 overflow-hidden border-border border rounded-lg">
+      <div className={`${isMobile && showMobileChat ? "hidden" : "flex"} w-full md:w-[30%] md:flex flex-col min-h-0 overflow-hidden border-r border-border`}>
         <ConversationList
           conversations={chatState.filteredConversations}
           selectedConversationId={chatState.selectedConversationId}
@@ -208,9 +211,11 @@ export default function ChatPage({ user, token, initialConversationId }: PropTyp
           isLoading={chatState.isLoadingConversations}
           onNewConversation={handleNewConversation}
           token={token}
+          activeTab={chatState.conversationTab}
+          onTabChange={chatState.setConversationTab}
         />
       </div>
-      <div className={`${isMobile && !showMobileChat ? "hidden" : "flex"} w-full md:w-[70%] md:flex flex-col min-h-0 max-h-full overflow-hidden`}>
+      <div className={`${isMobile && !showMobileChat ? "hidden" : "flex"} w-full md:w-[70%] md:flex flex-col min-h-0 overflow-hidden`}>
         {chatState.selectedConversationId ? (
           <ChatArea
             conversation={chatState.selectedConversation!}

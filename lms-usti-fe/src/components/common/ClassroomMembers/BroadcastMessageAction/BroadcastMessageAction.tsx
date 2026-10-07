@@ -36,6 +36,10 @@ export default function BroadcastMessageAction({
   const { form, open, handleOpen, handleClose, handleBroadcast, isPending } =
     useBroadcastMessage();
 
+  if (recipientCount <= 0) {
+    return null;
+  }
+
   return (
     <Dialog
       open={open}

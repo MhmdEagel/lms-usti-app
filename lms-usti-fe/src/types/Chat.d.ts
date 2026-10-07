@@ -35,6 +35,7 @@ interface IChatConversation {
   name: string
   type: string
   classroom_id?: string
+  classroom_archived?: boolean
   participants: IChatParticipant[]
   last_message: IChatMessage | null
   unread_count: number

@@ -1,6 +1,8 @@
 "use client"
 
-import { Search, Plus, Loader2 } from "lucide-react"
+import { Search, Plus } from "lucide-react"
+import { cn } from "@/lib/utils"
+import type { ConversationTab } from "@/hooks/useChatState"
 import ConversationItem from "./ConversationItem"
 import NewConversationDialog from "../NewConversationDialog"
 
@@ -14,7 +16,15 @@ interface PropTypes {
   isLoading: boolean
   onNewConversation: (conv: IChatConversation) => void
   token: string
+  activeTab: ConversationTab
+  onTabChange: (tab: ConversationTab) => void
 }
+
+const TABS: { value: ConversationTab; label: string }[] = [
+  { value: "group", label: "Grup" },
+  { value: "single", label: "Single" },
+  { value: "archived", label: "Arsip" },
+]
 
 function ConversationListSkeleton() {
   return (
@@ -42,10 +52,22 @@ export default function ConversationList({
   isLoading,
   onNewConversation,
   token,
+  activeTab,
+  onTabChange,
 }: PropTypes) {
+  const emptyText = isLoading
+    ? ""
+    : searchQuery
+      ? "Tidak ditemukan"
+      : activeTab === "archived"
+        ? "Belum ada percakapan yang diarsipkan"
+        : activeTab === "single"
+          ? "Belum ada percakapan single. Mulai chat dengan menekan +"
+          : "Belum ada percakapan grup. Mulai chat dengan menekan +"
+
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 p-3 border-b border-border sticky top-0 z-10 bg-background">
+    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <div className="flex items-center gap-2 p-3 border-b border-border bg-background shrink-0">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
@@ -65,14 +87,28 @@ export default function ConversationList({
           </button>
         </NewConversationDialog>
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex items-center border-b border-border bg-background shrink-0">
+        {TABS.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => onTabChange(tab.value)}
+            className={cn(
+              "px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer",
+              activeTab === tab.value
+                ? "text-primary border-primary"
+                : "text-muted-foreground border-transparent hover:text-foreground",
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
         {isLoading ? (
           <ConversationListSkeleton />
         ) : conversations.length === 0 ? (
-          <div className="text-center text-sm text-muted-foreground py-8">
-            {searchQuery
-              ? "Tidak ditemukan"
-              : "Belum ada percakapan. Mulai chat dengan menekan +"}
+          <div className="text-center text-sm text-muted-foreground py-8 px-3">
+            {emptyText}
           </div>
         ) : (
           conversations.map((conv) => (

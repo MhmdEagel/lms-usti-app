@@ -37,7 +37,7 @@ export default function ChatArea({
   onBack,
 }: PropTypes) {
   return (
-    <div className="flex flex-col flex-1 min-h-0 max-h-full">
+    <div className="flex flex-col flex-1 min-h-0 max-h-full overflow-hidden">
       <ChatHeader
         conversation={conversation}
         currentUserId={currentUserId}

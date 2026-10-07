@@ -137,10 +137,20 @@ func (s *ChatService) GetConversations(userID string) ([]data.ConversationRespon
 		return nil, err
 	}
 
+	archivedIDs, err := s.conversationRepo.FindArchivedClassroomConversationIDs(convIDs)
+	if err != nil {
+		return nil, err
+	}
+	archivedSet := make(map[string]bool, len(archivedIDs))
+	for _, id := range archivedIDs {
+		archivedSet[id] = true
+	}
+
 	var result []data.ConversationResponse
 	for _, conv := range conversations {
 		resp := s.conversationToResponse(conv)
 		resp.UnreadCount = unreadCounts[conv.ID]
+		resp.ClassroomArchived = archivedSet[conv.ID]
 
 		if lastMsg, ok := lastMessages[conv.ID]; ok {
 			msgResp := s.messageToResponse(lastMsg)

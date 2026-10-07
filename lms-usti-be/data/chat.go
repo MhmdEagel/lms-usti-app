@@ -42,11 +42,13 @@ type MessageResponse struct {
 }
 
 type ConversationResponse struct {
-	ID            string                `json:"id"`
-	Name          string                `json:"name"`
-	Type          string                `json:"type"`
-	ClassroomId   *string               `json:"classroom_id,omitempty"`
-	Participants  []ParticipantResponse `json:"participants"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Type        string `json:"type"`
+	ClassroomId *string `json:"classroom_id,omitempty"`
+	// ClassroomArchived is true when the group belongs to an archived classroom.
+	ClassroomArchived bool                  `json:"classroom_archived"`
+	Participants      []ParticipantResponse `json:"participants"`
 	LastMessage   *MessageResponse      `json:"last_message"`
 	UnreadCount   int64                 `json:"unread_count"`
 	LastMessageAt *string               `json:"last_message_at"`

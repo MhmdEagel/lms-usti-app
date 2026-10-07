@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import CreateMeetingDialog from "@/components/views/Dashboard/DashboardDosen/Classroom/Meeting/CreateMeetingDialog/CreateMeetingDialog";
+import CreateAssignmentDialog from "@/components/views/Dashboard/DashboardDosen/Classroom/Assignment/CreateAssignmentDialog/CreateAssignmentDialog";
 import MeetingTabNavigation from "@/components/views/Dashboard/DashboardDosen/Classroom/Meeting/MeetingTabNavigation";
 import Assignment from "@/components/views/Dashboard/DashboardDosen/Classroom/Assignment";
 import AssignmentSkeleton from "@/components/views/Dashboard/DashboardDosen/Classroom/Assignment/AssignmentSkeleton/AssignmentSkeleton";
@@ -19,13 +19,13 @@ export default async function PertemuanTugasPage({
 
   return (
     <div>
+      <MeetingTabNavigation classroomId={classroomId} type="dosen" />
       <div className="flex items-center justify-between mb-4 border-b-1 pb-4">
         <div>
-          <h2 className="text-lg font-semibold">Pertemuan</h2>
+          <h2 className="text-lg font-semibold">Tugas</h2>
         </div>
-        <CreateMeetingDialog classroomId={classroomId} />
+        <CreateAssignmentDialog classroomId={classroomId} />
       </div>
-      <MeetingTabNavigation classroomId={classroomId} type="dosen" />
       <Suspense fallback={<AssignmentSkeleton />}>
         <Assignment classroomId={classroomId} page={page} limit={limit} search={search} showHeader={false} />
       </Suspense>
