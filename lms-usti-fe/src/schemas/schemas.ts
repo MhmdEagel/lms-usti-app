@@ -123,7 +123,7 @@ const editClassroomSchema = z
     },
     {
       message: "Jam selesai kelas harus lebih besar dari jam mulai kelas",
-      path: ["time_end"],
+      path: ["class_end"],
     },
   );
 
