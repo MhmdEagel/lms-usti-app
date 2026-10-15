@@ -33,7 +33,7 @@ export default function ResetPassword() {
           {errors.root && <ErrorCard>{errors.root.message}</ErrorCard>}
           <div>
             <h1 className="mb-1 text-xl font-bold text-primary md:text-3xl">
-              Reset Password
+              Ubah Kata Sandi
             </h1>
             <p className="text-sm text-gray-500">Masukkan email anda.</p>
           </div>
@@ -67,7 +67,7 @@ export default function ResetPassword() {
                 className="font-bold text-primary hover:underline text-center"
                 href={"/auth/login"}
               >
-                Kembali ke login
+                Kembali ke Masuk
               </Link>
             </form>
           </Form>

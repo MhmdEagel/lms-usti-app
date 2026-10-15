@@ -51,12 +51,12 @@ export default function BroadcastMessageAction({
       <DialogTrigger asChild>
         <Button size="sm" variant="outline">
           <Megaphone className="h-4 w-4 sm:mr-1" />
-          <span className="hidden sm:inline">Kirim Broadcast</span>
+          <span className="hidden sm:inline">Kirim Pesan Siaran</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg" resetForm={handleClose}>
         <DialogHeader>
-          <DialogTitle>Broadcast ke Mahasiswa</DialogTitle>
+          <DialogTitle>Pesan Siaran ke Mahasiswa</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
           {recipientCount > 0
@@ -121,7 +121,7 @@ export default function BroadcastMessageAction({
                 type="submit"
                 disabled={isPending || recipientCount === 0}
               >
-                {isPending ? "Mengirim..." : "Kirim Broadcast"}
+                {isPending ? "Mengirim..." : "Kirim Pesan Siaran"}
               </Button>
             </DialogFooter>
           </form>

@@ -40,10 +40,10 @@ export default function NewPassword() {
           {errors.root && <ErrorCard>{errors.root.message}</ErrorCard>}
           <div>
             <h1 className="mb-1 text-xl font-bold text-primary md:text-3xl">
-              Reset Password
+              Ubah Kata Sandi
             </h1>
             <p className="text-sm text-gray-500">
-              Masukkan password baru anda.
+              Masukkan kata sandi baru anda.
             </p>
           </div>
           <Form {...form}>
@@ -56,7 +56,7 @@ export default function NewPassword() {
                 name="old_password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password Lama</FormLabel>
+                    <FormLabel>Kata Sandi Lama</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -91,7 +91,7 @@ export default function NewPassword() {
                 name="new_password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password Baru</FormLabel>
+                    <FormLabel>Kata Sandi Baru</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -126,7 +126,7 @@ export default function NewPassword() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Konfirmasi Password Baru</FormLabel>
+                    <FormLabel>Konfirmasi Kata Sandi Baru</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -170,7 +170,7 @@ export default function NewPassword() {
                 className="font-bold text-primary hover:underline text-center"
                 href={"/auth/login"}
               >
-                Kembali ke login
+                Kembali ke Masuk
               </Link>
             </form>
           </Form>

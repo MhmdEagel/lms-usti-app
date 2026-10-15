@@ -35,7 +35,7 @@ export default function Login() {
           {errors.root && <ErrorCard>{errors.root.message}</ErrorCard>}
           <div>
             <h1 className="mb-1 text-xl font-bold text-primary md:text-3xl">
-              Login
+              Masuk
             </h1>
             <p className="text-sm text-gray-500">
               Selamat Datang! Mulai pengalaman belajar mengajar anda bersama
@@ -69,7 +69,7 @@ export default function Login() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Kata Sandi</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
@@ -109,7 +109,7 @@ export default function Login() {
                   href={"/auth/reset-password"}
                   className="block mb-4 text-sm font-bold text-primary hover:underline w-fit"
                 >
-                  Lupa Password?
+                  Lupa Kata Sandi?
                 </Link>
                 <Button
                   disabled={isPending}
