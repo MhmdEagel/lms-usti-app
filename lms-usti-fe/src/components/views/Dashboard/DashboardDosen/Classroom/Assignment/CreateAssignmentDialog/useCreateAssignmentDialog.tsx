@@ -51,9 +51,10 @@ const useCreateAssignmentDialog = (defaultMeetingId?: string) => {
       setIsPendingUploadFile(true);
       const res = await mediaServices.uploadAssignment(formData);
       const newFile: IAttachment = {
-        name: res.data?.file_name,
-        url: res.data?.file_url,
-        unique_name: res.data?.unique_file_name,
+        // Axios response: { meta, data: { file_name, ... } }
+        name: res.data?.data?.file_name,
+        url: res.data?.data?.file_url,
+        unique_name: res.data?.data?.unique_file_name,
         type: "FILE",
       };
       setAttachments((prevValue) => [...prevValue, newFile]);

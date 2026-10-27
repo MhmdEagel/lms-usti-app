@@ -34,8 +34,17 @@ export async function middleware(request: NextRequest) {
       ADMIN: "/admin",
       PRODI: "/prodi",
     };
+    // Tujuan redirect home per role (berbeda dari prefix rolePaths:
+    // ADMIN tetap prefix "/admin" untuk cek ACL, tapi home redirect
+    // mengarah ke halaman users-nya).
+    const homePaths: Record<string, string> = {
+      MAHASISWA: "/mahasiswa",
+      DOSEN: "/dosen",
+      ADMIN: "/admin/users",
+      PRODI: "/prodi",
+    };
     const userRole = user.role;
-    const userPath = rolePaths[userRole] || "/dosen";
+    const userPath = homePaths[userRole] || "/dosen";
 
     if (isAuthRoute) {
       return NextResponse.redirect(new URL(userPath, nextUrl));

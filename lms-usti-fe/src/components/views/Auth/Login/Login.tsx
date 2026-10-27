@@ -67,13 +67,14 @@ export default function Login() {
               <FormField
                 control={form.control}
                 name="password"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Kata Sandi</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
                           {...field}
+                          aria-invalid={fieldState.invalid}
                           className="pe-9"
                           value={field.value ?? ""}
                           type={isVisible ? "text" : "password"}

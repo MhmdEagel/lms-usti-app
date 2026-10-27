@@ -10,8 +10,7 @@ const loginSchema = z.object({
   //   "Email harus menggunakan domain @sar.ac.id"
   // )
   password: z
-    .string({ required_error: "Password wajib diisi" })
-    .min(1, "Password tidak boleh kosong"),
+    .string().min(1, "Password wajib diisi")
 });
 
 const resetSchema = z.object({
@@ -26,7 +25,9 @@ const resetSchema = z.object({
 
 const newPasswordSchema = z
   .object({
-    old_password: z.string({ required_error: "Password lama wajib diisi" }),
+    old_password: z
+      .string({ required_error: "Password lama wajib diisi" })
+      .min(1, "Password lama wajib diisi"),
     new_password: z
       .string({ required_error: "Password baru wajib diisi" })
       .min(8, "Password minimal 8 karakter")
@@ -47,35 +48,20 @@ const newPasswordSchema = z
 
 const newClassroomSchema = z
   .object({
-    class_cover: z
-      .string({ required_error: "Cover kelas harus dipilih" })
-      .min(1, "Cover kelas harus dipilih"),
-    class_name: z
-      .string({ required_error: "Nama Kelas wajib diisi" })
-      .min(1, "Nama Kelas wajib diisi"),
+    class_cover: z.string({ required_error: "Cover kelas harus dipilih" }),
+    class_name: z.string({ required_error: "Nama Kelas wajib diisi" }),
     room_number: z
       .string({ required_error: "Ruang wajib diisi" })
-      .min(1, "Ruang wajib diisi")
       .regex(/^\d+$/, "Ruang wajib diisi"),
     term: z
       .string({ required_error: "Semester wajib diisi" })
-      .min(1, "Semester wajib diisi")
       .regex(/^\d+$/, "Semester wajib diisi"),
-    day: z
-      .string({ required_error: "Hari wajib dipilih" })
-      .min(1, "Hari wajib dipilih"),
-    class_start: z
-      .string({ required_error: "Jam mulai kelas wajib diisi" })
-      .min(1, "Jam mulai kelas wajib diisi"),
-    class_end: z
-      .string({ required_error: "Jam selesai kelas wajib diisi" })
-      .min(1, "Jam selesai kelas wajib diisi"),
-    prodi: z
-      .string({ required_error: "Program studi wajib dipilih" })
-      .min(1, "Program studi wajib dipilih"),
+    day: z.string({ required_error: "Hari wajib dipilih" }),
+    class_start: z.string({ required_error: "Jam mulai kelas wajib diisi" }),
+    class_end: z.string({ required_error: "Jam selesai kelas wajib diisi" }),
+    prodi: z.string({ required_error: "Program studi wajib dipilih" }),
     tahun_ajaran: z
       .string({ required_error: "Tahun ajaran wajib diisi" })
-      .min(1, "Tahun ajaran wajib diisi")
       .regex(
         /^\d{4}\/\d{4}$/,
         "Format tahun ajaran tidak sesuai (contoh: 2025/2026)",
@@ -132,7 +118,7 @@ const joinClassroomSchema = z.object({
 });
 
 const newForumPostSchema = z.object({
-  title: z.string({ required_error: "Judul wajib diisi" }),
+  title: z.string().min(1, "Judul wajib diisi"),
   content: z
     .string()
     .refine((val) => val.trim() !== "" && val !== "<p><br></p>", {
@@ -161,7 +147,7 @@ const AttachmentSchema = z.object({
 });
 
 const newMaterialSchema = z.object({
-  title: z.string({ required_error: "Judul wajib diisi" }),
+  title: z.string().min(1, "Judul materi wajib diisi"),
   meeting_id: z.string().nullable().optional(),
   description: z
     .string()
@@ -178,7 +164,9 @@ const newMaterialSchema = z.object({
 
 const changePasswordSchema = z
   .object({
-    old_password: z.string({ required_error: "Password lama wajib diisi" }),
+    old_password: z
+      .string({ required_error: "Password lama wajib diisi" })
+      .min(1, "Password lama wajib diisi"),
     new_password: z
       .string({ required_error: "Password baru wajib diisi" })
       .min(8, "Password minimal 8 karakter")

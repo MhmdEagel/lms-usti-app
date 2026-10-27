@@ -54,7 +54,10 @@ export default function BroadcastMessageAction({
           <span className="hidden sm:inline">Kirim Pesan Siaran</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg" resetForm={handleClose}>
+      <DialogContent
+        className="sm:max-w-lg overflow-y-auto max-h-[85vh]"
+        resetForm={handleClose}
+      >
         <DialogHeader>
           <DialogTitle>Pesan Siaran ke Mahasiswa</DialogTitle>
         </DialogHeader>

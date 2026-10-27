@@ -60,7 +60,7 @@ export default function Profile({ user }: ProfileProps) {
               <div className="relative">
                 <Avatar className="size-24 md:size-[96px]">
                   <AvatarImage src={previewUrl || user.profile || ""} alt={user.fullname} />
-                  <AvatarFallback className="text-2xl md:text-4xl bg-primary text-white">
+                  <AvatarFallback   className="text-2xl md:text-4xl bg-primary text-white">
                     {user.fullname?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>

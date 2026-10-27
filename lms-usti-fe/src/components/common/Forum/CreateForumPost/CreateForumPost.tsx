@@ -19,18 +19,29 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import ContentEditor from "@/components/ui/content-editor";
 import { useCreateForumPost } from "./useCreateForumPost";
 
 export default function CreateForumPost() {
-  const { form, open, setOpen, isPending, handleSubmit, handleClose } = useCreateForumPost();
+  const { form, open, setOpen, isPending, onSubmit, handleClose } =
+    useCreateForumPost();
 
   return (
     <>
       <div className="flex items-center justify-between pb-4 border-b-2">
         <div className="text-base md:text-xl font-semibold">Forum Publik</div>
-        <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); else setOpen(v); }}>
+        <Dialog
+          open={open}
+          onOpenChange={(v) => {
+            if (!v) handleClose();
+            else setOpen(v);
+          }}
+        >
           <Tooltip>
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
@@ -46,15 +57,23 @@ export default function CreateForumPost() {
               <DialogTitle>Buat Postingan Baru</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="title"
-                  render={({ field }) => (
+                  render={({ field, fieldState }) => (
                     <FormItem>
                       <FormLabel>Judul</FormLabel>
                       <FormControl>
-                        <Input placeholder="Judul postingan..." {...field} autoComplete="off" />
+                        <Input
+                          aria-invalid={fieldState.invalid}
+                          placeholder="Judul postingan..."
+                          {...field}
+                          autoComplete="off"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

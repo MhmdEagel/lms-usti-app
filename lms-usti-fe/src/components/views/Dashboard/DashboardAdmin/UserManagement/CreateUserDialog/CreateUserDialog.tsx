@@ -87,7 +87,7 @@ export default function CreateUserDialog() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Email" {...field} />
+                      <Input type="string" placeholder="Email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -96,7 +96,7 @@ export default function CreateUserDialog() {
               <FormField
                 control={createUserForm.control}
                 name="password"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
@@ -104,6 +104,7 @@ export default function CreateUserDialog() {
                         <Input
                           {...field}
                           className="pe-9"
+                          aria-invalid={fieldState.invalid}
                           value={field.value ?? ""}
                           type={isVisible ? "text" : "password"}
                           placeholder="Password (min 8 karakter)"

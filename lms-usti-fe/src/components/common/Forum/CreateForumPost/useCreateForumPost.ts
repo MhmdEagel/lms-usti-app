@@ -15,10 +15,9 @@ export function useCreateForumPost() {
 
   const form = useForm<CreateForumPostForm>({
     resolver: zodResolver(createForumPostSchema),
-    defaultValues: { title: "", content: "" },
   });
 
-  const handleSubmit = async (values: CreateForumPostForm) => {
+  const onSubmit = async (values: CreateForumPostForm) => {
     setIsPending(true);
     try {
       await forumServices.createPost({
@@ -41,5 +40,5 @@ export function useCreateForumPost() {
     setOpen(false);
   };
 
-  return { form, open, setOpen, isPending, handleSubmit, handleClose };
+  return { form, open, setOpen, isPending, onSubmit, handleClose };
 }

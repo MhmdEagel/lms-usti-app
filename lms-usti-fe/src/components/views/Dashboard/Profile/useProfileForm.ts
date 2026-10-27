@@ -42,6 +42,8 @@ export const useProfileForm = (user: {
       if (values.fullname !== user.fullname) data.fullname = values.fullname;
       if (values.email !== user.email) data.email = values.email;
       if (Object.keys(data).length === 0) {
+        // Tidak ada perubahan — tidak perlu request, tapi tetap beri feedback.
+        toast.success("Profil berhasil diperbarui");
         setIsEditing(false);
         return;
       }
