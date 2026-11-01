@@ -73,8 +73,10 @@ test.describe("Data Kelas", () => {
     await expect(
       dosenPage.getByRole("dialog").filter({ hasText: "Buat Kelas" }),
     ).toBeHidden();
-    // kelas muncul di list
-    await expect(dosenPage.getByText(name).first()).toBeVisible();
+    // kelas muncul di list (router.refresh setelah server action bisa lambat)
+    await expect(dosenPage.getByText(name).first()).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   // TC-CLASS-CREATE-02

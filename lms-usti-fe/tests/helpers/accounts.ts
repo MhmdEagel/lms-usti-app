@@ -18,7 +18,7 @@ interface Account {
 
 export const BASE_URL = process.env.FE_URL ?? "http://localhost:3000";
 export const API_URL =
-  process.env.API_URL ?? "http://localhost:3001/lms-usti-api";
+  process.env.API_URL ?? "http://localhost:8080/lms-usti-api";
 
 export const ACCOUNTS: Record<Role, Account> = {
   mahasiswa: {

@@ -2,19 +2,35 @@
 
 ## Cara Menjalankan
 
+Test **tidak menyalakan server sendiri** — jalankan FE dan BE lebih dulu di
+terminal terpisah, lalu baru jalankan suite:
+
 ```bash
-# pastikan backend jalan (air) di :3001 — atau biarkan Playwright yang start
+# terminal 1 — frontend (http://localhost:3000)
+cd lms-usti-fe && npm run dev
+
+# terminal 2 — backend (http://localhost:8080/lms-usti-api)
+cd lms-usti-be && air
+
+# terminal 3 — jalankan test
+cd lms-usti-fe
 npm run test:e2e            # semua test (chromium, firefox, webkit)
 npm run test:e2e:smoke      # hanya P0 (@smoke)
 npm run test:e2e:ui         # mode UI interaktif
 npm run test:e2e:report     # lihat report terakhir
 
 # satu browser saja (lebih cepat):
-npx.cmd playwright test --project=chromium
+npx playwright test --project=chromium
 ```
 
-`playwright.config.ts` akan otomatis menjalankan `npm run dev` (FE) dan
-`air` (BE) jika server belum jalan (`webServer` + `reuseExistingServer`).
+Jika port berbeda, arahkan lewat env:
+
+```bash
+FE_URL=http://localhost:3000 API_URL=http://localhost:8080/lms-usti-api npx playwright test
+```
+
+`global-setup.ts` mengecek konektivitas FE & BE lebih dulu dan langsung gagal
+dengan pesan jelas bila salah satunya belum berjalan.
 
 ## Arsitektur Test
 

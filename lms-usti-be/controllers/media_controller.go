@@ -87,6 +87,12 @@ func (m *MediaController) uploadMedia(ctx *gin.Context, kind services.MediaKind,
 		ctx.JSON(http.StatusInternalServerError, res)
 		return
 	}
+	if err := os.MkdirAll(filepath.Dir(uploadData.UploadPath), 0o755); err != nil {
+		log.Printf("MkdirAll error: %v", err)
+		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
 	if err := ctx.SaveUploadedFile(uploadData.File, uploadData.UploadPath); err != nil {
 		log.Printf("SaveUploadedFile error: %v", err)
 		res := data.NewResponse(http.StatusInternalServerError, "terjadi kesalahan server", nil)

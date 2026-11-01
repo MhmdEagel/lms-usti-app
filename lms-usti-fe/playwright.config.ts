@@ -1,16 +1,25 @@
 import { defineConfig, devices } from '@playwright/test';
-import path from 'path';
 
 /**
  * Konfigurasi Playwright untuk LMS USTI.
  *
- * Test menjalankan frontend (localhost:3000) dan backend (localhost:3001)
- * secara bersamaan. Jika server sudah berjalan, server yang ada dipakai
- * kembali (reuseExistingServer).
+ * Test TIDAK menjalankan server apa pun. Frontend (localhost:3000) dan
+ * backend (localhost:8080, lihat lms-usti-be/.env) harus sudah berjalan
+ * sebelum `npm run test:e2e`:
+ *
+ *   # terminal 1
+ *   cd lms-usti-fe && npm run dev
+ *   # terminal 2
+ *   cd lms-usti-be && air
+ *
+ * Global setup akan gagal lebih awal dengan pesan jelas jika salah satu
+ * server belum bisa diakses.
+ *
+ * Override lewat env bila port berbeda:
+ *   FE_URL=http://localhost:3000 API_URL=http://localhost:8080/lms-usti-api
  */
 
 const FE_URL = process.env.FE_URL ?? 'http://localhost:3000';
-const BE_URL = process.env.BE_URL ?? 'http://localhost:3001/lms-usti-api';
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -52,23 +61,6 @@ export default defineConfig({
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-    },
-  ],
-
-  /* Run local dev server before starting the tests */
-  webServer: [
-    {
-      command: 'npm run dev',
-      url: FE_URL,
-      reuseExistingServer: !process.env.CI,
-      timeout: 120_000,
-    },
-    {
-      command: 'air',
-      url: BE_URL,
-      reuseExistingServer: !process.env.CI,
-      timeout: 120_000,
-      cwd: path.join(__dirname, '..', 'lms-usti-be'),
     },
   ],
 

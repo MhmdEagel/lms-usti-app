@@ -11,7 +11,7 @@ import (
 
 
 func ConnectDatabase() *gorm.DB {
-	dsn := fmt.Sprintf("%s:%s@tcp(localhost:3306)/lms_usti?charset=utf8mb4&parseTime=True&loc=Local", env.DB_USERNAME, env.DB_PASSWORD)
+	dsn := fmt.Sprintf("%s:%s@tcp(localhost:3306)/lms_usti_db?charset=utf8mb4&parseTime=True&loc=Local", env.DB_USERNAME, env.DB_PASSWORD)
 	database, err := gorm.Open(mysql.New(mysql.Config{DSN: dsn, DefaultStringSize: 255}), &gorm.Config{TranslateError: true})
 	if err != nil {
 		panic(err.Error())

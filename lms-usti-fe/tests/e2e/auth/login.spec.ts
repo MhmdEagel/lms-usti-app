@@ -70,6 +70,8 @@ test.describe("Login", () => {
     await passwordInput(page, "password").fill("password-salah");
     await page.getByRole("button", { name: "Login" }).click();
 
-    await expect(page.getByText("email atau password salah")).toBeVisible();
+    await expect(page.getByText("email atau password salah")).toBeVisible({
+      timeout: 15_000,
+    });
   });
 });

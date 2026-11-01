@@ -3,14 +3,15 @@ import z from "zod";
 
 const loginSchema = z.object({
   email: z
-    .string({ required_error: "Email wajib diisi" })
+    .string().min(1, "Email wajib diisi")
     .email("Email tidak sesuai"),
   // .regex(
   //   /^[a-zA-Z0-9._%+-]+@sar\.ac\.id$/,
   //   "Email harus menggunakan domain @sar.ac.id"
   // )
   password: z
-    .string().min(1, "Password wajib diisi")
+    .string({ required_error: "Password wajib diisi" })
+    .min(1, "Password wajib diisi"),
 });
 
 const resetSchema = z.object({
@@ -49,7 +50,7 @@ const newPasswordSchema = z
 const newClassroomSchema = z
   .object({
     class_cover: z.string({ required_error: "Cover kelas harus dipilih" }),
-    class_name: z.string({ required_error: "Nama Kelas wajib diisi" }),
+    class_name: z.string().min(1, "Nama kelas wajib diisi"),
     room_number: z
       .string({ required_error: "Ruang wajib diisi" })
       .regex(/^\d+$/, "Ruang wajib diisi"),
